@@ -769,9 +769,21 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       <div className="w-full md:w-[420px] bg-slate-800 flex flex-col border-r border-slate-700">
         <div className="p-6 border-b border-slate-700 bg-slate-900">
           <div className="flex items-center gap-4">
-            {(empresa.logoUrl || empresa.logo_url) ? <img src={empresa.logoUrl || empresa.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover" /> : <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">{empresa.nombre?.substring(0, 2).toUpperCase()}</div>}
-            <div>
-              <h1 className="font-black text-lg uppercase">{empresa.nombre}</h1>
+            {/* Favicon (ícono pequeño cuadrado) */}
+            {(empresa.faviconUrl || empresa.favicon_url) ? (
+              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+            ) : (
+              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">
+                {empresa.nombre?.substring(0, 2).toUpperCase()}
+              </div>
+            )}
+            {/* Logo o nombre de empresa */}
+            <div className="flex-1">
+              {(empresa.logoUrl || empresa.logo_url) ? (
+                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
+              ) : (
+                <h1 className="font-black text-lg uppercase">{empresa.nombre}</h1>
+              )}
               <span className="text-yellow-500 text-xs font-bold uppercase">{empresa.slogan}</span>
             </div>
           </div>
