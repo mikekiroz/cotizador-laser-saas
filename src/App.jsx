@@ -458,7 +458,33 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
 function AdminEmpresa({ empresa, setEmpresa }) {
   const { session } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState(empresa);
+
+  const handleImageUpload = async (file, fieldName) => {
+    if (!file) return;
+    setUploading(true);
+
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const fileName = `${session.user.id}/${fieldName}_${Date.now()}.${fileExt}`;
+
+    // Subir a Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('empresas-assets')
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) {
+      alert('Error subiendo imagen: ' + uploadError.message);
+      setUploading(false);
+      return;
+    }
+
+    // Obtener URL pública
+    const { data } = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
+
+    setForm({ ...form, [fieldName]: data.publicUrl });
+    setUploading(false);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -484,6 +510,40 @@ function AdminEmpresa({ empresa, setEmpresa }) {
   return (
     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-2xl">
       <h3 className="font-bold mb-6 flex items-center gap-2"><Building2 size={20} className="text-cyan-400" /> Datos de la Empresa</h3>
+
+      {/* Imágenes */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Logo</label>
+          <div className="bg-slate-900 border border-slate-600 rounded-lg p-4 text-center">
+            {(form.logoUrl || form.logo_url) ? (
+              <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-16 mx-auto object-contain mb-2" />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin logo</div>
+            )}
+            <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Logo'}
+              <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
+            </label>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Favicon (Ícono)</label>
+          <div className="bg-slate-900 border border-slate-600 rounded-lg p-4 text-center">
+            {(form.faviconUrl || form.favicon_url) ? (
+              <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-16 mx-auto object-contain mb-2" />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin ícono</div>
+            )}
+            <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Ícono'}
+              <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Datos */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-bold text-slate-500 uppercase">Nombre</label>
@@ -510,7 +570,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
           <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
       </div>
-      <button onClick={handleSave} disabled={saving} className="mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
+      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
         {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
       </button>
     </div>
