@@ -186,7 +186,15 @@ function VistaCliente({ materials: materiales, empresa, config: configProp }) {
 
   useEffect(() => { if (materiales.length > 0 && !materialSeleccionado && materiales[0]) setMaterialSeleccionado(materiales[0].id); }, [materiales]);
 
-  const materialActivo = materiales.find(m => m.id === Number(materialSeleccionado)) || { precioMetro: 0, precioDisparo: 0 };
+  // Fix: Handle both snake_case (from DB) and camelCase property names
+  const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
+  const materialActivo = {
+    ...rawMaterial,
+    precioMetro: rawMaterial.precio_metro || rawMaterial.precioMetro || 0,
+    precioDisparo: rawMaterial.precio_disparo || rawMaterial.precioDisparo || 0,
+    nombre: rawMaterial.nombre || 'Material',
+    calibre: rawMaterial.calibre || ''
+  };
 
   const procesarDXF = (textoDXF) => {
     try {
@@ -206,8 +214,12 @@ function VistaCliente({ materials: materiales, empresa, config: configProp }) {
         else if (entidad.type === 'ARC') { longitudTotal += entidad.radius * Math.abs(entidad.endAngle - entidad.startAngle); esValida = true; }
         if (esValida) conteoFiguras++;
       });
+      console.log('DXF procesado:', { longitudTotal, conteoFiguras });
       finalizarCalculo(longitudTotal / 1000, conteoFiguras);
-    } catch (err) { reportarError('Archivo DXF inválido.'); }
+    } catch (err) {
+      console.error('Error DXF:', err);
+      reportarError('Archivo DXF inválido: ' + err.message);
+    }
   };
 
   const procesarSVG = (textoSVG) => {
@@ -231,8 +243,12 @@ function VistaCliente({ materials: materiales, empresa, config: configProp }) {
           if (len > 0) { longitudTotal += len; conteoFiguras++; }
         });
       });
+      console.log('SVG procesado:', { longitudTotal, conteoFiguras });
       finalizarCalculo(longitudTotal / 1000, conteoFiguras);
-    } catch (err) { reportarError('SVG inválido.'); }
+    } catch (err) {
+      console.error('Error SVG:', err);
+      reportarError('SVG inválido: ' + err.message);
+    }
   };
 
   const finalizarCalculo = (mts, disparos) => { setPerimetro(mts); setCantidadDisparos(disparos); setError(''); setProcesando(false); };
@@ -240,11 +256,19 @@ function VistaCliente({ materials: materiales, empresa, config: configProp }) {
 
   const manejarArchivo = (e) => {
     const file = e.target.files[0]; if (!file) return;
+    console.log('Procesando archivo:', file.name);
     setNombreArchivo(file.name); setProcesando(true); setError('');
     const ext = file.name.split('.').pop().toLowerCase(); setTipoArchivo(ext);
     const reader = new FileReader();
     reader.onload = (ev) => {
-      if (ext === 'dxf') procesarDXF(ev.target.result); else if (ext === 'svg') procesarSVG(ev.target.result); else reportarError("Formato no soportado.");
+      console.log('Archivo cargado, tipo:', ext);
+      if (ext === 'dxf') procesarDXF(ev.target.result);
+      else if (ext === 'svg') procesarSVG(ev.target.result);
+      else reportarError("Formato no soportado.");
+    };
+    reader.onerror = (err) => {
+      console.error('Error leyendo archivo:', err);
+      reportarError("Error al leer el archivo.");
     };
     reader.readAsText(file);
   };
@@ -255,7 +279,7 @@ function VistaCliente({ materials: materiales, empresa, config: configProp }) {
   const costoTotal = costoUnitarioTotal * cantidad;
   const valorIva = datosCliente.aplicaIva ? costoTotal * (config.porcentajeIva / 100) : 0;
   const totalFinal = costoTotal + valorIva;
-  const formatoPesos = (valor) => '$' + Math.round(valor).toLocaleString('es-CO');
+  const formatoPesos = (valor) => '$' + Math.round(valor || 0).toLocaleString('es-CO');
 
   const generarPDFCotizacion = () => {
     const doc = new jsPDF();
