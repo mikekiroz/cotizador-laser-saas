@@ -745,22 +745,55 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const totalFinal = costoTotal + valorIva;
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
-  const procesarAccionModal = () => {
-    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) { alert("Completa los campos obligatorios."); return; }
+  const procesarAccionModal = async () => {
+    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
+      alert("Completa los campos obligatorios.");
+      return;
+    }
     setEnviandoCorreo(true);
-    setTimeout(() => {
-      setEnviandoCorreo(false); setMostrarModal(false);
-      if (modalMode === 'PEDIDO') {
-        const tel = empresa.telefono?.replace(/\D/g, '') || '';
-        const txt = `Hola *${empresa.nombre}*, quiero confirmar:\n*Archivo:* ${nombreArchivo}\n*Material:* ${materialActivo.nombre}\n*Cantidad:* ${cantidad}\n*Total:* ${formatoPesos(totalFinal)}\n*Cliente:* ${datosCliente.nombre} - ${datosCliente.telefono}`;
-        window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(txt)}`, '_blank');
-      } else {
-        const subject = `Cotización ${empresa.nombre}`;
-        const body = `Hola ${datosCliente.nombre},\n\nResumen de cotización:\nArchivo: ${nombreArchivo}\nMaterial: ${materialActivo.nombre}\nCantidad: ${cantidad}\nTotal: ${formatoPesos(totalFinal)}\n\nContacto: ${empresa.telefono}`;
-        window.location.href = `mailto:${datosCliente.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    if (modalMode === 'PEDIDO') {
+      // WhatsApp - funciona igual
+      const tel = empresa.telefono?.replace(/\D/g, '') || '';
+      const txt = `Hola *${empresa.nombre}*, quiero confirmar:\n*Archivo:* ${nombreArchivo}\n*Material:* ${materialActivo.nombre}\n*Cantidad:* ${cantidad}\n*Total:* ${formatoPesos(totalFinal)}\n*Cliente:* ${datosCliente.nombre} - ${datosCliente.telefono}`;
+      window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(txt)}`, '_blank');
+      setEnviandoCorreo(false);
+      setMostrarModal(false);
+      alert('✅ ¡Redirigido a WhatsApp!');
+    } else {
+      // Cotización - enviar email automáticamente
+      try {
+        const response = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: empresa.email || empresa.email_contacto,
+            subject: `Nueva cotización de ${datosCliente.nombre}`,
+            clienteNombre: datosCliente.nombre,
+            clienteTelefono: datosCliente.telefono,
+            clienteEmail: datosCliente.email,
+            archivo: nombreArchivo,
+            material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+            cantidad: cantidad,
+            total: formatoPesos(totalFinal),
+            empresaNombre: empresa.nombre
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('✅ ¡Cotización enviada! El taller recibirá tu solicitud por email.');
+        } else {
+          alert('❌ Error al enviar: ' + (data.error || 'Intenta de nuevo'));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error de conexión. Intenta de nuevo.');
       }
-      alert('✅ ¡Enviado!');
-    }, 1500);
+      setEnviandoCorreo(false);
+      setMostrarModal(false);
+    }
   };
 
   return (
