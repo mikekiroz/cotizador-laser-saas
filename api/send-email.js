@@ -1,49 +1,62 @@
 import { Resend } from 'resend';
 
 export const config = {
-    runtime: 'edge',
+  runtime: 'edge',
 };
 
 export default async function handler(request) {
-    // Solo permitir POST
-    if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-            status: 405,
-            headers: { 'Content-Type': 'application/json' },
-        });
+  // Solo permitir POST
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    const body = await request.json();
+    const {
+      to, // Email del taller
+      subject,
+      clienteNombre,
+      clienteTelefono,
+      clienteEmail,
+      archivo,
+      material,
+      cantidad,
+      total,
+      empresaNombre
+    } = body;
+
+    // Validar campos requeridos
+    if (!to || !clienteNombre || !clienteEmail) {
+      return new Response(JSON.stringify({ error: 'Faltan campos requeridos' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    try {
-        const body = await request.json();
-        const {
-            to, // Email del taller
-            subject,
-            clienteNombre,
-            clienteTelefono,
-            clienteEmail,
-            archivo,
-            material,
-            cantidad,
-            total,
-            empresaNombre
-        } = body;
+    // Validar que la API key existe
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error('RESEND_API_KEY not found in environment');
+      return new Response(JSON.stringify({
+        error: 'Configuración del servidor incompleta. Contacta al administrador.',
+        debug: 'RESEND_API_KEY not configured'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-        // Validar campos requeridos
-        if (!to || !clienteNombre || !clienteEmail) {
-            return new Response(JSON.stringify({ error: 'Faltan campos requeridos' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
+    const resend = new Resend(apiKey);
 
-        const resend = new Resend(process.env.RESEND_API_KEY);
-
-        // Enviar email al taller
-        const { data, error } = await resend.emails.send({
-            from: 'Cotizador Láser <onboarding@resend.dev>', // Cambiar cuando tengas dominio verificado
-            to: [to],
-            subject: subject || `Nueva cotización de ${clienteNombre}`,
-            html: `
+    // Enviar email al taller
+    const { data, error } = await resend.emails.send({
+      from: 'Cotizador Láser <onboarding@resend.dev>', // Cambiar cuando tengas dominio verificado
+      to: [to],
+      subject: subject || `Nueva cotización de ${clienteNombre}`,
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #0891b2, #0e7490); padding: 20px; border-radius: 8px 8px 0 0;">
             <h1 style="color: white; margin: 0;">Nueva Cotización</h1>
@@ -96,26 +109,26 @@ export default async function handler(request) {
           </div>
         </div>
       `,
-        });
+    });
 
-        if (error) {
-            console.error('Resend error:', error);
-            return new Response(JSON.stringify({ error: error.message }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        return new Response(JSON.stringify({ success: true, data }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-    } catch (error) {
-        console.error('Server error:', error);
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+    if (error) {
+      console.error('Resend error:', error);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
+
+    return new Response(JSON.stringify({ success: true, data }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
