@@ -37,9 +37,8 @@ const CONFIG_INICIAL = {
 
 function App() {
   const [vista, setVista] = useState('cliente');
-  const [isPublicMode, setIsPublicMode] = useState(false); // NEW: Track if viewing public tenant
 
-  // ESTADOS CON PERSISTENCIA (o desde Supabase si es modo público)
+  // ESTADOS CON PERSISTENCIA
   const [materiales, setMateriales] = useState(() => {
     const saved = localStorage.getItem('materiales');
     return saved ? JSON.parse(saved) : MATERIALES_INICIALES;
@@ -55,72 +54,10 @@ function App() {
     return saved ? JSON.parse(saved) : CONFIG_INICIAL;
   });
 
-  // NEW: Check URL for SaaS tenant mode
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tallerSlug = params.get('taller');
-
-    if (tallerSlug) {
-      // Load from Supabase instead of localStorage
-      cargarTallerPublico(tallerSlug);
-    }
-  }, []);
-
-  // NEW: Load tenant data from Supabase
-  const cargarTallerPublico = async (slug) => {
-    try {
-      const { supabase } = await import('./supabase');
-
-      // Fetch company
-      const { data: emp, error: empError } = await supabase
-        .from('empresas')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-
-      if (empError || !emp) {
-        console.error('Taller no encontrado:', slug);
-        return;
-      }
-
-      setEmpresa({
-        nombre: emp.nombre,
-        slogan: emp.slogan,
-        telefono: emp.telefono,
-        direccion: emp.direccion,
-        email: emp.email_contacto,
-        logoUrl: emp.logo_url,
-        faviconUrl: emp.favicon_url
-      });
-
-      setConfig(prev => ({ ...prev, porcentajeIva: emp.porcentaje_iva || 19 }));
-
-      // Fetch materials
-      const { data: mats } = await supabase
-        .from('materiales')
-        .select('*')
-        .eq('empresa_id', emp.id);
-
-      if (mats && mats.length > 0) {
-        setMateriales(mats.map(m => ({
-          id: m.id,
-          nombre: m.nombre,
-          calibre: m.calibre,
-          precioMetro: m.precio_metro,
-          precioDisparo: m.precio_disparo || 0
-        })));
-      }
-
-      setIsPublicMode(true); // Hide admin button in public mode
-    } catch (err) {
-      console.error('Error loading tenant:', err);
-    }
-  };
-
-  // EFECTOS PARA GUARDAR (Solo si NO es modo público)
-  useEffect(() => { if (!isPublicMode) localStorage.setItem('materiales', JSON.stringify(materiales)); }, [materiales, isPublicMode]);
-  useEffect(() => { if (!isPublicMode) localStorage.setItem('empresa', JSON.stringify(empresa)); }, [empresa, isPublicMode]);
-  useEffect(() => { if (!isPublicMode) localStorage.setItem('config', JSON.stringify(config)); }, [config, isPublicMode]);
+  // EFECTOS PARA GUARDAR
+  useEffect(() => localStorage.setItem('materiales', JSON.stringify(materiales)), [materiales]);
+  useEffect(() => localStorage.setItem('empresa', JSON.stringify(empresa)), [empresa]);
+  useEffect(() => localStorage.setItem('config', JSON.stringify(config)), [config]);
 
   // PROTECCION DE RUTA ADMIN (Simple)
   const entrarAdmin = () => {
@@ -144,13 +81,10 @@ function App() {
           <div className="absolute left-16 bg-slate-800 text-xs px-3 py-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-bold shadow-xl border border-slate-700">Cotizador</div>
         </button>
 
-        {/* Hide admin in public mode */}
-        {!isPublicMode && (
-          <button onClick={entrarAdmin} className={`p-4 rounded-2xl transition-all duration-200 group relative ${vista === 'admin' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-900 hover:text-indigo-400'}`} title="Vista Admin">
-            <Settings size={24} />
-            <div className="absolute left-16 bg-slate-800 text-xs px-3 py-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-bold shadow-xl border border-slate-700">Admin Tarifas</div>
-          </button>
-        )}
+        <button onClick={entrarAdmin} className={`p-4 rounded-2xl transition-all duration-200 group relative ${vista === 'admin' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-900 hover:text-indigo-400'}`} title="Vista Admin">
+          <Settings size={24} />
+          <div className="absolute left-16 bg-slate-800 text-xs px-3 py-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-bold shadow-xl border border-slate-700">Admin Tarifas</div>
+        </button>
       </div>
 
       {/* RENDERIZADO DE VISTAS */}
