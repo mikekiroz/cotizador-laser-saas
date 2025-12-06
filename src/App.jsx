@@ -144,7 +144,8 @@ function App() {
           <div className="absolute left-16 bg-slate-800 text-xs px-3 py-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-bold shadow-xl border border-slate-700">Cotizador</div>
         </button>
 
-        {/* Hide admin in public mode */}
+        {/* Admin button: solo visible si NO es modo público (sin ?taller=) */}
+        {console.log('isPublicMode:', isPublicMode)}
         {!isPublicMode && (
           <button onClick={entrarAdmin} className={`p-4 rounded-2xl transition-all duration-200 group relative ${vista === 'admin' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-900 hover:text-indigo-400'}`} title="Vista Admin">
             <Settings size={24} />
