@@ -89,18 +89,32 @@ function App() {
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoadingData(true);
-    let errorC = null;
 
-    if (authMode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      errorC = error;
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      errorC = error;
-      if (!error) alert("¡Registro exitoso! Revisa tu correo o inicia sesión.");
+    console.log('Auth mode:', authMode, 'Email:', email);
+
+    try {
+      if (authMode === 'login') {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        console.log('Login result:', { data, error });
+        if (error) {
+          alert('Error al iniciar sesión: ' + error.message);
+        }
+      } else {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        console.log('SignUp result:', { data, error });
+        if (error) {
+          alert('Error al registrar: ' + error.message);
+        } else if (data?.user?.identities?.length === 0) {
+          alert('Este email ya está registrado. Intenta iniciar sesión.');
+        } else {
+          alert('¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.');
+        }
+      }
+    } catch (err) {
+      console.error('Auth exception:', err);
+      alert('Error inesperado: ' + err.message);
     }
 
-    if (errorC) alert(errorC.message);
     setLoadingData(false);
   };
 
