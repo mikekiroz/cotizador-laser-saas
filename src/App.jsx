@@ -521,30 +521,87 @@ function AdminEmpresa({ empresa, setEmpresa }) {
 // ADMIN - SEGURIDAD
 // ==========================================
 function AdminSeguridad() {
+  const { session } = useAuth();
+  const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verified, setVerified] = useState(false);
+
+  const handleVerify = async () => {
+    if (!currentPass) { alert('Ingresa tu contraseña actual'); return; }
+    setLoading(true);
+    // Re-authenticate with current password
+    const { error } = await supabase.auth.signInWithPassword({
+      email: session.user.email,
+      password: currentPass
+    });
+    if (error) {
+      alert('Contraseña incorrecta');
+    } else {
+      setVerified(true);
+    }
+    setLoading(false);
+  };
 
   const handleChangePassword = async () => {
-    if (!newPass || newPass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+    if (!newPass || newPass.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
+    if (newPass !== confirmPass) { alert('Las contraseñas no coinciden'); return; }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) alert('Error: ' + error.message);
-    else { alert('¡Contraseña actualizada!'); setNewPass(''); }
+    else {
+      alert('¡Contraseña actualizada!');
+      setCurrentPass(''); setNewPass(''); setConfirmPass('');
+      setVerified(false);
+    }
     setLoading(false);
   };
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-md">
       <h3 className="font-bold mb-6 flex items-center gap-2"><Lock size={20} className="text-cyan-400" /> Cambiar Contraseña</h3>
-      <div className="space-y-4">
-        <div>
-          <label className="text-xs font-bold text-slate-500 uppercase">Nueva Contraseña</label>
-          <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Mínimo 6 caracteres" />
+
+      {!verified ? (
+        // Paso 1: Verificar identidad
+        <div className="space-y-4">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg">
+            <p className="text-yellow-400 text-sm font-bold">🔐 Verificación requerida</p>
+            <p className="text-slate-400 text-xs mt-1">Por seguridad, confirma tu contraseña actual para continuar.</p>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase">Contraseña Actual</label>
+            <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Tu contraseña actual" />
+          </div>
+          <button onClick={handleVerify} disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 text-slate-900 font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
+            {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} VERIFICAR IDENTIDAD
+          </button>
         </div>
-        <button onClick={handleChangePassword} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR
-        </button>
-      </div>
+      ) : (
+        // Paso 2: Cambiar contraseña
+        <div className="space-y-4">
+          <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-lg">
+            <p className="text-green-400 text-sm font-bold">✓ Identidad verificada</p>
+            <p className="text-slate-400 text-xs mt-1">Ahora puedes establecer tu nueva contraseña.</p>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase">Nueva Contraseña</label>
+            <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-slate-500 uppercase">Confirmar Nueva Contraseña</label>
+            <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Repite la nueva contraseña" />
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => { setVerified(false); setCurrentPass(''); }} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold px-6 py-3 rounded-xl">
+              CANCELAR
+            </button>
+            <button onClick={handleChangePassword} disabled={loading} className="flex-1 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
+              {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} GUARDAR
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
