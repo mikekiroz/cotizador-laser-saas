@@ -4,102 +4,150 @@ import {
   Upload, Calculator, DollarSign, Settings, FileBox, Zap,
   Trash2, Plus, Users, LayoutDashboard, Building2, User,
   Phone, MapPin, FileText, X, AlertTriangle, Printer,
-  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus
+  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2
 } from 'lucide-react';
+import { supabase } from './supabase';
+import { useAuth } from './AuthContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // ==========================================
-// CONFIGURACIÓN INICIAL
+// CONFIGURACIÓN INICIAL (DEFAULTS)
 // ==========================================
-const MATERIALES_INICIALES = [
-  { id: 1, nombre: 'Acero HR (Hot Rolled)', calibre: 'Calibre 18', precioMetro: 3500, precioDisparo: 200 },
-  { id: 2, nombre: 'Acero HR (Hot Rolled)', calibre: '1/8" (3mm)', precioMetro: 6000, precioDisparo: 300 },
-  { id: 3, nombre: 'Acero Inoxidable', calibre: 'Calibre 20', precioMetro: 8000, precioDisparo: 250 },
-  { id: 4, nombre: 'Aluminio', calibre: '3mm', precioMetro: 12000, precioDisparo: 200 },
-  { id: 5, nombre: 'MDF / Madera', calibre: '5mm', precioMetro: 1500, precioDisparo: 50 },
-];
-
-const EMPRESA_INICIAL = {
-  nombre: 'Laser Group',
-  slogan: 'Corte Industrial',
-  telefono: '300 123 4567',
-  email: 'contacto@lasergroup.com',
-  direccion: 'Calle 10 # 20-30',
-  logoUrl: '',
-  faviconUrl: '',
-  nit: ''
-};
-
-const CONFIG_INICIAL = {
-  password: '',
-  emailCotizaciones: 'ventas@lasergroup.com',
-  porcentajeIva: 19
+const EMPRESA_DEFAULT = {
+  nombre: 'Mi Empresa',
+  slogan: 'Servicio de Corte',
+  color_primario: '#0891b2',
+  porcentaje_iva: 19
 };
 
 function App() {
-  const [vista, setVista] = useState('cliente');
+  const { session, signOut } = useAuth();
+  const [vista, setVista] = useState('cargando');
 
-  // ESTADOS CON PERSISTENCIA
-  const [materiales, setMateriales] = useState(() => {
-    const saved = localStorage.getItem('materiales');
-    return saved ? JSON.parse(saved) : MATERIALES_INICIALES;
-  });
+  // DATOS
+  const [empresa, setEmpresa] = useState(null);
+  const [materiales, setMateriales] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
 
-  const [empresa, setEmpresa] = useState(() => {
-    const saved = localStorage.getItem('empresa');
-    return saved ? JSON.parse(saved) : EMPRESA_INICIAL;
-  });
+  // AUTH STATE
+  const [authMode, setAuthMode] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const [config, setConfig] = useState(() => {
-    const saved = localStorage.getItem('config');
-    return saved ? JSON.parse(saved) : CONFIG_INICIAL;
-  });
+  // 1. ROUTING
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tallerSlug = params.get('taller');
 
-  // EFECTOS PARA GUARDAR
-  useEffect(() => localStorage.setItem('materiales', JSON.stringify(materiales)), [materiales]);
-  useEffect(() => localStorage.setItem('empresa', JSON.stringify(empresa)), [empresa]);
-  useEffect(() => localStorage.setItem('config', JSON.stringify(config)), [config]);
-
-  // PROTECCION DE RUTA ADMIN (Simple)
-  const entrarAdmin = () => {
-    if (config.password) {
-      const input = prompt("Ingresa la contraseña de administrador:");
-      if (input !== config.password) {
-        alert("Contraseña incorrecta");
-        return;
-      }
+    if (tallerSlug) {
+      cargarTallerPublico(tallerSlug);
+    } else if (session) {
+      cargarMiEmpresa();
+    } else {
+      setVista('landing');
     }
-    setVista('admin');
+  }, [session]);
+
+  // 2. PUBLIC VIEW LOAD
+  const cargarTallerPublico = async (slug) => {
+    setLoadingData(true);
+    const { data: emp, error } = await supabase.from('empresas').select('*').eq('slug', slug).single();
+
+    if (error || !emp) {
+      alert("Taller no encontrado. Verifica la dirección.");
+      setVista('landing');
+      setLoadingData(false);
+      return;
+    }
+
+    setEmpresa(emp);
+    const { data: mats } = await supabase.from('materiales').select('*').eq('empresa_id', emp.id);
+    setMateriales(mats || []);
+    setVista('cliente');
+    setLoadingData(false);
   };
 
+  // 3. ADMIN VIEW LOAD
+  const cargarMiEmpresa = async () => {
+    setLoadingData(true);
+    setVista('admin');
+
+    const { data: emp } = await supabase.from('empresas').select('*').eq('id', session.user.id).single();
+
+    if (!emp) {
+      setEmpresa(null); // Triggers Onboarding in VistaAdmin
+    } else {
+      setEmpresa(emp);
+      const { data: mats } = await supabase.from('materiales').select('*').eq('empresa_id', session.user.id);
+      setMateriales(mats || []);
+    }
+    setLoadingData(false);
+  };
+
+  // 4. AUTH HANDLER
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    setLoadingData(true);
+    let errorC = null;
+
+    if (authMode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      errorC = error;
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password });
+      errorC = error;
+      if (!error) alert("¡Registro exitoso! Revisa tu correo o inicia sesión.");
+    }
+
+    if (errorC) alert(errorC.message);
+    setLoadingData(false);
+  };
+
+  if (vista === 'cargando' || loadingData) {
+    return <div className="h-screen bg-slate-950 text-white flex items-center justify-center flex-col gap-4">
+      <Loader2 className="animate-spin text-cyan-500" size={48} />
+      <p className="text-slate-400 font-bold animate-pulse">Cargando sistema...</p>
+    </div>;
+  }
+
+  if (vista === 'cliente') {
+    return <VistaCliente materials={materiales} empresa={empresa || EMPRESA_DEFAULT} />;
+  }
+
+  if (vista === 'admin') {
+    return (
+      <div className="flex h-screen bg-slate-900 text-white font-sans overflow-hidden selection:bg-cyan-500/30">
+        <div className="w-20 bg-slate-950 flex flex-col items-center pt-8 border-r border-slate-800 z-50 gap-4">
+          <div className="p-4 bg-indigo-600 rounded-2xl mb-4"><Zap className="text-white" size={24} /></div>
+          <button onClick={() => window.open(`?taller=${empresa?.slug}`, '_blank')} disabled={!empresa} className="p-4 rounded-2xl text-slate-500 hover:bg-slate-900 hover:text-cyan-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Ver mi Cotizador Público"><Users size={24} /></button>
+          <div className="flex-1"></div>
+          <button onClick={signOut} className="p-4 rounded-2xl text-slate-500 hover:bg-slate-900 hover:text-red-400 transition-all mb-4" title="Cerrar Sesión"><LogOut size={24} /></button>
+        </div>
+        <div className="flex-1 relative bg-slate-900">
+          <VistaAdmin materiales={materiales} setMateriales={setMateriales} empresa={empresa} setEmpresa={setEmpresa} className="h-full" />
+        </div>
+      </div>
+    );
+  }
+
+  // LANDING / LOGIN
   return (
-    <div className="flex h-screen bg-slate-900 text-white font-sans overflow-hidden selection:bg-cyan-500/30">
-
-      {/* BARRA LATERAL */}
-      <div className="w-20 bg-slate-950 flex flex-col items-center pt-8 border-r border-slate-800 z-50 gap-4">
-        <button onClick={() => setVista('cliente')} className={`p-4 rounded-2xl transition-all duration-200 group relative ${vista === 'cliente' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20' : 'text-slate-500 hover:bg-slate-900 hover:text-cyan-400'}`} title="Vista Cliente">
-          <Users size={24} />
-          <div className="absolute left-16 bg-slate-800 text-xs px-3 py-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-bold shadow-xl border border-slate-700">Cotizador</div>
-        </button>
-
-        <button onClick={entrarAdmin} className={`p-4 rounded-2xl transition-all duration-200 group relative ${vista === 'admin' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-900 hover:text-indigo-400'}`} title="Vista Admin">
-          <Settings size={24} />
-          <div className="absolute left-16 bg-slate-800 text-xs px-3 py-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-bold shadow-xl border border-slate-700">Admin Tarifas</div>
-        </button>
+    <div className="h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(6,182,212,0.15),transparent_70%)] pointer-events-none"></div>
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative z-10">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/20"><Zap className="text-white" size={32} /></div>
+          <h1 className="text-2xl font-black text-white mb-2">Cotizador Laser SaaS</h1>
+          <p className="text-slate-400 text-sm">Plataforma para talleres de corte.</p>
+        </div>
+        <form onSubmit={handleAuth} className="space-y-4">
+          <div><label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Correo</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="tu@email.com" required /></div>
+          <div><label className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Contraseña</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-indigo-500 transition-colors" placeholder="••••••••" required /></div>
+          <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-500/20 mt-4">{authMode === 'login' ? 'INICIAR SESIÓN' : 'REGISTRAR TALLER'}</button>
+        </form>
+        <div className="mt-6 text-center"><button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-xs text-slate-500 hover:text-white font-bold underline transition-colors">{authMode === 'login' ? '¿No tienes cuenta? Registra tu taller' : '¿Ya tienes cuenta? Inicia Sesión'}</button></div>
       </div>
-
-      {/* RENDERIZADO DE VISTAS */}
-      <div className="flex-1 relative bg-slate-900">
-        {vista === 'cliente' ? (
-          <VistaCliente materials={materiales} empresa={empresa} config={config} />
-        ) : (
-          <VistaAdmin
-            materiales={materiales} setMateriales={setMateriales}
-            empresa={empresa} setEmpresa={setEmpresa}
-            config={config} setConfig={setConfig}
-          />
-        )}
-      </div>
-
     </div>
   );
 }
@@ -107,7 +155,8 @@ function App() {
 // ==========================================
 // VISTA CLIENTE
 // ==========================================
-function VistaCliente({ materials: materiales, empresa, config }) {
+function VistaCliente({ materials: materiales, empresa, config: configProp }) {
+  const config = configProp || { porcentajeIva: empresa?.porcentaje_iva || 19 };
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
   const [cantidadDisparos, setCantidadDisparos] = useState(0);
@@ -115,23 +164,16 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const [tipoArchivo, setTipoArchivo] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [modalMode, setModalMode] = useState('COTIZACION'); // 'COTIZACION' | 'PEDIDO'
+  const [modalMode, setModalMode] = useState('COTIZACION');
   const [enviandoCorreo, setEnviandoCorreo] = useState(false);
   const [cantidad, setCantidad] = useState(1);
+  const [datosCliente, setDatosCliente] = useState({ empresa: '', nombre: '', nit: '', telefono: '', direccion: '', email: '', aplicaIva: false });
 
-  const [datosCliente, setDatosCliente] = useState({
-    empresa: '', nombre: '', nit: '', telefono: '', direccion: '', email: '', aplicaIva: false
-  });
-
-  useEffect(() => {
-    if (materiales.length > 0 && !materialSeleccionado && materiales[0]) setMaterialSeleccionado(materiales[0].id);
-  }, [materiales]);
+  useEffect(() => { if (materiales.length > 0 && !materialSeleccionado && materiales[0]) setMaterialSeleccionado(materiales[0].id); }, [materiales]);
 
   const materialActivo = materiales.find(m => m.id === Number(materialSeleccionado)) || { precioMetro: 0, precioDisparo: 0 };
 
-  // --- LOGICA DE ARCHIVOS (DXF / SVG) ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
@@ -193,91 +235,100 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     reader.readAsText(file);
   };
 
+  const costoMetroUnitario = perimetro * materialActivo.precioMetro;
+  const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
+  const costoUnitarioTotal = costoMetroUnitario + costoDisparoUnitario;
+  const costoTotal = costoUnitarioTotal * cantidad;
+  const valorIva = datosCliente.aplicaIva ? costoTotal * (config.porcentajeIva / 100) : 0;
+  const totalFinal = costoTotal + valorIva;
+  const formatoPesos = (valor) => '$' + Math.round(valor).toLocaleString('es-CO');
+
+  const generarPDFCotizacion = () => {
+    const doc = new jsPDF();
+    const primaryColor = [8, 145, 178]; // Cyan-600
+
+    doc.setFontSize(22); doc.setTextColor(...primaryColor); doc.setFont('helvetica', 'bold');
+    doc.text(empresa.nombre || 'COTIZACION', 105, 20, { align: 'center' });
+
+    doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
+    doc.text(empresa.slogan || '', 105, 26, { align: 'center' });
+    doc.text(`${empresa.direccion || ''} | ${empresa.telefono || ''}`, 105, 32, { align: 'center' });
+    doc.text(empresa.email_contacto || '', 105, 37, { align: 'center' });
+
+    doc.setDrawColor(200); doc.line(14, 45, 196, 45);
+    doc.setFontSize(10); doc.setTextColor(0); doc.setFont('helvetica', 'bold'); doc.text('DATOS CLIENTE:', 14, 55);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Nombre: ${datosCliente.nombre || '---'}`, 14, 62); doc.text(`Email: ${datosCliente.email || '---'}`, 14, 68);
+    doc.text(`Teléfono: ${datosCliente.telefono || '---'}`, 100, 62); doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 100, 68);
+
+    autoTable(doc, {
+      startY: 80,
+      head: [['Descripción', 'Material', 'Cantidad', 'Unitario', 'Total']],
+      body: [[`Servicio de Corte Laser\nArchivo: ${nombreArchivo}`, `${materialActivo.nombre} (${materialActivo.calibre})`, cantidad, formatoPesos(costoUnitarioTotal), formatoPesos(costoTotal)]],
+      headStyles: { fillColor: primaryColor }, theme: 'striped'
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text('Subtotal:', 140, finalY); doc.text(formatoPesos(costoTotal), 196, finalY, { align: 'right' });
+    if (datosCliente.aplicaIva) { doc.text(`IVA (${config.porcentajeIva}%):`, 140, finalY + 6); doc.text(formatoPesos(valorIva), 196, finalY + 6, { align: 'right' }); }
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(...primaryColor); doc.text('TOTAL:', 140, finalY + 14); doc.text(formatoPesos(totalFinal), 196, finalY + 14, { align: 'right' });
+    doc.save(`Cotizacion_${empresa.nombre}_${Date.now()}.pdf`);
+  };
+
   const procesarAccionModal = () => {
     if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
-      alert("Por favor completa los campos obligatorios (Nombre, Email, Teléfono).");
+      alert("Por favor completa los campos obligatorios.");
       return;
     }
-
     setEnviandoCorreo(true);
 
-    // SIMULACION DE ENVIO DE CORREO (Aca se integraria EmailJS)
-    const tipoAccion = modalMode === 'PEDIDO' ? 'ORDEN DE CORTE' : 'COTIZACIÓN FORMAL';
-    console.log(`Enviando correo de ${tipoAccion} a: ${datosCliente.email} y copia a admin...`);
-
+    // Simular proceso de red o backend
     setTimeout(() => {
       setEnviandoCorreo(false);
       setMostrarModal(false);
 
       if (modalMode === 'PEDIDO') {
-        // Si es Pedido, redirigir a WhatsApp despues de "enviar" el correo
+        // ... WhatsApp Logic (Existing) ...
         const telefonoLimpio = empresa.telefono ? empresa.telefono.replace(/\D/g, '') : '';
-        const texto = `Hola *${empresa.nombre}*, me gustaria confirmar la siguiente *ORDEN DE CORTE*:
-
------------------------------------
-*RESUMEN DEL PEDIDO*
------------------------------------
-*Archivo:* ${nombreArchivo}
-*Material:* ${materialActivo.nombre}
-*Calibre:* ${materialActivo.calibre}
-*Cantidad:* ${cantidad} Unds
-*Servicios:* Corte + Perforacion
------------------------------------
-*CLIENTE:* ${datosCliente.nombre}
-*TEL:* ${datosCliente.telefono}
------------------------------------
-*VALOR TOTAL:* *${formatoPesos(totalFinal)}*
------------------------------------
-
-Quedo atento para coordinar el pago y la entrega. Gracias!`;
-
+        const texto = `Hola *${empresa.nombre}*, me gustaria confirmar la siguiente *ORDEN DE CORTE*:\n\n*Archivo:* ${nombreArchivo}\n*Material:* ${materialActivo.nombre}\n*Cantidad:* ${cantidad} Unds\n*CLIENTE:* ${datosCliente.nombre}\n*VALOR TOTAL:* *${formatoPesos(totalFinal)}*`;
         const mensajeCodificado = encodeURIComponent(texto);
         window.open(`https://wa.me/57${telefonoLimpio}?text=${mensajeCodificado}`, '_blank');
-        alert(`✅ ¡Orden enviada correctamente! Se ha notificado al administrador via Correo y WhatsApp.`);
+        alert(`✅ ¡Orden enviada correctamente!`);
       } else {
-        alert(`✅ ¡Cotización enviada con éxito a ${datosCliente.email}!\nCopia enviada a administración.`);
+        // ... Email Logic (Mailto Fallback) ...
+        const subject = `Cotización: ${empresa.nombre} - ${materialActivo.nombre}`;
+        const body = `Hola ${datosCliente.nombre},\n\nAquí tienes el resumen de tu cotización con ${empresa.nombre}.\n\n` +
+          `Servicio: Corte Laser\n` +
+          `Archivo: ${nombreArchivo}\n` +
+          `Material: ${materialActivo.nombre}\n` +
+          `Cantidad: ${cantidad}\n` +
+          `Total: ${formatoPesos(totalFinal)}\n\n` +
+          `Si deseas confirmar esta orden, responde a este correo o contáctanos al ${empresa.telefono}.\n\n` +
+          `Atentamente,\n${empresa.nombre}`;
+
+        const mailtoLink = `mailto:${datosCliente.email}?cc=${empresa.email_contacto || ''}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        window.location.href = mailtoLink;
+        alert(`✅ Se ha abierto tu cliente de correo con el resumen.`);
       }
-    }, 2000);
+    }, 1500);
   };
 
-  const costoMetroUnitario = perimetro * materialActivo.precioMetro;
-  const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
-  const costoUnitarioTotal = costoMetroUnitario + costoDisparoUnitario;
-
-  const costoTotal = costoUnitarioTotal * cantidad;
-  const valorIva = datosCliente.aplicaIva ? costoTotal * (config.porcentajeIva / 100) : 0;
-  const totalFinal = costoTotal + valorIva;
-
-  const formatoPesos = (valor) => '$' + Math.round(valor).toLocaleString('es-CO');
-
-  const handleSolicitarCorte = () => {
-    setModalMode('PEDIDO');
-    setMostrarModal(true);
-  };
+  const handleSolicitarCorte = () => { setModalMode('PEDIDO'); setMostrarModal(true); };
 
   return (
     <div className="flex flex-col md:flex-row h-full">
-
-      {/* 1. PANEL IZQUIERDO */}
+      {/* LEFT PANEL */}
       <div className="w-full md:w-[450px] bg-slate-800 flex flex-col border-r border-slate-700 shadow-2xl z-10 relative">
         <div className="p-8 border-b border-slate-700 bg-slate-900">
           <div className="flex items-start gap-4 mb-2">
-            {/* ICONO / FAVICON */}
             <div className={`w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden relative shrink-0 ${empresa.faviconUrl ? '' : 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg shadow-yellow-500/20 text-slate-900'}`}>
-              {empresa.faviconUrl ?
-                <img src={empresa.faviconUrl} alt="Icon" className="w-full h-full object-cover" />
-                : <span className="font-black text-2xl">{empresa.nombre ? empresa.nombre.substring(0, 2).toUpperCase() : 'LG'}</span>
-              }
+              {empresa.faviconUrl ? <img src={empresa.faviconUrl} alt="Icon" className="w-full h-full object-cover" /> : <span className="font-black text-2xl">{empresa.nombre ? empresa.nombre.substring(0, 2).toUpperCase() : 'LG'}</span>}
             </div>
-
-            {/* LOGO EMPRESA & TEXTOS */}
             <div className="flex flex-col flex-1 min-w-0">
-              {empresa.logoUrl && (
-                <div className="mb-2">
-                  <img src={empresa.logoUrl} alt="Logo" className="h-12 w-auto object-contain object-left" />
-                </div>
-              )}
-              <h1 className="text-xl font-black text-white leading-none tracking-wide italic uppercase truncate" title={empresa.nombre}>{empresa.nombre}</h1>
+              {empresa.logoUrl && (<div className="mb-2"><img src={empresa.logoUrl} alt="Logo" className="h-12 w-auto object-contain object-left" /></div>)}
+              <h1 className="text-xl font-black text-white leading-none tracking-wide italic uppercase truncate">{empresa.nombre}</h1>
               <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-[0.2em]">{empresa.slogan}</span>
             </div>
           </div>
@@ -286,168 +337,77 @@ Quedo atento para coordinar el pago y la entrega. Gracias!`;
             <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
           </div>
         </div>
-
         <div className="p-8 flex-1 flex flex-col overflow-y-auto">
           <div className="mb-6 relative">
             <label className="block text-slate-400 text-[10px] font-bold uppercase mb-2 tracking-wider">Material & Calibre</label>
             <div className="relative">
-              <select className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 pl-4 pr-10 text-sm text-white focus:border-cyan-500 outline-none appearance-none cursor-pointer transition-colors shadow-inner font-bold" value={materialSeleccionado} onChange={(e) => setMaterialSeleccionado(e.target.value)}>
+              <select className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 pl-4 pr-10 text-sm text-white focus:border-cyan-500 font-bold" value={materialSeleccionado} onChange={(e) => setMaterialSeleccionado(e.target.value)}>
                 {materiales.map(m => <option key={m.id} value={m.id}>{m.nombre} - {m.calibre}</option>)}
               </select>
-              <div className="absolute right-4 top-4 pointer-events-none text-slate-500">▼</div>
             </div>
           </div>
-
           <div className="mb-8 space-y-2 select-none">
             <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded border-l-8 border-yellow-600 shadow-md transform hover:scale-[1.01] transition-transform">
-              <span className="text-[11px] font-black uppercase tracking-tight">Valor Corte por Metro Lineal</span>
+              <span className="text-[11px] font-black uppercase tracking-tight">$/m</span>
               <span className="text-base font-black font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
             </div>
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded border-l-8 border-yellow-600 shadow-md transform hover:scale-[1.01] transition-transform">
-              <span className="text-[11px] font-black uppercase tracking-tight">Valor por Perforación</span>
-              <span className="text-base font-black font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
-            </div>
           </div>
-
-          <label className={`group relative border-2 border-dashed rounded-2xl flex-1 min-h-[220px] flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${error ? 'border-red-500/50 bg-red-500/5' : 'border-cyan-500/50 hover:border-cyan-400 hover:bg-slate-700/30'}`}>
+          <label className={`group relative border-2 border-dashed rounded-2xl flex-1 min-h-[220px] flex flex-col items-center justify-center cursor-pointer transition-all ${error ? 'border-red-500/50 bg-red-500/5' : 'border-cyan-500/50 hover:border-cyan-400'}`}>
             <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} />
-            <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none"></div>
-            {procesando ? (
-              <div className="flex flex-col items-center animate-pulse"><div className="h-10 w-10 border-4 border-t-cyan-400 border-slate-700 rounded-full animate-spin mb-4"></div><span className="text-sm text-cyan-400 font-bold uppercase tracking-widest">Calculando...</span></div>
-            ) : (
+            {procesando ? <div className="flex flex-col items-center animate-pulse"><div className="h-10 w-10 border-4 border-t-cyan-400 border-slate-700 rounded-full animate-spin mb-4"></div></div> : (
               <>
-                <div className="mb-4 p-5 bg-slate-800 rounded-full group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all shadow-xl border border-slate-700 group-hover:border-cyan-500/50"><Upload className="text-cyan-400" size={32} strokeWidth={2.5} /></div>
-                <h3 className="text-lg text-white font-black mb-2 group-hover:text-cyan-400 transition-colors uppercase tracking-tight text-center px-4">ARRASTRA TU PLANO AQUÍ</h3>
-                <div className="flex gap-2 mt-2">
-                  <span className="bg-slate-900 text-slate-400 text-[10px] font-bold px-2 py-1 rounded border border-slate-700 flex items-center gap-1"><FileBox size={10} /> .DXF</span>
-                  <span className="bg-slate-900 text-slate-400 text-[10px] font-bold px-2 py-1 rounded border border-slate-700 flex items-center gap-1"><MousePointerClick size={10} /> .SVG</span>
-                </div>
+                <div className="mb-4 p-5 bg-slate-800 rounded-full group-hover:bg-cyan-500/20 transition-all shadow-xl border border-slate-700"><Upload className="text-cyan-400" size={32} /></div>
+                <h3 className="text-lg text-white font-black mb-2 px-4 text-center">ARRASTRA TU PLANO</h3>
+                <div className="flex gap-2 mt-2"><span className="bg-slate-900 text-slate-400 text-[10px] font-bold px-2 py-1 rounded">DXF / SVG</span></div>
               </>
             )}
           </label>
-          {error && <div className="mt-4 bg-red-500/10 border border-red-500/20 p-3 rounded text-center animate-in fade-in slide-in-from-top-2"><p className="text-red-400 text-xs font-bold flex items-center justify-center gap-1"><AlertTriangle size={12} /> {error}</p></div>}
         </div>
       </div>
-
-      {/* 2. PANEL DERECHO */}
+      {/* RIGHT PANEL */}
       <div className="flex-1 bg-slate-950 relative overflow-hidden flex flex-col items-center justify-center p-6 md:p-12">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(6,182,212,0.05),transparent_70%)] pointer-events-none"></div>
-
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl relative z-10 backdrop-blur-md">
           <div className="text-center mb-10">
-            <h3 className="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold mb-2">Total Estimado del Proyecto</h3>
-            <div className="relative inline-block">
-              <h2 className="text-7xl font-black tracking-tighter text-green-400 drop-shadow-[0_0_20px_rgba(74,222,128,0.1)] tabular-nums">
-                {formatoPesos(costoTotal)}
-              </h2>
-              {cantidad > 1 && (
-                <span className="absolute -bottom-6 left-0 right-0 text-xs text-slate-500 font-medium whitespace-nowrap">
-                  ({formatoPesos(costoUnitarioTotal)} c/u)
-                </span>
-              )}
-            </div>
-            {datosCliente.aplicaIva && <div className="mt-6 text-xs text-slate-300 font-mono bg-slate-800 border border-slate-700 inline-block px-3 py-1 rounded-full">TOTAL CON IVA: <span className="text-white font-bold">{formatoPesos(totalFinal)}</span></div>}
+            <h2 className="text-7xl font-black text-green-400 drop-shadow-[0_0_20px_rgba(74,222,128,0.1)]">{formatoPesos(costoTotal)}</h2>
+            {datosCliente.aplicaIva && <div className="mt-4 text-xs text-slate-300 font-mono">TOTAL CON IVA: <span className="text-white font-bold">{formatoPesos(totalFinal)}</span></div>}
           </div>
-
-          <div className="space-y-4 mb-8">
-            <div className="flex justify-between items-center bg-slate-950/50 p-4 rounded-xl border border-slate-800"><span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2"><FileText size={14} className="text-cyan-500" /> Archivo</span><span className="text-white text-sm truncate max-w-[180px] font-medium" title={nombreArchivo}>{nombreArchivo || '---'}</span></div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* SELECTOR DE CANTIDAD */}
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex flex-col group hover:border-indigo-500/30 transition-colors md:col-span-2">
-                <span className="text-slate-500 text-[10px] uppercase font-bold mb-2 group-hover:text-indigo-400">Cantidad de Piezas</span>
-                <div className="flex items-center justify-between bg-slate-900 rounded-lg p-1 border border-slate-800">
-                  <button onClick={() => setCantidad(c => Math.max(1, c - 1))} className="w-10 h-10 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-700 hover:text-white transition-colors"><Minus size={16} /></button>
-                  <span className="text-2xl font-black text-white px-4">{cantidad}</span>
-                  <button onClick={() => setCantidad(c => c + 1)} className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20"><Plus size={16} /></button>
-                </div>
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 col-span-2 flex justify-between items-center">
+              <span className="text-slate-500 text-[10px] font-bold uppercase">Cantidad</span>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setCantidad(c => Math.max(1, c - 1))} className="w-8 h-8 rounded bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700"><Minus size={14} /></button>
+                <span className="text-xl font-black text-white">{cantidad}</span>
+                <button onClick={() => setCantidad(c => c + 1)} className="w-8 h-8 rounded bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-500"><Plus size={14} /></button>
               </div>
-
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex flex-col group hover:border-cyan-500/30 transition-colors"><span className="text-slate-500 text-[10px] uppercase font-bold mb-1 group-hover:text-cyan-400">Corte Total</span><div className="flex flex-col"><span className="text-cyan-400 font-mono text-xl font-bold">{(perimetro * cantidad).toFixed(2)}m</span><span className="text-white font-black text-lg text-right">{formatoPesos(costoMetroUnitario * cantidad)}</span></div></div>
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex flex-col group hover:border-yellow-500/30 transition-colors"><span className="text-slate-500 text-[10px] uppercase font-bold mb-1 group-hover:text-yellow-400">Perforaciones</span><div className="flex flex-col"><span className="text-yellow-400 font-mono text-xl font-bold">{cantidadDisparos * cantidad}</span><span className="text-white font-black text-lg text-right">{formatoPesos(costoDisparoUnitario * cantidad)}</span></div></div>
             </div>
           </div>
-
           <div className="flex gap-4">
-            <button onClick={() => setMostrarModal(true)} disabled={!nombreArchivo} className="flex-1 bg-transparent hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-white py-4 rounded-xl border border-slate-600 hover:border-slate-500 transition-all flex flex-col items-center justify-center group">
-              <span className="text-sm font-bold group-hover:text-white transition-colors uppercase tracking-wide">Cotización</span>
-              <span className="text-[10px] text-slate-500 group-hover:text-slate-400 font-medium">FORMAL (PDF)</span>
+            <button onClick={() => setMostrarModal(true)} disabled={!nombreArchivo} className="flex-1 bg-transparent hover:bg-slate-800 disabled:opacity-30 text-white py-4 rounded-xl border border-slate-600 flex flex-col items-center justify-center">
+              <span className="text-sm font-bold uppercase">Cotización</span>
             </button>
-            <button onClick={handleSolicitarCorte} disabled={!nombreArchivo} className="flex-[1.5] bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-700 text-slate-900 py-4 rounded-xl shadow-xl shadow-yellow-400/20 transition-all flex flex-col items-center justify-center transform active:scale-95">
-              <span className="text-base font-black uppercase tracking-wide">SOLICITAR CORTE</span>
-              <span className="text-[10px] text-slate-800 font-bold opacity-80">INICIAR PEDIDO AHORA</span>
+            <button onClick={handleSolicitarCorte} disabled={!nombreArchivo} className="flex-[1.5] bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl shadow-xl flex flex-col items-center justify-center">
+              <span className="text-base font-black uppercase">SOLICITAR CORTE</span>
             </button>
           </div>
         </div>
       </div>
-
-      {/* 3. MODAL DE COTIZACIÓN FORMAL */}
+      {/* MODAL */}
       {mostrarModal && (
-        <div className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
-              <div>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  {modalMode === 'PEDIDO' ? <Zap className="text-yellow-400" /> : <Send className="text-cyan-400" />}
-                  {modalMode === 'PEDIDO' ? 'Confirmar Orden de Corte' : 'Enviar Cotización Formal'}
-                </h3>
-                <p className="text-slate-500 text-xs mt-1">
-                  {modalMode === 'PEDIDO' ? 'Completa tus datos para formalizar el pedido.' : 'Ingresa el correo para recibir el documento.'}
-                </p>
-              </div>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white bg-slate-800 p-2 rounded-lg transition-colors"><X size={20} /></button>
+            <div className="flex justify-between items-center p-6 border-b border-slate-800">
+              <h3 className="text-xl font-bold text-white">{modalMode === 'PEDIDO' ? 'Confirmar Orden' : 'Enviar Cotización'}</h3>
+              <button onClick={() => setMostrarModal(false)} className="text-slate-500"><X /></button>
             </div>
-
-            <div className="p-8 overflow-y-auto">
-              {/* Resumen del Modal */}
-              <div className="flex flex-col md:flex-row gap-4 mb-8">
-                <div className="flex-1 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-4 rounded-xl flex items-center gap-4">
-                  <div className="p-3 bg-cyan-500/10 rounded-lg text-cyan-400"><DollarSign size={24} /></div>
-                  <div><p className="text-slate-400 text-xs font-bold uppercase">Valor Neto</p><p className="text-white text-xl font-mono font-bold">{formatoPesos(costoTotal)}</p></div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider mb-1 block">Correo Electrónico (Obligatorio)</label>
-                  <div className="flex bg-slate-950 border border-cyan-500/50 rounded-lg overflow-hidden shadow-[0_0_10px_rgba(6,182,212,0.1)]">
-                    <div className="p-3 text-cyan-500"><Mail size={16} /></div>
-                    <input type="email" className="w-full bg-transparent p-3 text-sm text-white outline-none placeholder-slate-600" placeholder="cliente@empresa.com" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} />
-                  </div>
-                </div>
-
-                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre / Empresa</label><div className="flex bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500 transition-colors"><div className="p-3 text-slate-500"><Building2 size={16} /></div><input className="w-full bg-transparent p-3 text-sm text-white outline-none placeholder-slate-700" placeholder="Ej: Juan Pérez" value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} /></div></div>
-                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIT / Cédula</label><div className="flex bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500 transition-colors"><div className="p-3 text-slate-500"><User size={16} /></div><input className="w-full bg-transparent p-3 text-sm text-white outline-none placeholder-slate-700" placeholder="Ej: 900.123.456" value={datosCliente.nit} onChange={e => setDatosCliente({ ...datosCliente, nit: e.target.value })} /></div></div>
-                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Teléfono</label><div className="flex bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500 transition-colors"><div className="p-3 text-slate-500"><Phone size={16} /></div><input className="w-full bg-transparent p-3 text-sm text-white outline-none placeholder-slate-700" placeholder="Ej: 300 123 4567" value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} /></div></div>
-                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dirección</label><div className="flex bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500 transition-colors"><div className="p-3 text-slate-500"><MapPin size={16} /></div><input className="w-full bg-transparent p-3 text-sm text-white outline-none placeholder-slate-700" placeholder="Ej: Calle 10 # 20-30" value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} /></div></div>
-              </div>
-
-              <div className="mt-8 bg-slate-800/50 p-4 rounded-xl border border-slate-700 flex items-center gap-4 cursor-pointer" onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })}>
-                <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'}`}><div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${datosCliente.aplicaIva ? 'translate-x-6' : 'translate-x-0'}`}></div></div>
-                <div><p className="text-white text-sm font-bold">Aplicar IVA ({config.porcentajeIva}%)</p><p className="text-slate-500 text-xs">Habilítalo si requieres factura legal.</p></div>
-              </div>
+            <div className="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2"><label className="text-[10px] font-bold text-cyan-400 uppercase">Email</label><input className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} /></div>
+              <div><label className="text-[10px] font-bold text-slate-400 uppercase">Nombre</label><input className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} /></div>
+              <div><label className="text-[10px] font-bold text-slate-400 uppercase">Teléfono</label><input className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} /></div>
+              <div className="md:col-span-2"><div onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })} className="cursor-pointer flex items-center gap-4 bg-slate-800 p-4 rounded-lg border border-slate-700"><div className={`w-12 h-6 rounded-full relative transition-colors ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'}`}><div className={`absolute w-4 h-4 bg-white rounded-full top-1 transition-transform ${datosCliente.aplicaIva ? 'left-7' : 'left-1'}`}></div></div><span className="text-white font-bold text-sm">Aplicar IVA ({config.porcentajeIva}%)</span></div></div>
             </div>
-
-            <div className="p-6 border-t border-slate-800 bg-slate-900 flex justify-end gap-3">
-              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold hover:text-white text-sm transition-colors">Cancelar</button>
-
-              <button
-                onClick={procesarAccionModal}
-                disabled={enviandoCorreo}
-                className={`${modalMode === 'PEDIDO' ? 'bg-yellow-400 text-slate-900 hover:bg-yellow-300' : 'bg-cyan-600 text-white hover:bg-cyan-500'} disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed font-black px-8 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm uppercase tracking-wide`}
-              >
-                {enviandoCorreo ? (
-                  <>
-                    <div className={`h-4 w-4 border-2 rounded-full animate-spin ${modalMode === 'PEDIDO' ? 'border-slate-900/50 border-t-slate-900' : 'border-white/50 border-t-white'}`}></div>
-                    ENVIANDO...
-                  </>
-                ) : (
-                  <>
-                    {modalMode === 'PEDIDO' ? <Zap size={18} /> : <Send size={18} />}
-                    {modalMode === 'PEDIDO' ? 'CONFIRMAR PEDIDO' : 'ENVIAR COTIZACIÓN'}
-                  </>
-                )}
-              </button>
+            <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
+              {modalMode === 'COTIZACION' && <button onClick={generarPDFCotizacion} className="bg-slate-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-600 flex items-center gap-2"><FileText size={16} /> PDF</button>}
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-cyan-600 text-white px-8 py-3 rounded-xl font-bold">{enviandoCorreo ? 'ENVIANDO...' : 'CONFIRMAR'}</button>
             </div>
           </div>
         </div>
@@ -457,353 +417,179 @@ Quedo atento para coordinar el pago y la entrega. Gracias!`;
 }
 
 // ==========================================
-// VISTA ADMIN - TABS
+// VISTA ADMIN
 // ==========================================
-function VistaAdmin({ materiales, setMateriales, empresa, setEmpresa, config, setConfig }) {
-  const [tab, setTab] = useState('materiales'); // 'materiales', 'empresa', 'config'
+function VistaAdmin({ materiales, setMateriales, empresa, setEmpresa }) {
+  const isNewUser = !empresa;
+  const [tab, setTab] = useState(isNewUser ? 'empresa' : 'materiales');
+  const [tempEmpresa, setTempEmpresa] = useState({ nombre: '', slogan: '', telefono: '', email: '', direccion: '', logoUrl: '', faviconUrl: '', porcentaje_iva: 19 });
+  const activeEmpresa = empresa || tempEmpresa;
+  const setActiveEmpresa = empresa ? setEmpresa : setTempEmpresa;
 
   return (
     <div className="h-full bg-slate-900 p-8 overflow-y-auto">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20"><LayoutDashboard className="text-indigo-400" size={24} /></div>
-          <div><h1 className="text-2xl font-bold text-white">Panel de Control</h1><p className="text-slate-400 text-sm">Gestión del sistema y tarifas</p></div>
-        </div>
-
-        {/* ADMIN NAV */}
+        <div className="flex items-center gap-4 mb-10"><div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20"><LayoutDashboard className="text-indigo-400" size={24} /></div><div><h1 className="text-2xl font-bold text-white">Panel de Control</h1></div></div>
         <div className="flex gap-4 mb-8">
-          <button onClick={() => setTab('materiales')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'materiales' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}`}>Materiales</button>
-          <button onClick={() => setTab('empresa')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'empresa' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}`}>Empresa</button>
-          <button onClick={() => setTab('config')} className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'config' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}`}>Configuración</button>
+          <button onClick={() => !isNewUser && setTab('materiales')} disabled={isNewUser} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === 'materiales' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Materiales</button>
+          <button onClick={() => setTab('empresa')} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === 'empresa' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Empresa</button>
+          <button onClick={() => !isNewUser && setTab('cuenta')} disabled={isNewUser} className={`px-4 py-2 rounded-xl text-sm font-bold ${tab === 'cuenta' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Seguridad</button>
         </div>
-
-        {/* TAB CONTENIDO */}
+        {isNewUser && <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 p-4 rounded-xl mb-8 flex items-center gap-3"><AlertTriangle size={24} /><div><h4 className="font-bold">¡Bienvenido!</h4><p className="text-sm">Configura tu empresa para comenzar.</p></div></div>}
         {tab === 'materiales' && <AdminMateriales materiales={materiales} setMateriales={setMateriales} />}
-        {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
-        {tab === 'config' && <AdminConfig config={config} setConfig={setConfig} />}
-
+        {tab === 'empresa' && <AdminEmpresa empresa={activeEmpresa} setEmpresa={setActiveEmpresa} isNew={isNewUser} fullSetEmpresa={setEmpresa} />}
+        {tab === 'cuenta' && <AdminCuenta />}
       </div>
     </div>
   );
 }
 
 function AdminMateriales({ materiales, setMateriales }) {
+  const { session } = useAuth();
   const [nuevoMat, setNuevoMat] = useState({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '' });
   const [editandoId, setEditandoId] = useState(null);
+  const [guardando, setGuardando] = useState(false);
 
-  const guardarMaterial = (e) => {
-    e.preventDefault();
-    if (!nuevoMat.nombre || !nuevoMat.precioMetro) return;
-
+  const guardarMaterial = async (e) => {
+    e.preventDefault(); if (!nuevoMat.nombre) return; setGuardando(true);
+    const datos = { nombre: nuevoMat.nombre, calibre: nuevoMat.calibre, precio_metro: Number(nuevoMat.precioMetro), precio_disparo: Number(nuevoMat.precioDisparo) || 0, empresa_id: session.user.id };
     if (editandoId) {
-      // EDITAR EXISTENTE
-      const actualizados = materiales.map(m =>
-        m.id === editandoId
-          ? { ...m, nombre: nuevoMat.nombre, calibre: nuevoMat.calibre, precioMetro: Number(nuevoMat.precioMetro), precioDisparo: Number(nuevoMat.precioDisparo) || 0 }
-          : m
-      );
-      setMateriales(actualizados);
-      setEditandoId(null);
+      const { error } = await supabase.from('materiales').update(datos).eq('id', editandoId);
+      if (!error) { setMateriales(materiales.map(m => m.id === editandoId ? { ...m, ...datos, precioMetro: datos.precio_metro, precioDisparo: datos.precio_disparo } : m)); setEditandoId(null); setNuevoMat({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '' }); }
     } else {
-      // CREAR NUEVO
-      const nuevo = { id: Date.now(), nombre: nuevoMat.nombre, calibre: nuevoMat.calibre, precioMetro: Number(nuevoMat.precioMetro), precioDisparo: Number(nuevoMat.precioDisparo) || 0 };
-      setMateriales([...materiales, nuevo]);
+      const { data, error } = await supabase.from('materiales').insert(datos).select();
+      if (!error) { setMateriales([...materiales, { ...data[0], precioMetro: data[0].precio_metro, precioDisparo: data[0].precio_disparo }]); setNuevoMat({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '' }); }
     }
-    setNuevoMat({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '' });
+    setGuardando(false);
   };
-
-  const cargarParaEditar = (material) => {
-    setNuevoMat({
-      nombre: material.nombre,
-      calibre: material.calibre,
-      precioMetro: material.precioMetro,
-      precioDisparo: material.precioDisparo
-    });
-    setEditandoId(material.id);
-  };
-
-  const cancelarEdicion = () => {
-    setNuevoMat({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '' });
-    setEditandoId(null);
-  };
-
-  const eliminarMaterial = (id) => {
-    // eslint-disable-next-line no-restricted-globals
-    if (confirm("¿Estás seguro de eliminar este material?")) {
-      setMateriales(materiales.filter(m => m.id !== id));
-    }
-  };
+  const cargarParaEditar = (m) => { setNuevoMat({ nombre: m.nombre, calibre: m.calibre, precioMetro: m.precioMetro || m.precio_metro, precioDisparo: m.precioDisparo || m.precio_disparo }); setEditandoId(m.id); };
+  const eliminarMaterial = async (id) => { if (confirm("¿Eliminar?")) { const { error } = await supabase.from('materiales').delete().eq('id', id); if (!error) setMateriales(materiales.filter(m => m.id !== id)); } };
 
   return (
     <>
-      <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8 shadow-xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            {editandoId ? <><Edit size={16} className="text-indigo-400" /> Editando Material</> : <><Plus size={16} className="text-indigo-400" /> Nuevo Material</>}
-          </h3>
-          {editandoId && <button onClick={cancelarEdicion} className="text-xs text-red-400 font-bold hover:underline">CANCELAR</button>}
-        </div>
-
+      <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8">
         <form onSubmit={guardarMaterial} className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-3">
-            <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Nombre Material</label>
-            <input placeholder="Ej: Acero HR" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" value={nuevoMat.nombre} onChange={e => setNuevoMat({ ...nuevoMat, nombre: e.target.value })} required />
-          </div>
-          <div className="md:col-span-2">
-            <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Calibre</label>
-            <input placeholder="Ej: 1/8" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" value={nuevoMat.calibre} onChange={e => setNuevoMat({ ...nuevoMat, calibre: e.target.value })} required />
-          </div>
-          <div className="md:col-span-3">
-            <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Precio Metro</label>
-            <div className="relative"><span className="absolute left-3 top-3 text-slate-500 text-sm">$</span><input type="number" placeholder="0" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 pl-6 text-sm text-white focus:border-indigo-500 outline-none transition-colors font-mono" value={nuevoMat.precioMetro} onChange={e => setNuevoMat({ ...nuevoMat, precioMetro: e.target.value })} required /></div>
-          </div>
-          <div className="md:col-span-2">
-            <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Precio Disparo</label>
-            <div className="relative"><span className="absolute left-3 top-3 text-slate-500 text-sm">$</span><input type="number" placeholder="0" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 pl-6 text-sm text-white focus:border-indigo-500 outline-none transition-colors font-mono" value={nuevoMat.precioDisparo} onChange={e => setNuevoMat({ ...nuevoMat, precioDisparo: e.target.value })} required /></div>
-          </div>
-          <button type="submit" className={`md:col-span-2 text-white rounded-lg font-bold text-sm transition-colors mt-6 h-[46px] shadow-lg ${editandoId ? 'bg-cyan-600 hover:bg-cyan-500' : 'bg-indigo-600 hover:bg-indigo-500'}`}>
-            {editandoId ? 'ACTUALIZAR' : 'AGREGAR'}
-          </button>
+          <div className="md:col-span-3"><label className="text-xs text-slate-500 uppercase font-bold">Material</label><input className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value={nuevoMat.nombre} onChange={e => setNuevoMat({ ...nuevoMat, nombre: e.target.value })} /></div>
+          <div className="md:col-span-2"><label className="text-xs text-slate-500 uppercase font-bold">Calibre</label><input className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value={nuevoMat.calibre} onChange={e => setNuevoMat({ ...nuevoMat, calibre: e.target.value })} /></div>
+          <div className="md:col-span-3"><label className="text-xs text-slate-500 uppercase font-bold">Precio Metro</label><input type="number" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value={nuevoMat.precioMetro} onChange={e => setNuevoMat({ ...nuevoMat, precioMetro: e.target.value })} /></div>
+          <div className="md:col-span-2"><label className="text-xs text-slate-500 uppercase font-bold">Precio Perf</label><input type="number" className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" value={nuevoMat.precioDisparo} onChange={e => setNuevoMat({ ...nuevoMat, precioDisparo: e.target.value })} /></div>
+          <button className="md:col-span-2 bg-indigo-600 text-white rounded-lg font-bold mt-4 md:mt-0">{guardando ? '...' : (editandoId ? 'ACTUALIZAR' : 'AGREGAR')}</button>
         </form>
       </div>
-
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
-        <table className="w-full text-left">
-          <thead className="bg-slate-950/50 text-slate-400 uppercase text-[10px] tracking-wider font-bold">
-            <tr><th className="p-5">Material</th><th className="p-5">Calibre</th><th className="p-5">Precio Metro</th><th className="p-5">Precio Disparo</th><th className="p-5 text-right">Acción</th></tr>
-          </thead>
-          <tbody className="divide-y divide-slate-700/50">
-            {materiales.map((m) => (
-              <tr key={m.id} className={`transition-colors group ${editandoId === m.id ? 'bg-indigo-500/10' : 'hover:bg-slate-700/30'}`}>
-                <td className="p-5 font-medium text-white">{m.nombre}</td>
-                <td className="p-5 text-slate-300"><span className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-xs">{m.calibre}</span></td>
-                <td className="p-5 text-green-400 font-mono text-sm">${m.precioMetro.toLocaleString('es-CO')}</td>
-                <td className="p-5 text-yellow-400 font-mono text-sm">${m.precioDisparo.toLocaleString('es-CO')}</td>
-                <td className="p-5 text-right flex justify-end gap-2">
-                  <button onClick={() => cargarParaEditar(m)} className="text-slate-500 hover:text-cyan-400 p-2 rounded-full hover:bg-cyan-500/10 transition-all" title="Editar">
-                    <Edit size={18} />
-                  </button>
-                  <button onClick={() => eliminarMaterial(m.id)} className="text-slate-500 hover:text-red-400 p-2 rounded-full hover:bg-red-500/10 transition-all" title="Eliminar">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+        {materiales.map(m => (
+          <div key={m.id} className="p-4 border-b border-slate-700 flex justify-between items-center">
+            <div><h4 className="font-bold text-white">{m.nombre} <span className="text-slate-500 text-sm ml-2">{m.calibre}</span></h4><p className="text-xs text-slate-400">${m.precioMetro || m.precio_metro} /m</p></div>
+            <div className="flex gap-2"><button onClick={() => cargarParaEditar(m)} className="p-2 bg-slate-700 rounded text-slate-300"><Edit size={16} /></button><button onClick={() => eliminarMaterial(m.id)} className="p-2 bg-red-900/50 rounded text-red-400"><Trash2 size={16} /></button></div>
+          </div>
+        ))}
       </div>
     </>
   );
 }
 
-function AdminEmpresa({ empresa, setEmpresa }) {
+function AdminEmpresa({ empresa, setEmpresa, isNew, fullSetEmpresa }) {
+  const { session } = useAuth();
+  const [guardando, setGuardando] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
   const handleChange = (e) => setEmpresa({ ...empresa, [e.target.name]: e.target.value });
+
+  const handleImageUpload = async (e, fieldName) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${session.user.id}/${Date.now()}_${fieldName}.${fileExt}`;
+    const { error: uploadError } = await supabase.storage.from('empresas-assets').upload(fileName, file);
+
+    if (uploadError) {
+      alert("Error subiendo imagen: " + uploadError.message);
+      setUploading(false);
+      return;
+    }
+    const { data } = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
+    setEmpresa({ ...empresa, [fieldName]: data.publicUrl });
+    setUploading(false);
+  };
+
+  const guardarCambios = async () => {
+    setGuardando(true);
+    const datos = {
+      nombre: empresa.nombre, slogan: empresa.slogan, telefono: empresa.telefono,
+      email_contacto: empresa.email_contacto || empresa.email, direccion: empresa.direccion,
+      logo_url: empresa.logoUrl || empresa.logo_url, favicon_url: empresa.faviconUrl || empresa.favicon_url,
+      porcentaje_iva: Number(empresa.porcentaje_iva) || 19,
+      slug: empresa.slug || empresa.nombre.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '') + '-' + Math.floor(Math.random() * 1000)
+    };
+    if (isNew) {
+      datos.id = session.user.id;
+      const { data, error } = await supabase.from('empresas').insert(datos).select().single();
+      if (!error && data) { alert("Creado!"); if (fullSetEmpresa) fullSetEmpresa(data); } else alert(error?.message);
+    } else {
+      const { error } = await supabase.from('empresas').update(datos).eq('id', empresa.id);
+      if (!error) alert("Guardado."); else alert(error.message);
+    }
+    setGuardando(false);
+  };
 
   return (
     <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl max-w-2xl">
-      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Building2 className="text-indigo-400" /> Datos de la Empresa</h3>
-
+      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Building2 className="text-indigo-400" /> {isNew ? 'Crear Empresa' : 'Datos'}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-slate-500 uppercase">Nombre Empresa</label>
-          <input name="nombre" value={empresa.nombre} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" />
+        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">Nombre</label><input name="nombre" value={empresa.nombre || ''} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" /></div>
+        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">Slogan</label><input name="slogan" value={empresa.slogan || ''} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" /></div>
+        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">Teléfono</label><input name="telefono" value={empresa.telefono || ''} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" /></div>
+        <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">Dirección</label><input name="direccion" value={empresa.direccion || ''} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" /></div>
+
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-700 pt-6">
+          <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">Email</label><input name="email_contacto" value={empresa.email_contacto || empresa.email || ''} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" /></div>
+          <div className="space-y-1"><label className="text-[10px] font-bold text-slate-500 uppercase">IVA (%)</label><input type="number" name="porcentaje_iva" value={empresa.porcentaje_iva || 19} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" /></div>
         </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-slate-500 uppercase">Slogan</label>
-          <input name="slogan" value={empresa.slogan} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-slate-500 uppercase">Teléfono Contacto</label>
-          <input name="telefono" value={empresa.telefono} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-slate-500 uppercase">Dirección Física</label>
-          <input name="direccion" value={empresa.direccion} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" />
-        </div>
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-700 pt-6 mt-2">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">URL del Logo (Grande)</label>
-            <input name="logoUrl" placeholder="https://..." value={empresa.logoUrl} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" />
-            <p className="text-[10px] text-slate-500">Imagen principal de la marca.</p>
+
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-700 pt-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase">Logo</label>
+            <div className="flex items-center gap-4">
+              {empresa.logoUrl || empresa.logo_url ? <img src={empresa.logoUrl || empresa.logo_url} className="w-12 h-12 rounded object-contain bg-slate-950 border border-slate-700" alt="Logo" /> : <div className="w-12 h-12 rounded bg-slate-700"></div>}
+              <label className="bg-slate-900 border border-slate-600 hover:border-cyan-500 text-white text-xs py-2 px-4 rounded-lg cursor-pointer flex items-center gap-2">
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} {uploading ? '...' : 'Subir'}
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'logoUrl')} disabled={uploading} />
+              </label>
+            </div>
           </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">URL del Icono (Favicon)</label>
-            <input name="faviconUrl" placeholder="https://..." value={empresa.faviconUrl} onChange={handleChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors" />
-            <p className="text-[10px] text-slate-500">Imagen cuadrada pequeña.</p>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase">Favicon</label>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded flex items-center justify-center bg-slate-950 border border-slate-700 overflow-hidden">{empresa.faviconUrl || empresa.favicon_url ? <img src={empresa.faviconUrl || empresa.favicon_url} className="w-full h-full object-cover" alt="Favicon" /> : <span className="text-xs text-slate-500">N/A</span>}</div>
+              <label className="bg-slate-900 border border-slate-600 hover:border-cyan-500 text-white text-xs py-2 px-4 rounded-lg cursor-pointer flex items-center gap-2">
+                {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} {uploading ? '...' : 'Subir'}
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'faviconUrl')} disabled={uploading} />
+              </label>
+            </div>
           </div>
         </div>
       </div>
-
       <div className="mt-8 flex justify-end">
-        <div className="text-xs text-green-400 font-bold flex items-center gap-1"><Save size={14} /> Autosguardado activado</div>
+        <button onClick={guardarCambios} disabled={guardando || uploading} className={`text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center gap-2 ${isNew ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-cyan-600 hover:bg-cyan-500'}`}>
+          {guardando ? 'PROCESANDO...' : (isNew ? <><Zap size={18} /> CREAR</> : <><Save size={18} /> GUARDAR</>)}
+        </button>
       </div>
     </div>
   );
 }
 
-function AdminConfig({ config, setConfig }) {
-  const [passState, setPassState] = useState({ currentPass: '', newPass: '', confirmPass: '' });
-  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
-
-  const handleEmailChange = (e) => setConfig({ ...config, emailCotizaciones: e.target.value });
-  const handleIvaChange = (e) => setConfig({ ...config, porcentajeIva: Number(e.target.value) });
-
-  const handleUpdatePassword = () => {
-    // 1. Verificación de contraseña actual (si ya existe una)
-    if (config.password && passState.currentPass !== config.password) {
-      setStatusMsg({ type: 'error', text: '⛔ La contraseña actual es incorrecta.' });
-      return;
-    }
-
-    // 2. Validación de nueva contraseña
-    if (!passState.newPass) {
-      setStatusMsg({ type: 'error', text: 'La nueva contraseña no puede estar vacía.' });
-      return;
-    }
-
-    if (passState.newPass !== passState.confirmPass) {
-      setStatusMsg({ type: 'error', text: '⛔ Las contraseñas nuevas no coinciden.' });
-      return;
-    }
-
-    setConfig({ ...config, password: passState.newPass });
-    setPassState({ currentPass: '', newPass: '', confirmPass: '' });
-    setStatusMsg({ type: 'success', text: '✅ Contraseña actualizada correctamente.' });
-
-    setTimeout(() => setStatusMsg({ type: '', text: '' }), 3000);
-  };
-
-  const borrarContrasena = () => {
-    if (config.password && passState.currentPass !== config.password) {
-      setStatusMsg({ type: 'error', text: '⛔ Ingresa tu contraseña actual para poder eliminar la seguridad.' });
-      return;
-    }
-
-    // eslint-disable-next-line no-restricted-globals
-    if (confirm('¿Seguro quieres quitar la contraseña? El sistema quedará libre.')) {
-      setConfig({ ...config, password: '' });
-      setPassState({ currentPass: '', newPass: '', confirmPass: '' });
-      setStatusMsg({ type: 'success', text: '✅ Contraseña eliminada. Acceso libre.' });
-      setTimeout(() => setStatusMsg({ type: '', text: '' }), 3000);
-    }
-  };
-
+function AdminCuenta() {
+  const [pass, setPass] = useState('');
+  const [loading, setLoading] = useState(false);
+  const cambiarPassword = async (e) => { e.preventDefault(); if (!pass) return; setLoading(true); const { error } = await supabase.auth.updateUser({ password: pass }); if (error) alert(error.message); else { alert("Pass updated."); setPass(''); } setLoading(false); };
   return (
     <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl max-w-2xl">
-      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Settings className="text-indigo-400" /> Configuración General</h3>
-
-      {/* SECCION CORREO */}
-      <div className="space-y-4 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">Correo para recibir Cotizaciones</label>
-            <div className="flex bg-slate-900 border border-slate-600 rounded-lg overflow-hidden focus-within:border-indigo-500 transition-colors">
-              <div className="p-3 text-slate-500"><Mail size={16} /></div>
-              <input
-                name="emailCotizaciones"
-                value={config.emailCotizaciones}
-                onChange={handleEmailChange}
-                className="w-full bg-transparent p-3 text-sm text-white outline-none"
-              />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">Porcentaje IVA (%)</label>
-            <div className="flex bg-slate-900 border border-slate-600 rounded-lg overflow-hidden focus-within:border-indigo-500 transition-colors">
-              <div className="p-3 text-slate-500 font-bold">%</div>
-              <input
-                type="number"
-                name="porcentajeIva"
-                value={config.porcentajeIva || 19}
-                onChange={handleIvaChange}
-                className="w-full bg-transparent p-3 text-sm text-white outline-none"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-between items-center mt-1">
-          <p className="text-xs text-slate-500">Configuración global del sistema.</p>
-          <span className="text-[10px] text-green-400 font-bold flex items-center gap-1"><Save size={10} /> Autosguardado</span>
-        </div>
-      </div>
-
-      <div className="border-t border-slate-700 my-6"></div>
-
-      {/* SECCION CLAVE */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2"><Lock size={12} /> Seguridad de Administrador</label>
-          {config.password ?
-            <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-1 rounded border border-green-500/20 font-bold">ACTIVA</span>
-            : <span className="text-[10px] bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded border border-yellow-500/20 font-bold">SIN CLAVE (ACCESO LIBRE)</span>
-          }
-        </div>
-
-        {/* CAMPO CONTRASEÑA ACTUAL (Solo si hay clave definida) */}
-        {config.password && (
-          <div className="space-y-1 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-            <label className="text-[10px] text-yellow-500 font-bold uppercase flex items-center gap-1"><Lock size={10} /> Contraseña Actual (Requerida)</label>
-            <input
-              type="password"
-              autoComplete="new-password"
-              placeholder="Ingresa tu clave actual..."
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-yellow-500 outline-none transition-colors"
-              value={passState.currentPass}
-              onChange={e => setPassState({ ...passState, currentPass: e.target.value })}
-            />
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-[10px] text-slate-400 font-bold">Nueva Contraseña</label>
-            <input
-              type="password"
-              autoComplete="new-password"
-              placeholder="Ej: 1234"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors"
-              value={passState.newPass}
-              onChange={e => setPassState({ ...passState, newPass: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] text-slate-400 font-bold">Confirmar Contraseña</label>
-            <input
-              type="password"
-              autoComplete="new-password"
-              placeholder="Repite la clave"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:border-indigo-500 outline-none transition-colors"
-              value={passState.confirmPass}
-              onChange={e => setPassState({ ...passState, confirmPass: e.target.value })}
-            />
-          </div>
-        </div>
-
-        {statusMsg.text && (
-          <div className={`text-xs font-bold p-3 rounded text-center ${statusMsg.type === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'} animate-in fade-in`}>
-            {statusMsg.text}
-          </div>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={handleUpdatePassword}
-            disabled={!passState.newPass}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg"
-          >
-            {config.password ? 'Cambiar Contraseña' : 'Establecer Contraseña'}
-          </button>
-          {config.password && (
-            <button
-              onClick={borrarContrasena}
-              className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl border border-red-500/20 transition-colors"
-              title="Quitar contraseña (Requiere clave actual)"
-            >
-              <Trash2 size={18} />
-            </button>
-          )}
-        </div>
-      </div>
+      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Lock className="text-indigo-400" /> Seguridad</h3>
+      <form onSubmit={cambiarPassword} className="space-y-4">
+        <div><label className="text-[10px] font-bold text-slate-500 uppercase">Nueva Contraseña</label><input type="password" value={pass} onChange={e => setPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="••••••••" minLength={6} /></div>
+        <button type="submit" disabled={loading} className="bg-red-600 text-white font-bold py-3 px-6 rounded-xl">{loading ? '...' : 'CAMBIAR'}</button>
+      </form>
     </div>
   );
 }
