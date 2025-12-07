@@ -753,22 +753,71 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     setEnviandoCorreo(true);
 
     if (modalMode === 'PEDIDO') {
-      // WhatsApp - funciona igual
+      // 1. WhatsApp con formato mejorado
       const tel = empresa.telefono?.replace(/\D/g, '') || '';
-      const txt = `Hola *${empresa.nombre}*, quiero confirmar:\n*Archivo:* ${nombreArchivo}\n*Material:* ${materialActivo.nombre}\n*Cantidad:* ${cantidad}\n*Total:* ${formatoPesos(totalFinal)}\n*Cliente:* ${datosCliente.nombre} - ${datosCliente.telefono}`;
-      window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(txt)}`, '_blank');
+
+      const msg = `Hola *${empresa.nombre}*, me gustaría confirmar la siguiente *ORDEN DE CORTE*:
+
+-----------------------------------
+*RESUMEN DEL PEDIDO*
+-----------------------------------
+*Archivo:* ${nombreArchivo}
+*Material:* ${materialActivo.nombre}
+*Calibre:* ${materialActivo.calibre}
+*Cantidad:* ${cantidad} Unds
+*Servicios:* Corte Láser
+-----------------------------------
+*CLIENTE:* ${datosCliente.nombre}
+*TEL:* ${datosCliente.telefono}
+*EMAIL:* ${datosCliente.email}
+-----------------------------------
+${datosCliente.aplicaIva ? `*Subtotal:* ${formatoPesos(costoTotal)}\n*IVA (19%):* ${formatoPesos(valorIva)}\n` : ''}*VALOR TOTAL:* ${formatoPesos(totalFinal)}
+-----------------------------------
+Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
+
+      // Abrir WhatsApp inmediatamente
+      window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+
+      // 2. Enviar email de orden al taller (en segundo plano)
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: empresa.email || empresa.email_contacto,
+            subject: `Nueva Orden de Corte de ${datosCliente.nombre}`,
+            esPedido: true, // Flag para cambiar el template
+            clienteNombre: datosCliente.nombre,
+            clienteTelefono: datosCliente.telefono,
+            clienteEmail: datosCliente.email,
+            archivo: nombreArchivo,
+            material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+            cantidad: cantidad,
+            total: formatoPesos(totalFinal),
+            subtotal: formatoPesos(costoTotal),
+            iva: formatoPesos(valorIva),
+            tieneIva: datosCliente.aplicaIva,
+            empresaNombre: empresa.nombre
+          })
+        });
+      } catch (err) {
+        console.error('Error enviando email de pedido:', err);
+        // No bloqueamos el flujo si falla el email, lo importante es el WhatsApp
+      }
+
       setEnviandoCorreo(false);
       setMostrarModal(false);
-      alert('✅ ¡Redirigido a WhatsApp!');
+      alert('✅ ¡Redirigido a WhatsApp y notificando al taller!'); // Feedback combinado
     } else {
-      // Cotización - enviar email automáticamente
+      // Cotización normal
       try {
         const response = await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             to: empresa.email || empresa.email_contacto,
-            subject: `Nueva cotización de ${datosCliente.nombre}`,
+            subject: `Nueva Cotización de ${datosCliente.nombre}`, // Explicit subject for quote
+            esPedido: false,
             clienteNombre: datosCliente.nombre,
             clienteTelefono: datosCliente.telefono,
             clienteEmail: datosCliente.email,

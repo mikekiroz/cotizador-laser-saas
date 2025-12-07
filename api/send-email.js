@@ -17,10 +17,10 @@ export default async function handler(req, res) {
       material,
       cantidad,
       total,
-      empresaNombre,
       subtotal,
       iva,
-      tieneIva
+      tieneIva,
+      esPedido
     } = req.body;
 
     // Validar campos requeridos
@@ -39,16 +39,17 @@ export default async function handler(req, res) {
     }
 
     const resend = new Resend(apiKey);
+    const tituloEmail = esPedido ? 'Nueva Orden de Corte' : 'Nueva Cotizacion';
 
     // Enviar email al taller
     const { data, error } = await resend.emails.send({
       from: 'Cotizador Laser <onboarding@resend.dev>',
       to: [to],
-      subject: subject || `Nueva cotizacion de ${clienteNombre}`,
+      subject: subject || `${tituloEmail} de ${clienteNombre}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #0891b2, #0e7490); padding: 20px; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0;">Nueva Cotizacion</h1>
+            <h1 style="color: white; margin: 0;">${tituloEmail}</h1>
             <p style="color: rgba(255,255,255,0.8); margin: 5px 0 0;">Recibida desde ${empresaNombre}</p>
           </div>
           
@@ -71,7 +72,7 @@ export default async function handler(req, res) {
           </div>
           
           <div style="background: white; padding: 20px; border: 1px solid #e2e8f0; border-top: none;">
-            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la Cotizacion</h2>
+            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la ${esPedido ? 'Orden' : 'Cotizacion'}</h2>
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Archivo:</td>
@@ -97,6 +98,13 @@ export default async function handler(req, res) {
               <p style="margin: 0; font-size: 14px;">TOTAL ESTIMADO</p>
               <p style="margin: 5px 0 0; font-size: 28px; font-weight: bold;">${total}</p>
             </div>
+
+            ${esPedido ? `
+            <div style="margin-top: 20px; padding: 15px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #166534; font-size: 14px;">
+              <strong>Solicitud de Corte:</strong> El cliente ha confirmado esta orden y solicita instrucciones para el pago y la entrega.
+            </div>
+            ` : ''}
+          </div>
           </div>
           
           <div style="padding: 20px; text-align: center; color: #64748b; font-size: 12px;">
