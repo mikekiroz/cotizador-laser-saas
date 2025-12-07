@@ -1,22 +1,14 @@
 import { Resend } from 'resend';
 
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(request) {
+export default async function handler(req, res) {
   // Solo permitir POST
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const body = await request.json();
     const {
-      to, // Email del taller
+      to,
       subject,
       clienteNombre,
       clienteTelefono,
@@ -26,26 +18,20 @@ export default async function handler(request) {
       cantidad,
       total,
       empresaNombre
-    } = body;
+    } = req.body;
 
     // Validar campos requeridos
     if (!to || !clienteNombre || !clienteEmail) {
-      return new Response(JSON.stringify({ error: 'Faltan campos requeridos' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
 
-    // Validar que la API key existe
+    // Validar API key
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.error('RESEND_API_KEY not found in environment');
-      return new Response(JSON.stringify({
-        error: 'Configuración del servidor incompleta. Contacta al administrador.',
+      console.error('RESEND_API_KEY not found');
+      return res.status(500).json({
+        error: 'Configuración del servidor incompleta',
         debug: 'RESEND_API_KEY not configured'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -53,13 +39,13 @@ export default async function handler(request) {
 
     // Enviar email al taller
     const { data, error } = await resend.emails.send({
-      from: 'Cotizador Láser <onboarding@resend.dev>', // Cambiar cuando tengas dominio verificado
+      from: 'Cotizador Laser <onboarding@resend.dev>',
       to: [to],
-      subject: subject || `Nueva cotización de ${clienteNombre}`,
+      subject: subject || `Nueva cotizacion de ${clienteNombre}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #0891b2, #0e7490); padding: 20px; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0;">Nueva Cotización</h1>
+            <h1 style="color: white; margin: 0;">Nueva Cotizacion</h1>
             <p style="color: rgba(255,255,255,0.8); margin: 5px 0 0;">Recibida desde ${empresaNombre}</p>
           </div>
           
@@ -71,7 +57,7 @@ export default async function handler(request) {
                 <td style="padding: 8px 0; font-weight: bold;">${clienteNombre}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0; color: #64748b;">Teléfono:</td>
+                <td style="padding: 8px 0; color: #64748b;">Telefono:</td>
                 <td style="padding: 8px 0; font-weight: bold;">${clienteTelefono}</td>
               </tr>
               <tr>
@@ -82,7 +68,7 @@ export default async function handler(request) {
           </div>
           
           <div style="background: white; padding: 20px; border: 1px solid #e2e8f0; border-top: none;">
-            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la Cotización</h2>
+            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la Cotizacion</h2>
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Archivo:</td>
@@ -105,7 +91,7 @@ export default async function handler(request) {
           </div>
           
           <div style="padding: 20px; text-align: center; color: #64748b; font-size: 12px;">
-            <p>Este email fue enviado automáticamente desde el Cotizador Láser</p>
+            <p>Este email fue enviado automaticamente desde el Cotizador Laser</p>
           </div>
         </div>
       `,
@@ -113,22 +99,13 @@ export default async function handler(request) {
 
     if (error) {
       console.error('Resend error:', error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ error: error.message });
     }
 
-    return new Response(JSON.stringify({ success: true, data }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(200).json({ success: true, data });
 
   } catch (error) {
     console.error('Server error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(500).json({ error: error.message });
   }
 }
