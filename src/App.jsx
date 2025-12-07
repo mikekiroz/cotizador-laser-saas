@@ -776,6 +776,9 @@ function VistaCliente({ materials: materiales, empresa, config }) {
             material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
             cantidad: cantidad,
             total: formatoPesos(totalFinal),
+            subtotal: formatoPesos(costoTotal),
+            iva: formatoPesos(valorIva),
+            tieneIva: datosCliente.aplicaIva,
             empresaNombre: empresa.nombre
           })
         });

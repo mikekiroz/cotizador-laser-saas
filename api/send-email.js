@@ -17,7 +17,10 @@ export default async function handler(req, res) {
       material,
       cantidad,
       total,
-      empresaNombre
+      empresaNombre,
+      subtotal,
+      iva,
+      tieneIva
     } = req.body;
 
     // Validar campos requeridos
@@ -85,6 +88,12 @@ export default async function handler(req, res) {
             </table>
             
             <div style="background: #0891b2; color: white; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
+              ${tieneIva ? `
+              <div style="margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;">
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Subtotal: ${subtotal}</p>
+                <p style="margin: 2px 0; font-size: 14px; opacity: 0.9;">IVA (19%): ${iva}</p>
+              </div>
+              ` : ''}
               <p style="margin: 0; font-size: 14px;">TOTAL ESTIMADO</p>
               <p style="margin: 5px 0 0; font-size: 28px; font-weight: bold;">${total}</p>
             </div>
