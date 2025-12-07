@@ -665,7 +665,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [modalMode, setModalMode] = useState('COTIZACION');
+  // Eliminado modalMode, ahora es siempre PEDIDO
   const [enviandoCorreo, setEnviandoCorreo] = useState(false);
   const [cantidad, setCantidad] = useState(1);
   const [datosCliente, setDatosCliente] = useState({ empresa: '', nombre: '', nit: '', telefono: '', direccion: '', email: '', aplicaIva: false });
@@ -752,11 +752,11 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     }
     setEnviandoCorreo(true);
 
-    if (modalMode === 'PEDIDO') {
-      // 1. WhatsApp con formato mejorado
-      const tel = empresa.telefono?.replace(/\D/g, '') || '';
+    // Lógica única: PEDIDO/ORDEN
+    // 1. WhatsApp con formato mejorado
+    const tel = empresa.telefono?.replace(/\D/g, '') || '';
 
-      const msg = `Hola *${empresa.nombre}*, me gustaría confirmar la siguiente *ORDEN DE CORTE*:
+    const msg = `Hola *${empresa.nombre}*, me gustaría confirmar la siguiente *ORDEN DE CORTE*:
 
 -----------------------------------
 *RESUMEN DEL PEDIDO*
@@ -775,77 +775,38 @@ ${datosCliente.aplicaIva ? `*Subtotal:* ${formatoPesos(costoTotal)}\n*IVA (19%):
 -----------------------------------
 Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
 
-      // Abrir WhatsApp inmediatamente
-      window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
-
-      // 2. Enviar email de orden al taller (en segundo plano)
-      try {
-        await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: empresa.email || empresa.email_contacto,
-            subject: `Nueva Orden de Corte de ${datosCliente.nombre}`,
-            esPedido: true, // Flag para cambiar el template
-            clienteNombre: datosCliente.nombre,
-            clienteTelefono: datosCliente.telefono,
-            clienteEmail: datosCliente.email,
-            archivo: nombreArchivo,
-            material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
-            cantidad: cantidad,
-            total: formatoPesos(totalFinal),
-            subtotal: formatoPesos(costoTotal),
-            iva: formatoPesos(valorIva),
-            tieneIva: datosCliente.aplicaIva,
-            empresaNombre: empresa.nombre
-          })
-        });
-      } catch (err) {
-        console.error('Error enviando email de pedido:', err);
-        // No bloqueamos el flujo si falla el email, lo importante es el WhatsApp
-      }
-
-      setEnviandoCorreo(false);
-      setMostrarModal(false);
-      alert('✅ ¡Redirigido a WhatsApp y notificando al taller!'); // Feedback combinado
-    } else {
-      // Cotización normal
-      try {
-        const response = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: empresa.email || empresa.email_contacto,
-            subject: `Nueva Cotización de ${datosCliente.nombre}`, // Explicit subject for quote
-            esPedido: false,
-            clienteNombre: datosCliente.nombre,
-            clienteTelefono: datosCliente.telefono,
-            clienteEmail: datosCliente.email,
-            archivo: nombreArchivo,
-            material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
-            cantidad: cantidad,
-            total: formatoPesos(totalFinal),
-            subtotal: formatoPesos(costoTotal),
-            iva: formatoPesos(valorIva),
-            tieneIva: datosCliente.aplicaIva,
-            empresaNombre: empresa.nombre
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          alert('✅ ¡Cotización enviada! El taller recibirá tu solicitud por email.');
-        } else {
-          alert('❌ Error al enviar: ' + (data.error || 'Intenta de nuevo'));
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error de conexión. Intenta de nuevo.');
-      }
-      setEnviandoCorreo(false);
-      setMostrarModal(false);
+    // 2. Enviar email de orden al taller (PRIMERO)
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: empresa.email || empresa.email_contacto,
+          subject: `Nueva Orden de Corte de ${datosCliente.nombre}`,
+          esPedido: true,
+          clienteNombre: datosCliente.nombre,
+          clienteTelefono: datosCliente.telefono,
+          clienteEmail: datosCliente.email,
+          archivo: nombreArchivo,
+          material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+          cantidad: cantidad,
+          total: formatoPesos(totalFinal),
+          subtotal: formatoPesos(costoTotal),
+          iva: formatoPesos(valorIva),
+          tieneIva: datosCliente.aplicaIva,
+          empresaNombre: empresa.nombre
+        })
+      });
+    } catch (err) {
+      console.error('Error enviando email de pedido:', err);
+      alert('⚠️ Nota: El email al taller falló, pero te redirigiremos a WhatsApp.');
     }
+
+    // 3. Abrir WhatsApp (SEGUNDO)
+    window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+
+    setEnviandoCorreo(false);
+    setMostrarModal(false);
   };
 
   return (
@@ -953,8 +914,9 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
           </div>
 
           <div className="flex gap-4">
-            <button onClick={() => { setModalMode('COTIZACION'); setMostrarModal(true); }} disabled={!nombreArchivo} className="flex-1 bg-transparent hover:bg-slate-800 disabled:opacity-30 text-white py-4 rounded-xl border border-slate-600 font-bold uppercase text-sm">Cotización</button>
-            <button onClick={() => { setModalMode('PEDIDO'); setMostrarModal(true); }} disabled={!nombreArchivo} className="flex-[1.5] bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase">SOLICITAR CORTE</button>
+            <button onClick={() => setMostrarModal(true)} disabled={!nombreArchivo} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all">
+              SOLICITAR CORTE
+            </button>
           </div>
         </div>
       </div>
@@ -964,7 +926,7 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-slate-800">
-              <h3 className="text-xl font-bold flex items-center gap-2">{modalMode === 'PEDIDO' ? <><Zap className="text-yellow-400" /> Confirmar Pedido</> : <><Send className="text-cyan-400" /> Cotización</>}</h3>
+              <h3 className="text-xl font-bold flex items-center gap-2"><Zap className="text-yellow-400" /> Confirmar Pedido</h3>
               <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white p-2"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
@@ -987,15 +949,15 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
                 </div>
               </div>
               <div className="bg-slate-800/50 p-4 rounded-xl flex items-center gap-4 cursor-pointer" onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })}>
-                <div className={`w-12 h-6 rounded-full p-1 transition-colors ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'}`}><div className={`w-4 h-4 bg-white rounded-full transition-transform ${datosCliente.aplicaIva ? 'translate-x-6' : ''}`}></div></div>
+                <div className={`w - 12 h - 6 rounded - full p - 1 transition - colors ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'} `}><div className={`w - 4 h - 4 bg - white rounded - full transition - transform ${datosCliente.aplicaIva ? 'translate-x-6' : ''} `}></div></div>
                 <div><p className="text-white font-bold">Aplicar IVA ({config.porcentajeIva}%)</p><p className="text-slate-500 text-xs">Habilita si requieres factura</p></div>
               </div>
             </div>
             <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
               <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold">Cancelar</button>
-              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className={`${modalMode === 'PEDIDO' ? 'bg-yellow-400 text-slate-900' : 'bg-cyan-600 text-white'} font-black px-8 py-3 rounded-xl flex items-center gap-2`}>
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : modalMode === 'PEDIDO' ? <Zap size={18} /> : <Send size={18} />}
-                {modalMode === 'PEDIDO' ? 'CONFIRMAR' : 'ENVIAR'}
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-400 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2">
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
+                CONFIRMAR Y SOLICITAR
               </button>
             </div>
           </div>

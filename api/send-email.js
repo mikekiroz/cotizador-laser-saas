@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     }
 
     const resend = new Resend(apiKey);
-    const tituloEmail = esPedido ? 'Nueva Orden de Corte' : 'Nueva Cotizacion';
+    const tituloEmail = 'Nueva Orden de Corte';
 
     // Enviar email al taller
     const { data, error } = await resend.emails.send({
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
           </div>
           
           <div style="background: white; padding: 20px; border: 1px solid #e2e8f0; border-top: none;">
-            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la ${esPedido ? 'Orden' : 'Cotizacion'}</h2>
+            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la Orden</h2>
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 8px 0; color: #64748b;">Archivo:</td>
@@ -99,11 +99,9 @@ export default async function handler(req, res) {
               <p style="margin: 5px 0 0; font-size: 28px; font-weight: bold;">${total}</p>
             </div>
 
-            ${esPedido ? `
             <div style="margin-top: 20px; padding: 15px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #166534; font-size: 14px;">
               <strong>Solicitud de Corte:</strong> El cliente ha confirmado esta orden y solicita instrucciones para el pago y la entrega.
             </div>
-            ` : ''}
           </div>
           </div>
           
