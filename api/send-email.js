@@ -1,10 +1,14 @@
 import { Resend } from 'resend';
 
 export default async function handler(req, res) {
-  // Solo permitir POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  // CORS (Permisos de acceso)
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const {
@@ -20,107 +24,67 @@ export default async function handler(req, res) {
       subtotal,
       iva,
       tieneIva,
-      esPedido
+      empresaNombre // Este es el nombre de TU taller
     } = req.body;
 
-    // Validar campos requeridos
-    if (!to || !clienteNombre || !clienteEmail) {
-      return res.status(400).json({ error: 'Faltan campos requeridos' });
+    // Validación básica
+    if (!process.env.RESEND_API_KEY) {
+      console.error('ERROR: Falta RESEND_API_KEY');
+      return res.status(500).json({ error: 'Server misconfiguration' });
     }
 
-    // Validar API key
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      console.error('RESEND_API_KEY not found');
-      return res.status(500).json({
-        error: 'Configuración del servidor incompleta',
-        debug: 'RESEND_API_KEY not configured'
-      });
+    if (!to) {
+      console.error('ERROR: No hay destinatario (email del taller)');
+      return res.status(400).json({ error: 'Falta el email del taller' });
     }
 
-    const resend = new Resend(apiKey);
-    const tituloEmail = 'Nueva Orden de Corte';
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // Enviar email al taller
+    // Enviar Email
     const { data, error } = await resend.emails.send({
       from: 'Cotizador Laser <onboarding@resend.dev>',
       to: [to],
-      subject: subject || `${tituloEmail} de ${clienteNombre}`,
+      subject: subject || `Nueva Orden de Corte - ${clienteNombre}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #0891b2, #0e7490); padding: 20px; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0;">${tituloEmail}</h1>
-            <p style="color: rgba(255,255,255,0.8); margin: 5px 0 0;">Recibida desde ${empresaNombre}</p>
+        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;">
+          <div style="background-color: #0891b2; padding: 20px; text-align: center;">
+            <h2 style="color: white; margin: 0;">Nueva Orden de Corte</h2>
+            <p style="color: #ecfeff; margin: 5px 0 0;">Para: ${empresaNombre || 'Taller'}</p>
           </div>
           
-          <div style="background: #f8fafc; padding: 20px; border: 1px solid #e2e8f0;">
-            <h2 style="color: #0891b2; margin-top: 0;">Datos del Cliente</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 8px 0; color: #64748b;">Nombre:</td>
-                <td style="padding: 8px 0; font-weight: bold;">${clienteNombre}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #64748b;">Telefono:</td>
-                <td style="padding: 8px 0; font-weight: bold;">${clienteTelefono}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #64748b;">Email:</td>
-                <td style="padding: 8px 0; font-weight: bold;">${clienteEmail}</td>
-              </tr>
-            </table>
-          </div>
-          
-          <div style="background: white; padding: 20px; border: 1px solid #e2e8f0; border-top: none;">
-            <h2 style="color: #0891b2; margin-top: 0;">Detalles de la Orden</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 8px 0; color: #64748b;">Archivo:</td>
-                <td style="padding: 8px 0; font-weight: bold;">${archivo}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #64748b;">Material:</td>
-                <td style="padding: 8px 0; font-weight: bold;">${material}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; color: #64748b;">Cantidad:</td>
-                <td style="padding: 8px 0; font-weight: bold;">${cantidad} unidades</td>
-              </tr>
-            </table>
-            
-            <div style="background: #0891b2; color: white; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
-              ${tieneIva ? `
-              <div style="margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;">
-                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Subtotal: ${subtotal}</p>
-                <p style="margin: 2px 0; font-size: 14px; opacity: 0.9;">IVA (19%): ${iva}</p>
-              </div>
-              ` : ''}
-              <p style="margin: 0; font-size: 14px;">TOTAL ESTIMADO</p>
-              <p style="margin: 5px 0 0; font-size: 28px; font-weight: bold;">${total}</p>
-            </div>
+          <div style="padding: 20px;">
+            <h3 style="border-bottom: 2px solid #0891b2; padding-bottom: 5px;">👤 Datos del Cliente</h3>
+            <p><strong>Nombre/Empresa:</strong> ${clienteNombre}</p>
+            <p><strong>Teléfono:</strong> ${clienteTelefono}</p>
+            <p><strong>Email:</strong> ${clienteEmail}</p>
 
-            <div style="margin-top: 20px; padding: 15px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; color: #166534; font-size: 14px;">
-              <strong>Solicitud de Corte:</strong> El cliente ha confirmado esta orden y solicita instrucciones para el pago y la entrega.
+            <h3 style="border-bottom: 2px solid #0891b2; padding-bottom: 5px; margin-top: 25px;">📄 Detalles del Trabajo</h3>
+            <p><strong>Archivo:</strong> ${archivo}</p>
+            <p><strong>Material:</strong> ${material}</p>
+            <p><strong>Cantidad:</strong> ${cantidad} Unidades</p>
+
+            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin-top: 25px;">
+              ${tieneIva ? `<p style="margin: 5px 0;">Subtotal: <strong>${subtotal}</strong></p>` : ''}
+              ${tieneIva ? `<p style="margin: 5px 0;">IVA: <strong>${iva}</strong></p>` : ''}
+              <h2 style="margin: 10px 0 0; color: #0891b2;">TOTAL: ${total}</h2>
             </div>
           </div>
-          </div>
-          
-          <div style="padding: 20px; text-align: center; color: #64748b; font-size: 12px;">
-            <p>Este email fue enviado automaticamente desde el Cotizador Laser</p>
+          <div style="padding: 15px; background-color: #f1f5f9; text-align: center; font-size: 12px; color: #64748b;">
+            Enviado por Maikitto SaaS
           </div>
         </div>
       `,
     });
 
     if (error) {
-      console.error('Resend error:', error);
-      return res.status(500).json({ error: error.message });
+      console.error('RESEND ERROR:', error);
+      return res.status(400).json({ error });
     }
 
     return res.status(200).json({ success: true, data });
 
-  } catch (error) {
-    console.error('Server error:', error);
-    return res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error('SERVER ERROR:', err);
+    return res.status(500).json({ error: err.message });
   }
 }
