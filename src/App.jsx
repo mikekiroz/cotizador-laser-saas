@@ -655,7 +655,7 @@ function AdminSeguridad() {
 
 
 // ==========================================
-// VISTA CLIENTE (PÚBLICA)
+// VISTA CLIENTE (PÚBLICA) - ACTUALIZADA
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
@@ -665,16 +665,26 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
-  // Eliminado modalMode, ahora es siempre PEDIDO
   const [enviandoCorreo, setEnviandoCorreo] = useState(false);
   const [cantidad, setCantidad] = useState(1);
-  const [datosCliente, setDatosCliente] = useState({ empresa: '', nombre: '', nit: '', telefono: '', direccion: '', email: '', aplicaIva: false });
+
+  // NUEVO ESTADO: Estructura para manejar Persona Natural vs Jurídica
+  const [datosCliente, setDatosCliente] = useState({
+    tipo: 'natural', // 'natural' | 'juridica'
+    nombre: '',      // Nombre completo o Razón Social
+    documento: '',   // Cédula o NIT
+    contacto: '',    // Solo para jurídica
+    telefono: '',
+    direccion: '',
+    email: ''
+  });
 
   useEffect(() => { if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id); }, [materiales]);
 
   const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
   const materialActivo = { ...rawMaterial, precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0, precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0 };
 
+  // --- LÓGICA DE CÁLCULO (NO TOCAR) ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
@@ -741,22 +751,34 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
   const costoUnitarioTotal = costoMetroUnitario + costoDisparoUnitario;
   const costoTotal = costoUnitarioTotal * cantidad;
-  const valorIva = datosCliente.aplicaIva ? costoTotal * (config.porcentajeIva / 100) : 0;
-  const totalFinal = costoTotal + valorIva;
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
+  // --- LÓGICA DE ENVÍO ACTUALIZADA ---
   const procesarAccionModal = async () => {
-    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
-      alert("Completa los campos obligatorios.");
+    // 1. Validaciones estrictas
+    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre || !datosCliente.documento || !datosCliente.direccion) {
+      alert("Por favor completa todos los campos para generar la orden.");
       return;
     }
     setEnviandoCorreo(true);
 
-    // Lógica única: PEDIDO/ORDEN
-    // 1. WhatsApp con formato mejorado
+    // 2. Cálculo de IVA Automático (Según configuración del taller)
+    const aplicaIvaReal = config.porcentajeIva > 0;
+    const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
+    const totalFinalReal = costoTotal + valorIvaReal;
+
     const tel = empresa.telefono?.replace(/\D/g, '') || '';
 
-    const msg = `Hola *${empresa.nombre}*, me gustaría confirmar la siguiente *ORDEN DE CORTE*:
+    // 3. Construir Bloque de Cliente según Tipo
+    let infoCliente = "";
+    if (datosCliente.tipo === 'natural') {
+      infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
+    } else {
+      infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
+    }
+
+    // 4. Mensaje WhatsApp
+    const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
 
 -----------------------------------
 *RESUMEN DEL PEDIDO*
@@ -765,46 +787,44 @@ function VistaCliente({ materials: materiales, empresa, config }) {
 *Material:* ${materialActivo.nombre}
 *Calibre:* ${materialActivo.calibre}
 *Cantidad:* ${cantidad} Unds
-*Servicios:* Corte Láser
 -----------------------------------
-*CLIENTE:* ${datosCliente.nombre}
+${infoCliente}
 *TEL:* ${datosCliente.telefono}
 *EMAIL:* ${datosCliente.email}
+*DIR:* ${datosCliente.direccion}
 -----------------------------------
-${datosCliente.aplicaIva ? `*Subtotal:* ${formatoPesos(costoTotal)}\n*IVA (19%):* ${formatoPesos(valorIva)}\n` : ''}*VALOR TOTAL:* ${formatoPesos(totalFinal)}
+*Subtotal:* ${formatoPesos(costoTotal)}
+${aplicaIvaReal ? `*IVA (${config.porcentajeIva}%):* ${formatoPesos(valorIvaReal)}\n` : ''}*TOTAL:* ${formatoPesos(totalFinalReal)}
 -----------------------------------
-Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
+Quedo atento a las instrucciones de pago.`;
 
-    // 2. Enviar email de orden al taller (PRIMERO)
+    // 5. Enviar Email (API)
     try {
       await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: empresa.email || empresa.email_contacto,
-          subject: `Nueva Orden de Corte de ${datosCliente.nombre}`,
-          esPedido: true,
+          subject: `Nueva Orden: ${datosCliente.nombre}`,
           clienteNombre: datosCliente.nombre,
           clienteTelefono: datosCliente.telefono,
           clienteEmail: datosCliente.email,
           archivo: nombreArchivo,
           material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
           cantidad: cantidad,
-          total: formatoPesos(totalFinal),
+          total: formatoPesos(totalFinalReal),
           subtotal: formatoPesos(costoTotal),
-          iva: formatoPesos(valorIva),
-          tieneIva: datosCliente.aplicaIva,
+          iva: formatoPesos(valorIvaReal),
+          tieneIva: aplicaIvaReal,
           empresaNombre: empresa.nombre
         })
       });
     } catch (err) {
-      console.error('Error enviando email de pedido:', err);
-      alert('⚠️ Nota: El email al taller falló, pero te redirigiremos a WhatsApp.');
+      console.error('Error enviando email:', err);
     }
 
-    // 3. Abrir WhatsApp (SEGUNDO)
+    // 6. Abrir WhatsApp
     window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
-
     setEnviandoCorreo(false);
     setMostrarModal(false);
   };
@@ -815,7 +835,6 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
       <div className="w-full md:w-[420px] bg-slate-800 flex flex-col border-r border-slate-700">
         <div className="p-6 border-b border-slate-700 bg-slate-900">
           <div className="flex items-center gap-4">
-            {/* Favicon (ícono pequeño cuadrado) */}
             {(empresa.faviconUrl || empresa.favicon_url) ? (
               <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
@@ -823,7 +842,6 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
                 {empresa.nombre?.substring(0, 2).toUpperCase()}
               </div>
             )}
-            {/* Logo o nombre de empresa */}
             <div className="flex-1">
               {(empresa.logoUrl || empresa.logo_url) ? (
                 <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
@@ -921,57 +939,104 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal Confirmación Completo y Estructurado */}
       {mostrarModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b border-slate-800">
-              <h3 className="text-xl font-bold flex items-center gap-2"><Zap className="text-yellow-400" /> Confirmar Pedido</h3>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white p-2"><X size={20} /></button>
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden shadow-2xl">
+
+            {/* Cabecera */}
+            <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-white"><Zap className="text-yellow-400" /> Confirmar Orden de Corte</h3>
+              <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="bg-slate-800 p-4 rounded-xl flex items-center gap-4">
-                <DollarSign className="text-cyan-400" />
-                <div><p className="text-slate-400 text-xs font-bold uppercase">Valor Neto</p><p className="text-white text-xl font-mono font-bold">{formatoPesos(costoTotal)}</p></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase">Nombre *</label>
-                  <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase">Teléfono *</label>
-                  <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Email *</label>
-                  <input type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" />
-                </div>
+
+            <div className="p-6 overflow-y-auto max-h-[80vh]">
+
+              {/* Resumen Precio Automático */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex items-center justify-between">
+                <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Valor Neto</p><p className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</p></div>
+                {config.porcentajeIva > 0 && (
+                  <div className="text-right"><p className="text-slate-400 text-xs font-bold uppercase mb-1">+ IVA ({config.porcentajeIva}%)</p><p className="text-xl font-bold text-cyan-400">{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</p></div>
+                )}
               </div>
 
-              <div
-                className="bg-slate-800/50 p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-slate-800 transition-colors"
-                onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })}
-              >
-                {/* Interruptor (Switch) */}
-                <div className={`relative w-12 h-6 rounded-full transition-all duration-300 ${datosCliente.aplicaIva ? 'bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'bg-slate-700 border border-slate-600'}`}>
-                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${datosCliente.aplicaIva ? 'translate-x-6' : 'translate-x-0'}`}></div>
+              {/* Selector Tabs: Persona / Empresa */}
+              <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
+                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>Persona Natural</button>
+                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>Empresa / Jurídica</button>
+              </div>
+
+              {/* Formulario Dinámico */}
+              <div className="space-y-4">
+
+                {/* Email (Siempre visible y obligatorio) */}
+                <div>
+                  <label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">Correo Electrónico (Obligatorio)</label>
+                  <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                    <div className="pl-3 text-slate-500"><Mail size={18} /></div>
+                    <input type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" placeholder="ejemplo@correo.com" />
+                  </div>
                 </div>
 
-                {/* Textos */}
-                <div>
-                  <p className={`font-bold transition-colors ${datosCliente.aplicaIva ? 'text-white' : 'text-slate-400'}`}>
-                    Aplicar IVA ({config.porcentajeIva}%)
-                  </p>
-                  <p className="text-slate-500 text-xs">Habilita si requieres factura</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Nombre o Razón Social */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><User size={18} /></div>
+                      <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
+
+                  {/* Cédula o NIT */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><FileText size={18} /></div>
+                      <input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Contacto (Solo si es empresa) */}
+                {datosCliente.tipo === 'juridica' && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto (Quién pide)</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><User size={18} /></div>
+                      <input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" placeholder="¿Por quién preguntamos?" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Teléfono */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><Phone size={18} /></div>
+                      <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
+
+                  {/* Dirección */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><MapPin size={18} /></div>
+                      <input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
-            <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
-              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold">Cancelar</button>
-              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-400 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2">
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-                CONFIRMAR Y SOLICITAR
+
+            {/* Footer Botones */}
+            <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
+              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors">Cancelar</button>
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2 transition-transform transform hover:scale-105">
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />} CONFIRMAR PEDIDO
               </button>
             </div>
           </div>
