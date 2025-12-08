@@ -389,6 +389,19 @@ function AdminPedidos({ empresaId }) {
 
     setLoading(false);
   };
+  // --- PEGA ESTAS DOS FUNCIONES AQUÍ (Línea 392 aprox) ---
+
+  const formatoFecha = (fecha) => {
+    if (!fecha) return '';
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const formatoPesos = (v) => {
+    if (v === null || v === undefined) return '$0';
+    return '$' + Math.round(v).toLocaleString('es-CO');
+  };
 
   // --- Función para Eliminar ---
   const eliminarPedido = async (id) => {
