@@ -367,9 +367,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
     </div>
   );
 }
-// ==========================================
-// ADMIN - PEDIDOS (PEGA ESTO QUE FALTA)
-// ==========================================
+
 function AdminPedidos({ empresaId }) {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -390,6 +388,21 @@ function AdminPedidos({ empresaId }) {
     else setPedidos(data || []);
 
     setLoading(false);
+  };
+
+  // --- Función para Eliminar ---
+  const eliminarPedido = async (id) => {
+    if (!confirm('¿Estás seguro de eliminar este pedido?')) return;
+    const { error } = await supabase.from('pedidos').delete().eq('id', id);
+    if (error) alert('Error al eliminar');
+    else cargarPedidos();
+  };
+
+  // --- Función para Cambiar Estado ---
+  const cambiarEstado = async (id, nuevoEstado) => {
+    const { error } = await supabase.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
+    if (error) alert('Error actualizando estado');
+    else cargarPedidos();
   };
 
   const formatoFecha = (fecha) => {
@@ -415,7 +428,6 @@ function AdminPedidos({ empresaId }) {
         <div className="bg-slate-800 p-10 rounded-xl text-center border border-slate-700">
           <div className="inline-flex bg-slate-900 p-4 rounded-full mb-4 text-slate-500"><FileBox size={32} /></div>
           <h3 className="text-white font-bold">No hay pedidos aún</h3>
-          <p className="text-slate-400 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
         </div>
       ) : (
         <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
@@ -425,44 +437,42 @@ function AdminPedidos({ empresaId }) {
                 <th className="p-4">Fecha</th>
                 <th className="p-4">Cliente</th>
                 <th className="p-4">Detalles</th>
-                <th className="p-4">Total</th>
-                <th className="p-4 text-right">Archivo</th>
+                <th className="p-4">Estado</th>
+                <th className="p-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700">
               {pedidos.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
-                  <td className="p-4 text-slate-400 whitespace-nowrap">
-                    {formatoFecha(p.created_at)}
-                  </td>
+                  <td className="p-4 text-slate-400 whitespace-nowrap">{formatoFecha(p.created_at)}</td>
                   <td className="p-4">
                     <div className="font-bold text-white">{p.cliente_nombre}</div>
                     <div className="text-xs text-slate-400">{p.cliente_telefono}</div>
-                    <div className="text-xs text-cyan-500">{p.cliente_email}</div>
                   </td>
                   <td className="p-4">
-                    <div className="text-white"><span className="text-slate-500">Mat:</span> {p.material_nombre}</div>
-                    <div className="text-slate-300"><span className="text-slate-500">Cant:</span> {p.cantidad} Unds</div>
-                    <div className="text-xs text-slate-500 mt-1 max-w-[150px] truncate" title={p.archivo_nombre}>
-                      {p.archivo_nombre}
-                    </div>
+                    <div className="text-white">{p.material_nombre}</div>
+                    <div className="text-xs text-slate-500">{p.cantidad} Unds - {formatoPesos(p.valor_total)}</div>
                   </td>
-                  <td className="p-4 font-mono font-bold text-green-400">
-                    {formatoPesos(p.valor_total)}
+                  <td className="p-4">
+                    <select
+                      value={p.estado || 'pendiente'}
+                      onChange={(e) => cambiarEstado(p.id, e.target.value)}
+                      className={`bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-bold outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-400 border-green-900' : 'text-yellow-400 border-yellow-900'
+                        }`}
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="realizado">Realizado</option>
+                    </select>
                   </td>
-                  <td className="p-4 text-right">
-                    {p.archivo_url ? (
-                      <a
-                        href={p.archivo_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 bg-slate-700 hover:bg-cyan-600 hover:text-white text-slate-200 px-3 py-2 rounded-lg font-bold transition-all text-xs"
-                      >
-                        <Upload size={14} className="rotate-180" /> Descargar
+                  <td className="p-4 text-right flex items-center justify-end gap-2">
+                    {p.archivo_url && (
+                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-cyan-600 hover:text-white text-slate-200 p-2 rounded-lg">
+                        <Upload size={16} className="rotate-180" />
                       </a>
-                    ) : (
-                      <span className="text-red-400 text-xs">Sin archivo</span>
                     )}
+                    <button onClick={() => eliminarPedido(p.id)} className="bg-slate-700 hover:bg-red-500 hover:text-white text-slate-200 p-2 rounded-lg">
+                      <Trash2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -473,7 +483,6 @@ function AdminPedidos({ empresaId }) {
     </div>
   );
 }
-
 // ==========================================
 // ADMIN - MATERIALES (CRUD Supabase)
 // ==========================================
