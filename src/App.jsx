@@ -501,7 +501,7 @@ function AdminPedidos({ empresaId }) {
 }
 
 // ==========================================
-// ADMIN - MATERIALES (DISEÑO MEJORADO)
+// ADMIN - MATERIALES (CÓDIGO COMPLETO Y CORREGIDO)
 // ==========================================
 function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   const [form, setForm] = useState({
@@ -562,7 +562,6 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
       <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
         <h3 className="font-bold mb-4">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
         <form onSubmit={handleSave}>
-          {/* Fila Superior: Nombre y Calibre */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="md:col-span-2">
               <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre Material</label>
@@ -573,10 +572,7 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
               <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
             </div>
           </div>
-
-          {/* Fila Inferior: Servicio vs Suministro */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Columna Izquierda: Servicio de Corte */}
             <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 space-y-3">
               <h4 className="text-sm font-bold text-white">Servicio de Corte</h4>
               <div className="flex gap-4">
@@ -590,8 +586,6 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
                 </div>
               </div>
             </div>
-
-            {/* Columna Derecha: Suministro de Material */}
             <div className="bg-slate-900/50 p-4 rounded-lg border border-cyan-700/50 space-y-3">
               <h4 className="text-sm font-bold text-cyan-400">Suministro de Material (Opcional)</h4>
               <div className="flex gap-4">
@@ -610,7 +604,6 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
               </div>
             </div>
           </div>
-
           <div className="flex justify-end mt-6">
             <button disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
               {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
@@ -619,14 +612,49 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
         </form>
       </div>
 
-      {/* Lista (sin cambios, ya se veía bien) */}
+      {/* --- TABLA DE LA LISTA DE MATERIALES --- */}
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        {/* ... El código de la tabla ... (déjalo como está) */}
+        <table className="w-full text-sm">
+          <thead className="bg-slate-950 text-slate-400 text-xs uppercase">
+            <tr>
+              <th className="p-4 text-left">Material</th>
+              <th className="p-4 text-left">Servicio Corte</th>
+              <th className="p-4 text-left">Suministro Material</th>
+              <th className="p-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-700">
+            {materiales.map(m => (
+              <tr key={m.id} className="hover:bg-slate-700/50">
+                <td className="p-4">
+                  <div className="font-bold text-white">{m.nombre}</div>
+                  <div className="text-xs text-slate-400">{m.calibre}</div>
+                </td>
+                <td className="p-4">
+                  <div className="text-green-400 font-mono">${(m.precio_metro)?.toLocaleString()} /m</div>
+                  <div className="text-xs text-slate-500">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
+                </td>
+                <td className="p-4">
+                  {(m.precio_material) > 0 ? (
+                    <span className="bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded text-xs font-bold border border-cyan-900">
+                      ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 text-xs">No vende</span>
+                  )}
+                </td>
+                <td className="p-4 text-right">
+                  <button onClick={() => handleEdit(m)} className="p-2"><Edit size={16} /></button>
+                  <button onClick={() => handleDelete(m.id)} className="p-2"><Trash2 size={16} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
-
 // ==========================================
 // ADMIN - EMPRESA
 // ==========================================
