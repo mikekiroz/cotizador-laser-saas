@@ -788,16 +788,16 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         urlArchivoPublica = urlData.publicUrl;
       }
 
-      // 2. GUARDAR EN BASE DE DATOS
+      // B. GUARDAR EN BASE DE DATOS
       const { error: dbError } = await supabase.from('pedidos').insert({
         empresa_id: empresa.id,
 
-        // CORRECCIÓN AQUÍ: Todo en minúsculas
-        cliente_nombre: datosCliente.nombre,
-        cliente_email: datosCliente.email,
-        cliente_telefono: datosCliente.telefono,
+        // --- CAMBIA ESTO A MINÚSCULAS ---
+        cliente_nombre: datosCliente.nombre,   // Antes tenías 'Cliente_nombre'
+        cliente_email: datosCliente.email,     // Antes tenías 'Cliente_email' (EL ERROR)
+        cliente_telefono: datosCliente.telefono, // Antes tenías 'Cliente_telefono'
+        // --------------------------------
 
-        // El resto se ve bien (ya estaba en minúsculas en tu captura)
         archivo_nombre: nombreArchivo,
         material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
         cantidad: cantidad,
@@ -805,7 +805,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         tipo: 'corte',
         estado: 'pendiente',
 
-        // Campos nuevos
         cliente_documento: datosCliente.documento,
         cliente_direccion: datosCliente.direccion,
         archivo_url: urlArchivoPublica
