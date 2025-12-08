@@ -949,7 +949,7 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
                 </div>
               </div>
               <div className="bg-slate-800/50 p-4 rounded-xl flex items-center gap-4 cursor-pointer" onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })}>
-                <div className={`w - 12 h - 6 rounded - full p - 1 transition - colors ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'} `}><div className={`w - 4 h - 4 bg - white rounded - full transition - transform ${datosCliente.aplicaIva ? 'translate-x-6' : ''} `}></div></div>
+                <div className={`w-12 h-6 rounded-full p-1 transition - colors ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'} `}><div className={`w-4 h-4 bg - white rounded - full transition - transform ${datosCliente.aplicaIva ? 'translate-x-6' : ''} `}></div></div>
                 <div><p className="text-white font-bold">Aplicar IVA ({config.porcentajeIva}%)</p><p className="text-slate-500 text-xs">Habilita si requieres factura</p></div>
               </div>
             </div>
