@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 export default async function handler(req, res) {
-  // Configuración de cabeceras para evitar bloqueos
+  // Configuración de cabeceras CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -11,63 +11,83 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const body = req.body;
-
-    // 1. Validar la API Key
-    if (!process.env.RESEND_API_KEY) {
-      console.error('ERROR CRÍTICO: No hay RESEND_API_KEY configurada en Vercel');
-      return res.status(500).json({ error: 'Falta configuración del servidor' });
-    }
-
-    // 2. Validar el destinatario
-    if (!body.to) {
-      console.error('ERROR: El campo "to" (email del taller) llegó vacío.');
-      return res.status(400).json({ error: 'No se identificó el email del taller' });
-    }
+    const {
+      to,
+      subject,
+      clienteNombre,
+      clienteDocumento, // Dato Nuevo
+      clienteTelefono,
+      clienteEmail,
+      clienteDireccion, // Dato Nuevo
+      archivo,
+      material,
+      cantidad,
+      total,
+      subtotal,
+      iva,
+      tieneIva,
+      empresaNombre
+    } = req.body;
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // 3. Enviar el correo
+    // Enviar Email con el DISEÑO AZUL ORIGINAL
     const { data, error } = await resend.emails.send({
       from: 'Cotizador Laser <onboarding@resend.dev>',
-      to: [body.to],
-      subject: body.subject || 'Nueva Orden de Corte',
+      to: [to],
+      subject: subject || `Nueva Orden de Corte - ${clienteNombre}`,
       html: `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ccc;">
-          <h2 style="color: #0891b2;">Nueva Orden: ${body.clienteNombre || 'Cliente'}</h2>
-          <p><strong>Taller:</strong> ${body.empresaNombre || 'No especificado'}</p>
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0;">
           
-          <hr />
-          <h3>Datos del Cliente</h3>
-          <p><strong>Nombre/Empresa:</strong> ${body.clienteNombre}</p>
-          <p><strong>ID/NIT:</strong> ${body.clienteDocumento || 'No registrado'}</p>
-          <p><strong>Teléfono:</strong> ${body.clienteTelefono}</p>
-          <p><strong>Email:</strong> ${body.clienteEmail}</p>
-          <p><strong>Dirección:</strong> ${body.clienteDireccion || 'No registrada'}</p>
+          <!-- ENCABEZADO AZUL -->
+          <div style="background-color: #0891b2; padding: 30px 20px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Nueva Orden de Corte</h1>
+            <p style="color: #ecfeff; margin: 5px 0 0; font-size: 14px;">Para: ${empresaNombre || 'Taller'}</p>
+          </div>
           
-          <hr />
-          <h3>Detalles del Pedido</h3>
-          <p><strong>Archivo:</strong> ${body.archivo}</p>
-          <p><strong>Material:</strong> ${body.material}</p>
-          <p><strong>Cantidad:</strong> ${body.cantidad}</p>
+          <div style="padding: 40px 30px;">
+            
+            <!-- SECCIÓN CLIENTE -->
+            <h3 style="color: #334155; font-size: 16px; border-bottom: 2px solid #0891b2; padding-bottom: 10px; margin-bottom: 20px;">
+              👤 Datos del Cliente
+            </h3>
+            
+            <p style="margin: 10px 0; color: #333;"><strong>Nombre/Empresa:</strong> ${clienteNombre}</p>
+            <p style="margin: 10px 0; color: #333;"><strong>ID / NIT:</strong> ${clienteDocumento || 'No registrado'}</p>
+            <p style="margin: 10px 0; color: #333;"><strong>Teléfono:</strong> ${clienteTelefono}</p>
+            <p style="margin: 10px 0; color: #333;"><strong>Email:</strong> <a href="mailto:${clienteEmail}" style="color: #0891b2; text-decoration: none;">${clienteEmail}</a></p>
+            <p style="margin: 10px 0; color: #333;"><strong>Dirección:</strong> ${clienteDireccion || 'No registrada'}</p>
+
+            <!-- SECCIÓN TRABAJO -->
+            <h3 style="color: #334155; font-size: 16px; border-bottom: 2px solid #0891b2; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;">
+              📄 Detalles del Trabajo
+            </h3>
+
+            <p style="margin: 10px 0; color: #333;"><strong>Archivo:</strong> ${archivo}</p>
+            <p style="margin: 10px 0; color: #333;"><strong>Material:</strong> ${material}</p>
+            <p style="margin: 10px 0; color: #333;"><strong>Cantidad:</strong> ${cantidad} Unidades</p>
+
+            <!-- CAJA TOTAL (AZUL CLARO) -->
+            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-top: 30px;">
+              ${tieneIva ? `<p style="margin: 5px 0; color: #334155;">Subtotal: <strong>${subtotal}</strong></p>` : ''}
+              ${tieneIva ? `<p style="margin: 5px 0; color: #334155;">IVA: <strong>${iva}</strong></p>` : ''}
+              <h2 style="margin: 15px 0 0; color: #0891b2; font-size: 24px;">TOTAL: ${total}</h2>
+            </div>
+
+          </div>
           
-          <div style="background: #f0f9ff; padding: 10px; margin-top: 10px;">
-             <h3 style="margin:0;">TOTAL: ${body.total}</h3>
-             <small>(Subtotal: ${body.subtotal} | IVA: ${body.iva})</small>
+          <!-- PIE DE PÁGINA GRIS -->
+          <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+            Enviado por Maikitto SaaS
           </div>
         </div>
       `
     });
 
-    if (error) {
-      console.error('ERROR RESEND:', error);
-      return res.status(400).json({ error });
-    }
-
+    if (error) return res.status(400).json({ error });
     return res.status(200).json({ success: true, data });
 
   } catch (error) {
-    console.error('ERROR SERVIDOR:', error);
     return res.status(500).json({ error: error.message });
   }
 }
