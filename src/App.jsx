@@ -284,11 +284,11 @@ function OnboardingPage({ setEmpresa }) {
 }
 
 // ==========================================
-// VISTA ADMIN
+// VISTA ADMIN - CON PESTAÑA PEDIDOS
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
-  const [tab, setTab] = useState('materiales');
+  const [tab, setTab] = useState('pedidos'); // Arrancar en 'pedidos' es más útil
   const [copied, setCopied] = useState(false);
 
   const publicUrl = `${window.location.origin}/?taller=${empresa.slug}`;
@@ -341,14 +341,25 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs de Navegación */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex gap-4 mb-8">
-          <button onClick={() => setTab('materiales')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'materiales' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>Materiales</button>
-          <button onClick={() => setTab('empresa')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'empresa' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>Mi Empresa</button>
-          <button onClick={() => setTab('seguridad')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'seguridad' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>Seguridad</button>
+        <div className="flex gap-4 mb-8 border-b border-slate-800 pb-1">
+          <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'pedidos' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Pedidos Recientes
+          </button>
+          <button onClick={() => setTab('materiales')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'materiales' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Materiales
+          </button>
+          <button onClick={() => setTab('empresa')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'empresa' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Configuración
+          </button>
+          <button onClick={() => setTab('seguridad')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'seguridad' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Seguridad
+          </button>
         </div>
 
+        {/* Renderizado de Componentes */}
+        {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
         {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
         {tab === 'seguridad' && <AdminSeguridad />}
