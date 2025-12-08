@@ -512,6 +512,7 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async (e) => {
+    alert("Probando");
     e.preventDefault();
     if (!form.nombre || !form.precioMetro) return;
     setSaving(true);
