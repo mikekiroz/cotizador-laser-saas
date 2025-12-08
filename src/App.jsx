@@ -655,13 +655,14 @@ function AdminSeguridad() {
 
 
 // ==========================================
-// VISTA CLIENTE (PÚBLICA) - VERSIÓN FINAL DEFINITIVA
+// VISTA CLIENTE (PÚBLICA) - FINAL CON SUBIDA DE ARCHIVOS
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
   const [cantidadDisparos, setCantidadDisparos] = useState(0);
   const [nombreArchivo, setNombreArchivo] = useState(null);
+  const [archivoBlob, setArchivoBlob] = useState(null); // <--- AQUÍ SE GUARDA EL ARCHIVO FÍSICO
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -673,12 +674,10 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
   });
 
-  // --- PERSISTENCIA (LocalStorage) ---
+  // --- PERSISTENCIA ---
   useEffect(() => {
     const guardado = localStorage.getItem('maikitto_datos');
-    if (guardado) {
-      try { setDatosCliente(JSON.parse(guardado)); } catch (e) { }
-    }
+    if (guardado) { try { setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
   }, []);
 
   useEffect(() => {
@@ -742,6 +741,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
 
   const manejarArchivo = (e) => {
     const file = e.target.files[0]; if (!file) return;
+    setArchivoBlob(file); // <--- GUARDAMOS EL ARCHIVO PARA SUBIRLO LUEGO
     setNombreArchivo(file.name); setProcesando(true); setError('');
     const ext = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
@@ -760,7 +760,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
   const procesarAccionModal = async () => {
-    // Validación
     if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
       alert("Por favor completa los campos obligatorios."); return;
     }
@@ -770,8 +769,79 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
     const totalFinalReal = costoTotal + valorIvaReal;
     const tel = empresa.telefono?.replace(/\D/g, '') || '';
+    let urlArchivoPublica = "";
 
-    // Info WhatsApp
+    try {
+      // 1. SUBIR ARCHIVO A SUPABASE
+      if (archivoBlob) {
+        const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
+        const { error: uploadError } = await supabase.storage
+          .from('archivos-clientes')
+          .upload(rutaArchivo, archivoBlob);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('archivos-clientes')
+          .getPublicUrl(rutaArchivo);
+
+        urlArchivoPublica = urlData.publicUrl;
+      }
+
+      // 2. GUARDAR EN BASE DE DATOS (TABLA PEDIDOS)
+      // Nota: Uso 'Cliente_nombre' (Mayúscula) porque así está en tu captura de Supabase
+      const { error: dbError } = await supabase.from('pedidos').insert({
+        empresa_id: empresa.id,
+        // Campos existentes en tu tabla
+        'Cliente_nombre': datosCliente.nombre,
+        'Cliente_email': datosCliente.email,
+        'Cliente_telefono': datosCliente.telefono,
+        'archivo_nombre': nombreArchivo,
+        'material_nombre': `${materialActivo.nombre} - ${materialActivo.calibre}`,
+        'cantidad': cantidad,
+        'valor_total': totalFinalReal,
+        'tipo': 'corte',
+        'estado': 'pendiente',
+        // Nuevos campos que agregaste en el Paso 1
+        'cliente_documento': datosCliente.documento,
+        'cliente_direccion': datosCliente.direccion,
+        'archivo_url': urlArchivoPublica
+      });
+
+      if (dbError) throw dbError;
+
+      // 3. ENVIAR EMAIL (API)
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: empresa.email || empresa.email_contacto,
+          subject: `Nueva Orden: ${datosCliente.nombre}`,
+          clienteNombre: datosCliente.nombre,
+          clienteDocumento: datosCliente.documento,
+          clienteTelefono: datosCliente.telefono,
+          clienteEmail: datosCliente.email,
+          clienteDireccion: datosCliente.direccion,
+          archivo: nombreArchivo,
+          archivoUrl: urlArchivoPublica, // <--- Link para descargar
+          material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+          cantidad: cantidad,
+          total: formatoPesos(totalFinalReal),
+          subtotal: formatoPesos(costoTotal),
+          iva: formatoPesos(valorIvaReal),
+          tieneIva: aplicaIvaReal,
+          empresaNombre: empresa.nombre
+        })
+      });
+
+    } catch (err) {
+      console.error('Error completo:', err);
+      alert('Error guardando pedido: ' + (err.message || err.error_description || err));
+      setEnviandoCorreo(false);
+      return;
+    }
+
+    // 4. WHATSAPP
     let infoCliente = "";
     if (datosCliente.tipo === 'natural') {
       infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
@@ -783,7 +853,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
 -----------------------------------
 *RESUMEN DEL PEDIDO*
 -----------------------------------
-*Archivo:* ${nombreArchivo}
+*Archivo:* ${urlArchivoPublica || nombreArchivo}
 *Material:* ${materialActivo.nombre}
 *Calibre:* ${materialActivo.calibre}
 *Cantidad:* ${cantidad} Unds
@@ -793,38 +863,9 @@ ${infoCliente}
 *EMAIL:* ${datosCliente.email}
 *DIR:* ${datosCliente.direccion}
 -----------------------------------
-*Subtotal:* ${formatoPesos(costoTotal)}
-${aplicaIvaReal ? `*IVA (${config.porcentajeIva}%):* ${formatoPesos(valorIvaReal)}\n` : ''}*TOTAL:* ${formatoPesos(totalFinalReal)}
+*TOTAL:* ${formatoPesos(totalFinalReal)}
 -----------------------------------
 Quedo atento a las instrucciones.`;
-
-    // Envío de Email (CON DATOS COMPLETOS)
-    try {
-      await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: empresa.email || empresa.email_contacto,
-          subject: `Nueva Orden: ${datosCliente.nombre}`,
-
-          // Mapeo correcto de datos
-          clienteNombre: datosCliente.nombre,
-          clienteDocumento: datosCliente.documento,
-          clienteTelefono: datosCliente.telefono,
-          clienteEmail: datosCliente.email,
-          clienteDireccion: datosCliente.direccion,
-
-          archivo: nombreArchivo,
-          material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
-          cantidad: cantidad,
-          total: formatoPesos(totalFinalReal),
-          subtotal: formatoPesos(costoTotal),
-          iva: formatoPesos(valorIvaReal),
-          tieneIva: aplicaIvaReal,
-          empresaNombre: empresa.nombre
-        })
-      });
-    } catch (err) { console.error('Error email:', err); }
 
     window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
     setEnviandoCorreo(false);
