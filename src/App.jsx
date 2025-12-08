@@ -788,24 +788,27 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         urlArchivoPublica = urlData.publicUrl;
       }
 
-      // 2. GUARDAR EN BASE DE DATOS (TABLA PEDIDOS)
-      // Nota: Uso 'Cliente_nombre' (Mayúscula) porque así está en tu captura de Supabase
+      // 2. GUARDAR EN BASE DE DATOS
       const { error: dbError } = await supabase.from('pedidos').insert({
         empresa_id: empresa.id,
-        // Campos existentes en tu tabla
-        'Cliente_nombre': datosCliente.nombre,
-        'Cliente_email': datosCliente.email,
-        'Cliente_telefono': datosCliente.telefono,
-        'archivo_nombre': nombreArchivo,
-        'material_nombre': `${materialActivo.nombre} - ${materialActivo.calibre}`,
-        'cantidad': cantidad,
-        'valor_total': totalFinalReal,
-        'tipo': 'corte',
-        'estado': 'pendiente',
-        // Nuevos campos que agregaste en el Paso 1
-        'cliente_documento': datosCliente.documento,
-        'cliente_direccion': datosCliente.direccion,
-        'archivo_url': urlArchivoPublica
+
+        // CORRECCIÓN AQUÍ: Todo en minúsculas
+        cliente_nombre: datosCliente.nombre,
+        cliente_email: datosCliente.email,
+        cliente_telefono: datosCliente.telefono,
+
+        // El resto se ve bien (ya estaba en minúsculas en tu captura)
+        archivo_nombre: nombreArchivo,
+        material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+        cantidad: cantidad,
+        valor_total: totalFinalReal,
+        tipo: 'corte',
+        estado: 'pendiente',
+
+        // Campos nuevos
+        cliente_documento: datosCliente.documento,
+        cliente_direccion: datosCliente.direccion,
+        archivo_url: urlArchivoPublica
       });
 
       if (dbError) throw dbError;
