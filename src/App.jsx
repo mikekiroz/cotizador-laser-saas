@@ -4,7 +4,7 @@ import {
   Upload, Calculator, DollarSign, Settings, FileBox, Zap,
   Trash2, Plus, Users, LayoutDashboard, Building2, User,
   Phone, MapPin, FileText, X, AlertTriangle, Printer,
-  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check
+  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package
 } from 'lucide-react';
 import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
@@ -1531,8 +1531,8 @@ Quedo atento a las instrucciones. ⚡`;
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
                   className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-400 hover:text-white'
+                    ? 'bg-cyan-600 text-white'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   Persona Natural
@@ -1540,8 +1540,8 @@ Quedo atento a las instrucciones. ⚡`;
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
                   className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-400 hover:text-white'
+                    ? 'bg-cyan-600 text-white'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   Empresa / Jurídica
