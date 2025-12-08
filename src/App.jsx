@@ -655,7 +655,7 @@ function AdminSeguridad() {
 
 
 // ==========================================
-// VISTA CLIENTE (PÚBLICA) - CON PERSISTENCIA
+// VISTA CLIENTE (PÚBLICA) - ACTUALIZADA
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
@@ -668,35 +668,23 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const [enviandoCorreo, setEnviandoCorreo] = useState(false);
   const [cantidad, setCantidad] = useState(1);
 
-  // Estado Inicial del Cliente
+  // NUEVO ESTADO: Estructura para manejar Persona Natural vs Jurídica
   const [datosCliente, setDatosCliente] = useState({
-    tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
+    tipo: 'natural', // 'natural' | 'juridica'
+    nombre: '',      // Nombre completo o Razón Social
+    documento: '',   // Cédula o NIT
+    contacto: '',    // Solo para jurídica
+    telefono: '',
+    direccion: '',
+    email: ''
   });
 
-  // --- PERSISTENCIA DE DATOS (LocalStorage) ---
-  // 1. Cargar datos guardados al iniciar
-  useEffect(() => {
-    const datosGuardados = localStorage.getItem('maikitto_cliente');
-    if (datosGuardados) {
-      try {
-        const datos = JSON.parse(datosGuardados);
-        setDatosCliente(datos);
-      } catch (e) { console.error('Error cargando datos', e); }
-    }
-  }, []);
-
-  // 2. Guardar datos cada vez que el usuario escribe
-  useEffect(() => {
-    localStorage.setItem('maikitto_cliente', JSON.stringify(datosCliente));
-  }, [datosCliente]);
-
-  // Selección de material inicial
   useEffect(() => { if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id); }, [materiales]);
 
   const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
   const materialActivo = { ...rawMaterial, precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0, precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0 };
 
-  // --- LÓGICA DXF/SVG ---
+  // --- LÓGICA DE CÁLCULO (NO TOCAR) ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
@@ -716,7 +704,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         if (valid) conteoFiguras++;
       });
       finalizarCalculo(longitudTotal / 1000, conteoFiguras);
-    } catch (err) { reportarError('DXF inválido: ' + err.message); }
+    } catch (err) { reportarError('Archivo DXF inválido: ' + err.message); }
   };
 
   const procesarSVG = (textoSVG) => {
@@ -754,7 +742,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     reader.onload = (ev) => {
       if (ext === 'dxf') procesarDXF(ev.target.result);
       else if (ext === 'svg') procesarSVG(ev.target.result);
-      else reportarError("Formato no soportado.");
+      else reportarError("Formato no soportado. Usa .DXF o .SVG");
     };
     reader.readAsText(file);
   };
@@ -765,18 +753,23 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const costoTotal = costoUnitarioTotal * cantidad;
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
+  // --- LÓGICA DE ENVÍO ACTUALIZADA ---
   const procesarAccionModal = async () => {
-    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
-      alert("Faltan campos obligatorios."); return;
+    // 1. Validaciones estrictas
+    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre || !datosCliente.documento || !datosCliente.direccion) {
+      alert("Por favor completa todos los campos para generar la orden.");
+      return;
     }
     setEnviandoCorreo(true);
 
+    // 2. Cálculo de IVA Automático (Según configuración del taller)
     const aplicaIvaReal = config.porcentajeIva > 0;
     const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
     const totalFinalReal = costoTotal + valorIvaReal;
+
     const tel = empresa.telefono?.replace(/\D/g, '') || '';
 
-    // Info Cliente
+    // 3. Construir Bloque de Cliente según Tipo
     let infoCliente = "";
     if (datosCliente.tipo === 'natural') {
       infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
@@ -784,7 +777,9 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
     }
 
+    // 4. Mensaje WhatsApp
     const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
+
 -----------------------------------
 *RESUMEN DEL PEDIDO*
 -----------------------------------
@@ -801,9 +796,9 @@ ${infoCliente}
 *Subtotal:* ${formatoPesos(costoTotal)}
 ${aplicaIvaReal ? `*IVA (${config.porcentajeIva}%):* ${formatoPesos(valorIvaReal)}\n` : ''}*TOTAL:* ${formatoPesos(totalFinalReal)}
 -----------------------------------
-Quedo atento a las instrucciones.`;
+Quedo atento a las instrucciones de pago.`;
 
-    // Envío de Email
+    // 5. Enviar Email (API)
     try {
       await fetch('/api/send-email', {
         method: 'POST',
@@ -824,8 +819,11 @@ Quedo atento a las instrucciones.`;
           empresaNombre: empresa.nombre
         })
       });
-    } catch (err) { console.error('Error email:', err); }
+    } catch (err) {
+      console.error('Error enviando email:', err);
+    }
 
+    // 6. Abrir WhatsApp
     window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
     setEnviandoCorreo(false);
     setMostrarModal(false);
@@ -840,7 +838,9 @@ Quedo atento a las instrucciones.`;
             {(empresa.faviconUrl || empresa.favicon_url) ? (
               <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
-              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">{empresa.nombre?.substring(0, 2).toUpperCase()}</div>
+              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">
+                {empresa.nombre?.substring(0, 2).toUpperCase()}
+              </div>
             )}
             <div className="flex-1">
               {(empresa.logoUrl || empresa.logo_url) ? (
@@ -866,8 +866,14 @@ Quedo atento a las instrucciones.`;
           </div>
 
           <div className="space-y-2 mb-6">
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm"><span>METRO LINEAL</span><span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span></div>
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm"><span>PERFORACIÓN</span><span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span></div>
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>VALOR CORTE POR METRO LINEAL</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
+            </div>
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>VALOR POR PERFORACIÓN</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
+            </div>
           </div>
 
           <label className="group relative border-2 border-dashed border-cyan-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
@@ -875,13 +881,21 @@ Quedo atento a las instrucciones.`;
             {procesando ? (
               <div className="flex flex-col items-center"><Loader2 className="animate-spin text-cyan-400 mb-2" size={32} /><span className="text-cyan-400 font-bold text-sm">PROCESANDO...</span></div>
             ) : (
-              <><Upload className="text-cyan-400 mb-3" size={36} /><h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3><div className="flex gap-2 mt-2"><span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span><span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span></div></>
+              <>
+                <Upload className="text-cyan-400 mb-3" size={36} />
+                <h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3>
+                <div className="flex gap-2 mt-2">
+                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
+                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
+                </div>
+              </>
             )}
           </label>
           {error && <div className="mt-3 bg-red-500/10 border border-red-500/20 p-3 rounded text-red-400 text-xs text-center">{error}</div>}
         </div>
       </div>
 
+      {/* Panel Derecho */}
       <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center p-8">
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
           <div className="text-center mb-8">
@@ -904,51 +918,126 @@ Quedo atento a las instrucciones.`;
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800"><span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span><div className="text-cyan-400 font-mono text-lg font-bold">{(perimetro * cantidad).toFixed(2)}m</div></div>
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800"><span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span><div className="text-yellow-400 font-mono text-lg font-bold">{cantidadDisparos * cantidad}</div></div>
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
+                <div className="text-cyan-400 font-mono text-lg font-bold">{(perimetro * cantidad).toFixed(2)}m</div>
+                <div className="text-white font-bold">{formatoPesos(costoMetroUnitario * cantidad)}</div>
+              </div>
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
+                <div className="text-yellow-400 font-mono text-lg font-bold">{cantidadDisparos * cantidad}</div>
+                <div className="text-white font-bold">{formatoPesos(costoDisparoUnitario * cantidad)}</div>
+              </div>
             </div>
           </div>
 
           <div className="flex gap-4">
-            <button onClick={() => setMostrarModal(true)} disabled={!nombreArchivo} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all">SOLICITAR CORTE</button>
+            <button onClick={() => setMostrarModal(true)} disabled={!nombreArchivo} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all">
+              SOLICITAR CORTE
+            </button>
           </div>
         </div>
       </div>
 
+      {/* Modal Confirmación Completo y Estructurado */}
       {mostrarModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden shadow-2xl">
+
+            {/* Cabecera */}
             <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
               <h3 className="text-xl font-bold flex items-center gap-2 text-white"><Zap className="text-yellow-400" /> Confirmar Orden de Corte</h3>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
+              <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
             </div>
+
             <div className="p-6 overflow-y-auto max-h-[80vh]">
+
+              {/* Resumen Precio Automático */}
               <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex items-center justify-between">
                 <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Valor Neto</p><p className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</p></div>
-                {config.porcentajeIva > 0 && (<div className="text-right"><p className="text-slate-400 text-xs font-bold uppercase mb-1">+ IVA ({config.porcentajeIva}%)</p><p className="text-xl font-bold text-cyan-400">{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</p></div>)}
+                {config.porcentajeIva > 0 && (
+                  <div className="text-right"><p className="text-slate-400 text-xs font-bold uppercase mb-1">+ IVA ({config.porcentajeIva}%)</p><p className="text-xl font-bold text-cyan-400">{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</p></div>
+                )}
               </div>
 
+              {/* Selector Tabs: Persona / Empresa */}
               <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
-                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}>Persona Natural</button>
-                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}>Empresa / Jurídica</button>
+                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>Persona Natural</button>
+                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-cyan-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>Empresa / Jurídica</button>
               </div>
 
+              {/* Formulario Dinámico */}
               <div className="space-y-4">
-                <div><label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">Correo Electrónico (Obligatorio)</label><input type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" placeholder="ejemplo@correo.com" /></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}</label><input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}</label><input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
+
+                {/* Email (Siempre visible y obligatorio) */}
+                <div>
+                  <label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">Correo Electrónico (Obligatorio)</label>
+                  <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                    <div className="pl-3 text-slate-500"><Mail size={18} /></div>
+                    <input type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" placeholder="ejemplo@correo.com" />
+                  </div>
                 </div>
-                {datosCliente.tipo === 'juridica' && (<div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto</label><input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" placeholder="¿Por quién preguntamos?" /></div>)}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label><input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label><input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
+                  {/* Nombre o Razón Social */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><User size={18} /></div>
+                      <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
+
+                  {/* Cédula o NIT */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><FileText size={18} /></div>
+                      <input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Contacto (Solo si es empresa) */}
+                {datosCliente.tipo === 'juridica' && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto (Quién pide)</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><User size={18} /></div>
+                      <input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" placeholder="¿Por quién preguntamos?" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Teléfono */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><Phone size={18} /></div>
+                      <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
+
+                  {/* Dirección */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label>
+                    <div className="flex items-center bg-slate-950 border border-slate-700 rounded-lg overflow-hidden focus-within:border-cyan-500">
+                      <div className="pl-3 text-slate-500"><MapPin size={18} /></div>
+                      <input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-transparent p-3 text-white outline-none" />
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
+
+            {/* Footer Botones */}
             <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
-              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold hover:text-white">Cancelar</button>
-              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2">{enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />} CONFIRMAR PEDIDO</button>
+              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors">Cancelar</button>
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2 transition-transform transform hover:scale-105">
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />} CONFIRMAR PEDIDO
+              </button>
             </div>
           </div>
         </div>
