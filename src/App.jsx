@@ -858,19 +858,21 @@ function AdminSeguridad() {
 
 
 // ==========================================
-// VISTA CLIENTE (PÚBLICA) - FINAL CON SUBIDA DE ARCHIVOS
+// VISTA CLIENTE (PÚBLICA) - CON MATERIAL OPCIONAL
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
+  const [areaCm2, setAreaCm2] = useState(0); // NUEVO: Área del bounding box
   const [cantidadDisparos, setCantidadDisparos] = useState(0);
   const [nombreArchivo, setNombreArchivo] = useState(null);
-  const [archivoBlob, setArchivoBlob] = useState(null); // <--- AQUÍ SE GUARDA EL ARCHIVO FÍSICO
+  const [archivoBlob, setArchivoBlob] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [enviandoCorreo, setEnviandoCorreo] = useState(false);
   const [cantidad, setCantidad] = useState(1);
+  const [incluyeMaterial, setIncluyeMaterial] = useState(false); // NUEVO: Toggle material
 
   // Estado del Cliente
   const [datosCliente, setDatosCliente] = useState({
@@ -887,85 +889,238 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     localStorage.setItem('maikitto_datos', JSON.stringify(datosCliente));
   }, [datosCliente]);
 
-  useEffect(() => { if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id); }, [materiales]);
+  useEffect(() => {
+    if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id);
+  }, [materiales]);
 
   const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
-  const materialActivo = { ...rawMaterial, precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0, precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0 };
+  const materialActivo = {
+    ...rawMaterial,
+    precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0,
+    precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0,
+    precioMaterial: rawMaterial.precioMaterial || rawMaterial.precio_material || 0,
+    unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
+  };
 
-  // --- LÓGICA DE CÁLCULO ---
+  // --- FUNCIÓN PARA CALCULAR BOUNDING BOX ---
+  const calcularBoundingBox = (entities) => {
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+
+    const actualizarLimites = (x, y) => {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    };
+
+    entities.forEach(e => {
+      if (e.type === 'LINE') {
+        e.vertices.forEach(v => actualizarLimites(v.x, v.y));
+      } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 0) {
+        e.vertices.forEach(v => actualizarLimites(v.x, v.y));
+      } else if (e.type === 'CIRCLE') {
+        actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
+        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
+      } else if (e.type === 'ARC') {
+        // Aproximación simple para arcos
+        actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
+        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
+      }
+    });
+
+    // Retornar área en cm² (asumiendo que las unidades del DXF son mm)
+    const anchoMm = maxX - minX;
+    const altoMm = maxY - minY;
+    const areaCm2 = (anchoMm / 10) * (altoMm / 10); // mm² a cm²
+
+    return areaCm2;
+  };
+
+  // --- LÓGICA DE CÁLCULO DXF ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
       const dxf = parser.parseSync(textoDXF);
       let longitudTotal = 0, conteoFiguras = 0;
+
       if (!dxf.entities || dxf.entities.length === 0) throw new Error("Archivo vacío.");
+
       const dist = (p1, p2) => Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+
       dxf.entities.forEach(e => {
         let valid = false;
-        if (e.type === 'LINE') { longitudTotal += dist(e.vertices[0], e.vertices[1]); valid = true; }
-        else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 1) {
-          for (let i = 0; i < e.vertices.length - 1; i++) longitudTotal += dist(e.vertices[i], e.vertices[i + 1]);
+        if (e.type === 'LINE') {
+          longitudTotal += dist(e.vertices[0], e.vertices[1]);
+          valid = true;
+        } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 1) {
+          for (let i = 0; i < e.vertices.length - 1; i++) {
+            longitudTotal += dist(e.vertices[i], e.vertices[i + 1]);
+          }
           if (e.closed) longitudTotal += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
           valid = true;
-        } else if (e.type === 'CIRCLE') { longitudTotal += 2 * Math.PI * e.radius; valid = true; }
-        else if (e.type === 'ARC') { longitudTotal += e.radius * Math.abs(e.endAngle - e.startAngle); valid = true; }
+        } else if (e.type === 'CIRCLE') {
+          longitudTotal += 2 * Math.PI * e.radius;
+          valid = true;
+        } else if (e.type === 'ARC') {
+          longitudTotal += e.radius * Math.abs(e.endAngle - e.startAngle);
+          valid = true;
+        }
         if (valid) conteoFiguras++;
       });
-      finalizarCalculo(longitudTotal / 1000, conteoFiguras);
-    } catch (err) { reportarError('DXF inválido: ' + err.message); }
+
+      // Calcular área del bounding box
+      const area = calcularBoundingBox(dxf.entities);
+
+      finalizarCalculo(longitudTotal / 1000, conteoFiguras, area);
+    } catch (err) {
+      reportarError('DXF inválido: ' + err.message);
+    }
   };
 
+  // --- LÓGICA DE CÁLCULO SVG ---
   const procesarSVG = (textoSVG) => {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(textoSVG, "image/svg+xml");
+
       if (doc.querySelector('parsererror')) throw new Error("XML Inválido");
+
       let longitudTotal = 0, conteoFiguras = 0;
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+
+      const actualizarLimites = (x, y) => {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      };
+
       ['path', 'rect', 'circle', 'line', 'polyline', 'polygon'].forEach(sel => {
         doc.querySelectorAll(sel).forEach(el => {
           let len = 0;
-          if (el.tagName === 'circle') len = 2 * Math.PI * parseFloat(el.getAttribute('r'));
-          else if (el.tagName === 'rect') len = 2 * parseFloat(el.getAttribute('width')) + 2 * parseFloat(el.getAttribute('height'));
-          else if (el.tagName === 'line') {
-            const x1 = parseFloat(el.getAttribute('x1')), y1 = parseFloat(el.getAttribute('y1'));
-            const x2 = parseFloat(el.getAttribute('x2')), y2 = parseFloat(el.getAttribute('y2'));
+
+          if (el.tagName === 'circle') {
+            const r = parseFloat(el.getAttribute('r'));
+            const cx = parseFloat(el.getAttribute('cx'));
+            const cy = parseFloat(el.getAttribute('cy'));
+            len = 2 * Math.PI * r;
+            actualizarLimites(cx - r, cy - r);
+            actualizarLimites(cx + r, cy + r);
+          } else if (el.tagName === 'rect') {
+            const w = parseFloat(el.getAttribute('width'));
+            const h = parseFloat(el.getAttribute('height'));
+            const x = parseFloat(el.getAttribute('x') || 0);
+            const y = parseFloat(el.getAttribute('y') || 0);
+            len = 2 * w + 2 * h;
+            actualizarLimites(x, y);
+            actualizarLimites(x + w, y + h);
+          } else if (el.tagName === 'line') {
+            const x1 = parseFloat(el.getAttribute('x1'));
+            const y1 = parseFloat(el.getAttribute('y1'));
+            const x2 = parseFloat(el.getAttribute('x2'));
+            const y2 = parseFloat(el.getAttribute('y2'));
             len = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            actualizarLimites(x1, y1);
+            actualizarLimites(x2, y2);
           }
-          if (len === 0 && typeof el.getTotalLength === 'function') try { len = el.getTotalLength(); } catch (e) { }
-          if (len > 0) { longitudTotal += len; conteoFiguras++; }
+
+          if (len === 0 && typeof el.getTotalLength === 'function') {
+            try {
+              len = el.getTotalLength();
+              // Para path, obtener bbox
+              if (el.tagName === 'path') {
+                const bbox = el.getBBox();
+                actualizarLimites(bbox.x, bbox.y);
+                actualizarLimites(bbox.x + bbox.width, bbox.y + bbox.height);
+              }
+            } catch (e) { }
+          }
+
+          if (len > 0) {
+            longitudTotal += len;
+            conteoFiguras++;
+          }
         });
       });
-      finalizarCalculo(longitudTotal / 1000, conteoFiguras);
-    } catch (err) { reportarError('SVG inválido: ' + err.message); }
+
+      // Calcular área en cm² (asumiendo unidades en px, 1px ≈ 0.264583 mm)
+      const anchoMm = (maxX - minX) * 0.264583;
+      const altoMm = (maxY - minY) * 0.264583;
+      const areaCm2 = (anchoMm / 10) * (altoMm / 10);
+
+      finalizarCalculo(longitudTotal / 1000, conteoFiguras, areaCm2);
+    } catch (err) {
+      reportarError('SVG inválido: ' + err.message);
+    }
   };
 
-  const finalizarCalculo = (mts, disparos) => { setPerimetro(mts); setCantidadDisparos(disparos); setError(''); setProcesando(false); };
-  const reportarError = (msg) => { setError(msg); setPerimetro(0); setCantidadDisparos(0); setProcesando(false); };
+  const finalizarCalculo = (mts, disparos, area) => {
+    setPerimetro(mts);
+    setCantidadDisparos(disparos);
+    setAreaCm2(area);
+    setError('');
+    setProcesando(false);
+  };
+
+  const reportarError = (msg) => {
+    setError(msg);
+    setPerimetro(0);
+    setCantidadDisparos(0);
+    setAreaCm2(0);
+    setProcesando(false);
+  };
 
   const manejarArchivo = (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    setArchivoBlob(file); // <--- GUARDAMOS EL ARCHIVO PARA SUBIRLO LUEGO
-    setNombreArchivo(file.name); setProcesando(true); setError('');
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setArchivoBlob(file);
+    setNombreArchivo(file.name);
+    setProcesando(true);
+    setError('');
+
     const ext = file.name.split('.').pop().toLowerCase();
     const reader = new FileReader();
+
     reader.onload = (ev) => {
       if (ext === 'dxf') procesarDXF(ev.target.result);
       else if (ext === 'svg') procesarSVG(ev.target.result);
       else reportarError("Formato no soportado.");
     };
+
     reader.readAsText(file);
   };
 
+  // --- CÁLCULOS DE PRECIO ---
   const costoMetroUnitario = perimetro * materialActivo.precioMetro;
   const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
-  const costoUnitarioTotal = costoMetroUnitario + costoDisparoUnitario;
+  const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
+
+  // Calcular costo de material según unidad
+  let costoMaterialUnitario = 0;
+  if (incluyeMaterial && materialActivo.precioMaterial > 0) {
+    if (materialActivo.unidadCobro === 'cm2') {
+      costoMaterialUnitario = areaCm2 * materialActivo.precioMaterial;
+    } else if (materialActivo.unidadCobro === 'm2') {
+      costoMaterialUnitario = (areaCm2 / 10000) * materialActivo.precioMaterial;
+    } else if (materialActivo.unidadCobro === 'unidad') {
+      costoMaterialUnitario = materialActivo.precioMaterial;
+    }
+  }
+
+  const costoUnitarioTotal = costoCorteUnitario + costoMaterialUnitario;
   const costoTotal = costoUnitarioTotal * cantidad;
+
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
   const procesarAccionModal = async () => {
     if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
-      alert("Por favor completa los campos obligatorios."); return;
+      alert("Por favor completa los campos obligatorios.");
+      return;
     }
+
     setEnviandoCorreo(true);
 
     const aplicaIvaReal = config.porcentajeIva > 0;
@@ -975,7 +1130,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     let urlArchivoPublica = "";
 
     try {
-      // 1. SUBIR ARCHIVO A SUPABASE
+      // 1. SUBIR ARCHIVO
       if (archivoBlob) {
         const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
         const { error: uploadError } = await supabase.storage
@@ -991,31 +1146,33 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         urlArchivoPublica = urlData.publicUrl;
       }
 
-      // B. GUARDAR EN BASE DE DATOS
+      // 2. GUARDAR EN BD (con nuevos campos)
       const { error: dbError } = await supabase.from('pedidos').insert({
         empresa_id: empresa.id,
-
-        // --- CAMBIA ESTO A MINÚSCULAS ---
-        cliente_nombre: datosCliente.nombre,   // Antes tenías 'Cliente_nombre'
-        cliente_email: datosCliente.email,     // Antes tenías 'Cliente_email' (EL ERROR)
-        cliente_telefono: datosCliente.telefono, // Antes tenías 'Cliente_telefono'
-        // --------------------------------
-
+        cliente_nombre: datosCliente.nombre,
+        cliente_email: datosCliente.email,
+        cliente_telefono: datosCliente.telefono,
+        cliente_documento: datosCliente.documento,
+        cliente_direccion: datosCliente.direccion,
         archivo_nombre: nombreArchivo,
+        archivo_url: urlArchivoPublica,
         material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
         cantidad: cantidad,
         valor_total: totalFinalReal,
         tipo: 'corte',
         estado: 'pendiente',
-
-        cliente_documento: datosCliente.documento,
-        cliente_direccion: datosCliente.direccion,
-        archivo_url: urlArchivoPublica
+        // NUEVOS CAMPOS
+        perimetro_metros: perimetro * cantidad,
+        area_cm2: areaCm2 * cantidad,
+        num_perforaciones: cantidadDisparos * cantidad,
+        costo_corte: costoCorteUnitario * cantidad,
+        incluye_material: incluyeMaterial,
+        costo_material: costoMaterialUnitario * cantidad
       });
 
       if (dbError) throw dbError;
 
-      // 3. ENVIAR EMAIL (API)
+      // 3. ENVIAR EMAIL
       await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1028,12 +1185,19 @@ function VistaCliente({ materials: materiales, empresa, config }) {
           clienteEmail: datosCliente.email,
           clienteDireccion: datosCliente.direccion,
           archivo: nombreArchivo,
-          archivoUrl: urlArchivoPublica, // <--- Link para descargar
+          archivoUrl: urlArchivoPublica,
           material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
           cantidad: cantidad,
-          total: formatoPesos(totalFinalReal),
+          // Desglose detallado
+          perimetro: (perimetro * cantidad).toFixed(2),
+          perforaciones: cantidadDisparos * cantidad,
+          costoCorte: formatoPesos(costoCorteUnitario * cantidad),
+          incluyeMaterial: incluyeMaterial,
+          areaCm2: incluyeMaterial ? (areaCm2 * cantidad).toFixed(2) : 0,
+          costoMaterial: incluyeMaterial ? formatoPesos(costoMaterialUnitario * cantidad) : 0,
           subtotal: formatoPesos(costoTotal),
           iva: formatoPesos(valorIvaReal),
+          total: formatoPesos(totalFinalReal),
           tieneIva: aplicaIvaReal,
           empresaNombre: empresa.nombre
         })
@@ -1046,7 +1210,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       return;
     }
 
-    // 4. WHATSAPP
+    // 4. WHATSAPP con desglose completo
     let infoCliente = "";
     if (datosCliente.tipo === 'natural') {
       infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
@@ -1054,28 +1218,58 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
     }
 
+    let desgloseMaterial = "";
+    if (incluyeMaterial) {
+      desgloseMaterial = `
+📦 *MATERIAL INCLUIDO:*
+   Área: ${(areaCm2 * cantidad).toFixed(2)} cm²
+   Costo: ${formatoPesos(costoMaterialUnitario * cantidad)}`;
+    }
+
     const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
------------------------------------
-*RESUMEN DEL PEDIDO*
------------------------------------
-*Archivo:* ${urlArchivoPublica || nombreArchivo}
-*Material:* ${materialActivo.nombre}
-*Calibre:* ${materialActivo.calibre}
-*Cantidad:* ${cantidad} Unds
------------------------------------
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📋 *RESUMEN DEL PEDIDO*
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 *Archivo:* ${nombreArchivo}
+${urlArchivoPublica ? `🔗 ${urlArchivoPublica}` : ''}
+
+🔧 *Material:* ${materialActivo.nombre}
+📏 *Calibre:* ${materialActivo.calibre}
+🔢 *Cantidad:* ${cantidad} Unidades
+
+✂️ *SERVICIO DE CORTE:*
+   Perímetro: ${(perimetro * cantidad).toFixed(2)}m
+   Perforaciones: ${cantidadDisparos * cantidad}
+   Costo: ${formatoPesos(costoCorteUnitario * cantidad)}
+${desgloseMaterial}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+👤 *DATOS DEL CLIENTE*
+━━━━━━━━━━━━━━━━━━━━━━━
 ${infoCliente}
-*TEL:* ${datosCliente.telefono}
-*EMAIL:* ${datosCliente.email}
-*DIR:* ${datosCliente.direccion}
------------------------------------
-*TOTAL:* ${formatoPesos(totalFinalReal)}
------------------------------------
-Quedo atento a las instrucciones.`;
+📞 *TEL:* ${datosCliente.telefono}
+📧 *EMAIL:* ${datosCliente.email}
+📍 *DIR:* ${datosCliente.direccion}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+💰 *RESUMEN ECONÓMICO*
+━━━━━━━━━━━━━━━━━━━━━━━
+Subtotal: ${formatoPesos(costoTotal)}
+${aplicaIvaReal ? `IVA (${config.porcentajeIva}%): ${formatoPesos(valorIvaReal)}` : ''}
+*TOTAL: ${formatoPesos(totalFinalReal)}*
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Quedo atento a las instrucciones. ⚡`;
 
     window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
     setEnviandoCorreo(false);
     setMostrarModal(false);
   };
+
+  // Verificar si el material tiene precio configurado
+  const materialTienePrecio = materialActivo.precioMaterial > 0;
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-slate-900 text-white">
@@ -1086,7 +1280,9 @@ Quedo atento a las instrucciones.`;
             {(empresa.faviconUrl || empresa.favicon_url) ? (
               <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
-              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">{empresa.nombre?.substring(0, 2).toUpperCase()}</div>
+              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">
+                {empresa.nombre?.substring(0, 2).toUpperCase()}
+              </div>
             )}
             <div className="flex-1">
               {(empresa.logoUrl || empresa.logo_url) ? (
@@ -1106,95 +1302,345 @@ Quedo atento a las instrucciones.`;
         <div className="p-6 flex-1 flex flex-col">
           <div className="mb-4">
             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Material y Calibre</label>
-            <select value={materialSeleccionado} onChange={e => setMaterialSeleccionado(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 text-white font-bold">
-              {materiales.map(m => <option key={m.id} value={m.id}>{m.nombre} - {m.calibre}</option>)}
+            <select
+              value={materialSeleccionado}
+              onChange={e => setMaterialSeleccionado(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 text-white font-bold"
+            >
+              {materiales.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} - {m.calibre}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="space-y-2 mb-6">
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm"><span>METRO LINEAL</span><span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span></div>
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm"><span>PERFORACIÓN</span><span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span></div>
+          <div className="space-y-2 mb-4">
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>METRO LINEAL</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
+            </div>
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>PERFORACIÓN</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
+            </div>
           </div>
 
+          {/* NUEVO: Toggle para incluir material */}
+          {materialTienePrecio && (
+            <div className="mb-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={incluyeMaterial}
+                  onChange={e => setIncluyeMaterial(e.target.checked)}
+                  className="w-5 h-5 bg-slate-900 border-2 border-cyan-500 rounded checked:bg-cyan-500 cursor-pointer"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 font-bold text-white">
+                    <Package size={16} className="text-cyan-400" />
+                    Incluir Material
+                  </div>
+                  <div className="text-xs text-cyan-400 mt-1">
+                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
+                  </div>
+                </div>
+              </label>
+            </div>
+          )}
+
           <label className="group relative border-2 border-dashed border-cyan-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
-            <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} />
+            <input
+              type="file"
+              className="hidden"
+              accept=".dxf,.svg"
+              onChange={manejarArchivo}
+            />
             {procesando ? (
-              <div className="flex flex-col items-center"><Loader2 className="animate-spin text-cyan-400 mb-2" size={32} /><span className="text-cyan-400 font-bold text-sm">PROCESANDO...</span></div>
+              <div className="flex flex-col items-center">
+                <Loader2 className="animate-spin text-cyan-400 mb-2" size={32} />
+                <span className="text-cyan-400 font-bold text-sm">PROCESANDO...</span>
+              </div>
             ) : (
-              <><Upload className="text-cyan-400 mb-3" size={36} /><h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3><div className="flex gap-2 mt-2"><span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span><span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span></div></>
+              <>
+                <Upload className="text-cyan-400 mb-3" size={36} />
+                <h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3>
+                <div className="flex gap-2 mt-2">
+                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
+                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
+                </div>
+              </>
             )}
           </label>
-          {error && <div className="mt-3 bg-red-500/10 border border-red-500/20 p-3 rounded text-red-400 text-xs text-center">{error}</div>}
+          {error && (
+            <div className="mt-3 bg-red-500/10 border border-red-500/20 p-3 rounded text-red-400 text-xs text-center">
+              {error}
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Panel Derecho */}
       <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center p-8">
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
           <div className="text-center mb-8">
             <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2">Total Estimado</h3>
             <h2 className="text-6xl font-black text-green-400">{formatoPesos(costoTotal)}</h2>
-            {cantidad > 1 && <span className="text-sm text-slate-500">({formatoPesos(costoUnitarioTotal)} c/u)</span>}
+            {cantidad > 1 && (
+              <span className="text-sm text-slate-500">
+                ({formatoPesos(costoUnitarioTotal)} c/u)
+              </span>
+            )}
           </div>
 
           <div className="space-y-4 mb-6">
             <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between">
-              <span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2"><FileText size={14} className="text-cyan-500" /> Archivo</span>
-              <span className="text-white truncate max-w-[180px]">{nombreArchivo || '---'}</span>
+              <span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2">
+                <FileText size={14} className="text-cyan-500" /> Archivo
+              </span>
+              <span className="text-white truncate max-w-[180px]">
+                {nombreArchivo || '---'}
+              </span>
             </div>
+
             <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-              <span className="text-slate-500 text-xs font-bold uppercase block mb-2">Cantidad de Piezas</span>
+              <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
+                Cantidad de Piezas
+              </span>
               <div className="flex items-center justify-between bg-slate-900 rounded-lg p-1 border border-slate-800">
-                <button onClick={() => setCantidad(c => Math.max(1, c - 1))} className="w-10 h-10 bg-slate-800 text-slate-400 rounded-lg flex items-center justify-center hover:bg-slate-700"><Minus size={16} /></button>
+                <button
+                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
+                  className="w-10 h-10 bg-slate-800 text-slate-400 rounded-lg flex items-center justify-center hover:bg-slate-700"
+                >
+                  <Minus size={16} />
+                </button>
                 <span className="text-2xl font-black">{cantidad}</span>
-                <button onClick={() => setCantidad(c => c + 1)} className="w-10 h-10 bg-cyan-600 text-white rounded-lg flex items-center justify-center hover:bg-cyan-500"><Plus size={16} /></button>
+                <button
+                  onClick={() => setCantidad(c => c + 1)}
+                  className="w-10 h-10 bg-cyan-600 text-white rounded-lg flex items-center justify-center hover:bg-cyan-500"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800"><span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span><div className="text-cyan-400 font-mono text-lg font-bold">{(perimetro * cantidad).toFixed(2)}m</div></div>
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800"><span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span><div className="text-yellow-400 font-mono text-lg font-bold">{cantidadDisparos * cantidad}</div></div>
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
+                <div className="text-cyan-400 font-mono text-lg font-bold">
+                  {(perimetro * cantidad).toFixed(2)}m
+                </div>
+              </div>
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
+                <div className="text-yellow-400 font-mono text-lg font-bold">
+                  {cantidadDisparos * cantidad}
+                </div>
+              </div>
             </div>
+
+            {/* Mostrar área si incluye material */}
+            {incluyeMaterial && areaCm2 > 0 && (
+              <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-cyan-400 text-xs font-bold uppercase flex items-center gap-2">
+                    <Package size={14} /> Material Incluido
+                  </span>
+                  <span className="text-cyan-400 font-bold">
+                    {formatoPesos(costoMaterialUnitario * cantidad)}
+                  </span>
+                </div>
+                <div className="text-slate-400 text-xs">
+                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-4">
-            <button onClick={() => setMostrarModal(true)} disabled={!nombreArchivo} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all">SOLICITAR CORTE</button>
+            <button
+              onClick={() => setMostrarModal(true)}
+              disabled={!nombreArchivo}
+              className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all"
+            >
+              SOLICITAR CORTE
+            </button>
           </div>
         </div>
       </div>
 
+      {/* MODAL DE CONFIRMACIÓN */}
       {mostrarModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden shadow-2xl">
             <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
-              <h3 className="text-xl font-bold flex items-center gap-2 text-white"><Zap className="text-yellow-400" /> Confirmar Orden de Corte</h3>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
+              <h3 className="text-xl font-bold flex items-center gap-2 text-white">
+                <Zap className="text-yellow-400" /> Confirmar Orden de Corte
+              </h3>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="text-slate-500 hover:text-white"
+              >
+                <X size={24} />
+              </button>
             </div>
+
             <div className="p-6 overflow-y-auto max-h-[80vh]">
-              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex items-center justify-between">
-                <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Valor Neto</p><p className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</p></div>
-                {config.porcentajeIva > 0 && (<div className="text-right"><p className="text-slate-400 text-xs font-bold uppercase mb-1">+ IVA ({config.porcentajeIva}%)</p><p className="text-xl font-bold text-cyan-400">{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</p></div>)}
-              </div>
-
-              <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
-                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}>Persona Natural</button>
-                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}>Empresa / Jurídica</button>
-              </div>
-
-              <div className="space-y-4">
-                <div><label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">Correo Electrónico (Obligatorio)</label><input type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" placeholder="ejemplo@correo.com" /></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}</label><input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}</label><input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
+              {/* DESGLOSE ECONÓMICO */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+                  <span className="text-slate-400 text-sm">Servicio de Corte</span>
+                  <span className="text-white font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
                 </div>
-                {datosCliente.tipo === 'juridica' && (<div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto</label><input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" placeholder="¿Por quién preguntamos?" /></div>)}
+
+                {incluyeMaterial && (
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+                    <div>
+                      <span className="text-cyan-400 text-sm font-bold flex items-center gap-2">
+                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+                      </span>
+                    </div>
+                    <span className="text-cyan-400 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-slate-400 text-xs font-bold uppercase">Subtotal</span>
+                  <span className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</span>
+                </div>
+
+                {config.porcentajeIva > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-700">
+                    <span className="text-slate-400 text-sm">+ IVA ({config.porcentajeIva}%)</span>
+                    <span className="text-xl font-bold text-cyan-400">
+                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-3 border-t-2 border-green-500/30">
+                  <span className="text-green-400 text-lg font-bold">TOTAL</span>
+                  <span className="text-3xl font-black text-green-400">
+                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
+                  </span>
+                </div>
+              </div>
+
+              {/* TABS PERSONA/EMPRESA */}
+              <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  Persona Natural
+                </button>
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  Empresa / Jurídica
+                </button>
+              </div>
+
+              {/* FORMULARIO CLIENTE */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">
+                    Correo Electrónico (Obligatorio)
+                  </label>
+                  <input
+                    type="email"
+                    value={datosCliente.email}
+                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                    placeholder="ejemplo@correo.com"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label><input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
-                  <div><label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label><input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" /></div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
+                    </label>
+                    <input
+                      value={datosCliente.nombre}
+                      onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
+                    </label>
+                    <input
+                      value={datosCliente.documento}
+                      onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                {datosCliente.tipo === 'juridica' && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      Nombre del Contacto
+                    </label>
+                    <input
+                      value={datosCliente.contacto}
+                      onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                      placeholder="¿Por quién preguntamos?"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      Teléfono / WhatsApp
+                    </label>
+                    <input
+                      value={datosCliente.telefono}
+                      onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      Dirección de Entrega
+                    </label>
+                    <input
+                      value={datosCliente.direccion}
+                      onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* FOOTER MODAL */}
             <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
-              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-400 font-bold hover:text-white">Cancelar</button>
-              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2">{enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />} CONFIRMAR PEDIDO</button>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="px-6 py-3 text-slate-400 font-bold hover:text-white"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={procesarAccionModal}
+                disabled={enviandoCorreo}
+                className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2"
+              >
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
+                CONFIRMAR PEDIDO
+              </button>
             </div>
           </div>
         </div>
