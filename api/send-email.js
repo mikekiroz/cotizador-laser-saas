@@ -15,11 +15,12 @@ export default async function handler(req, res) {
       to,
       subject,
       clienteNombre,
-      clienteDocumento, // Dato Nuevo
+      clienteDocumento,
       clienteTelefono,
       clienteEmail,
-      clienteDireccion, // Dato Nuevo
+      clienteDireccion,
       archivo,
+      archivoUrl, // <--- Importante para el botón
       material,
       cantidad,
       total,
@@ -31,7 +32,7 @@ export default async function handler(req, res) {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // Enviar Email con el DISEÑO AZUL ORIGINAL
+    // Enviar Email
     const { data, error } = await resend.emails.send({
       from: 'Cotizador Laser <onboarding@resend.dev>',
       to: [to],
@@ -64,10 +65,20 @@ export default async function handler(req, res) {
             </h3>
 
             <p style="margin: 10px 0; color: #333;"><strong>Archivo:</strong> ${archivo}</p>
+            
+            <!-- BOTÓN DE DESCARGA -->
+            ${archivoUrl ? `
+            <div style="margin: 20px 0; text-align: center;">
+              <a href="${archivoUrl}" style="background-color: #22c55e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                ⬇️ DESCARGAR ARCHIVO
+              </a>
+            </div>
+            ` : '<p style="color: orange; font-size: 12px;">(Archivo no adjunto o pendiente de carga)</p>'}
+            
             <p style="margin: 10px 0; color: #333;"><strong>Material:</strong> ${material}</p>
             <p style="margin: 10px 0; color: #333;"><strong>Cantidad:</strong> ${cantidad} Unidades</p>
 
-            <!-- CAJA TOTAL (AZUL CLARO) -->
+            <!-- CAJA TOTAL -->
             <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin-top: 30px;">
               ${tieneIva ? `<p style="margin: 5px 0; color: #334155;">Subtotal: <strong>${subtotal}</strong></p>` : ''}
               ${tieneIva ? `<p style="margin: 5px 0; color: #334155;">IVA: <strong>${iva}</strong></p>` : ''}
@@ -76,7 +87,7 @@ export default async function handler(req, res) {
 
           </div>
           
-          <!-- PIE DE PÁGINA GRIS -->
+          <!-- PIE DE PÁGINA -->
           <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
             Enviado por Maikitto SaaS
           </div>
