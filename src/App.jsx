@@ -605,7 +605,7 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
             </div>
           </div>
           <div className="flex justify-end mt-6">
-            <button disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
+            <button type="submit" disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
               {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
             </button>
           </div>
