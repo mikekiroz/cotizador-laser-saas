@@ -389,8 +389,8 @@ function AdminPedidos({ empresaId }) {
 
     setLoading(false);
   };
-  // --- PEGA ESTAS DOS FUNCIONES AQUÍ (Línea 392 aprox) ---
 
+  // --- FUNCIONES AUXILIARES (AHORA DENTRO DEL COMPONENTE) ---
   const formatoFecha = (fecha) => {
     if (!fecha) return '';
     return new Date(fecha).toLocaleDateString('es-CO', {
@@ -403,35 +403,30 @@ function AdminPedidos({ empresaId }) {
     return '$' + Math.round(v).toLocaleString('es-CO');
   };
 
-  // --- Función para Eliminar ---
+  // --- FUNCIONES DE GESTIÓN ---
   const eliminarPedido = async (id) => {
     if (!confirm('¿Estás seguro de eliminar este pedido?')) return;
+
     const { error } = await supabase.from('pedidos').delete().eq('id', id);
+
     if (error) alert('Error al eliminar');
     else cargarPedidos();
   };
 
-  /// 2. Función para Cambiar Estado (OPTIMIZADA)
   const cambiarEstado = async (id, nuevoEstado) => {
-    // A. Cambio Visual Inmediato (Para que no rebote el selector)
-    setPedidos(prevPedidos =>
-      prevPedidos.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p)
-    );
+    // Actualización optimista para que no "rebote"
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
 
-    // B. Guardar en Base de Datos (En segundo plano)
     const { error } = await supabase
       .from('pedidos')
       .update({ estado: nuevoEstado })
       .eq('id', id);
 
     if (error) {
-      console.error('Error al actualizar:', error);
-      alert('No se pudo guardar el cambio. Revisa los permisos en Supabase.');
-      cargarPedidos(); // Si falla, volvemos al estado real
+      alert('Error guardando el cambio.');
+      cargarPedidos(); // Revertir si hay error
     }
   };
-
-  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
 
   return (
     <div className="space-y-6">
@@ -448,6 +443,7 @@ function AdminPedidos({ empresaId }) {
         <div className="bg-slate-800 p-10 rounded-xl text-center border border-slate-700">
           <div className="inline-flex bg-slate-900 p-4 rounded-full mb-4 text-slate-500"><FileBox size={32} /></div>
           <h3 className="text-white font-bold">No hay pedidos aún</h3>
+          <p className="text-slate-400 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
         </div>
       ) : (
         <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
@@ -503,6 +499,7 @@ function AdminPedidos({ empresaId }) {
     </div>
   );
 }
+
 // ==========================================
 // ADMIN - MATERIALES (CON VENTA DE MATERIAL)
 // ==========================================
