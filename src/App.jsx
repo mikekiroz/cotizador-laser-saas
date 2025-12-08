@@ -948,9 +948,23 @@ Quedo atento para coordinar el pago y la entrega. ¡Gracias!`;
                   <input type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white" />
                 </div>
               </div>
-              <div className="bg-slate-800/50 p-4 rounded-xl flex items-center gap-4 cursor-pointer" onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })}>
-                <div className={`w-12 h-6 rounded-full p-1 transition - colors ${datosCliente.aplicaIva ? 'bg-cyan-500' : 'bg-slate-600'} `}><div className={`w-4 h-4 bg - white rounded - full transition - transform ${datosCliente.aplicaIva ? 'translate-x-6' : ''} `}></div></div>
-                <div><p className="text-white font-bold">Aplicar IVA ({config.porcentajeIva}%)</p><p className="text-slate-500 text-xs">Habilita si requieres factura</p></div>
+
+              <div
+                className="bg-slate-800/50 p-4 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-slate-800 transition-colors"
+                onClick={() => setDatosCliente({ ...datosCliente, aplicaIva: !datosCliente.aplicaIva })}
+              >
+                {/* Interruptor (Switch) */}
+                <div className={`relative w-12 h-6 rounded-full transition-all duration-300 ${datosCliente.aplicaIva ? 'bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'bg-slate-700 border border-slate-600'}`}>
+                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${datosCliente.aplicaIva ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                </div>
+
+                {/* Textos */}
+                <div>
+                  <p className={`font-bold transition-colors ${datosCliente.aplicaIva ? 'text-white' : 'text-slate-400'}`}>
+                    Aplicar IVA ({config.porcentajeIva}%)
+                  </p>
+                  <p className="text-slate-500 text-xs">Habilita si requieres factura</p>
+                </div>
               </div>
             </div>
             <div className="p-6 border-t border-slate-800 flex justify-end gap-3">
