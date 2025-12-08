@@ -398,17 +398,24 @@ function AdminPedidos({ empresaId }) {
     else cargarPedidos();
   };
 
-  // --- Función para Cambiar Estado ---
+  /// 2. Función para Cambiar Estado (OPTIMIZADA)
   const cambiarEstado = async (id, nuevoEstado) => {
-    const { error } = await supabase.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
-    if (error) alert('Error actualizando estado');
-    else cargarPedidos();
-  };
+    // A. Cambio Visual Inmediato (Para que no rebote el selector)
+    setPedidos(prevPedidos =>
+      prevPedidos.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p)
+    );
 
-  const formatoFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-CO', {
-      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-    });
+    // B. Guardar en Base de Datos (En segundo plano)
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error al actualizar:', error);
+      alert('No se pudo guardar el cambio. Revisa los permisos en Supabase.');
+      cargarPedidos(); // Si falla, volvemos al estado real
+    }
   };
 
   const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
