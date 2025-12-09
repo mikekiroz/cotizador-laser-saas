@@ -10,15 +10,20 @@ import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
 
 // ==========================================
-// ESTILOS Y TEXTURAS INDUSTRIALES
+// ESTILOS Y TEXTURAS INDUSTRIALES (CONSTANTES UI)
 // ==========================================
-// Definimos clases base para las texturas solicitadas para reutilizarlas
+// Patrón de puntos para el fondo (Pegboard style)
 const TEXTURE_DOTS = "bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:20px_20px]";
+// Patrón de líneas diagonales para acentos (Hazard style)
 const TEXTURE_STRIPES = "bg-[linear-gradient(45deg,rgba(0,0,0,0.2)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2)_75%,transparent_75%,transparent)] [background-size:10px_10px]";
+// Estilo de Panel: Fondo oscuro, bordes biselados (luz arriba, sombra abajo)
 const PANEL_STYLE = "bg-zinc-900 border-t border-zinc-700 border-b border-zinc-950 border-x border-zinc-800 shadow-xl";
-const INPUT_STYLE = "w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-sm p-3 text-zinc-100 outline-none transition-colors placeholder-zinc-600";
-const BUTTON_PRIMARY = "w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-900 font-black py-4 rounded-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/10";
-const LABEL_STYLE = "text-xs font-bold text-amber-500 uppercase tracking-widest mb-1 block";
+// Estilo de Input: Hundido (Recessed), bordes afilados
+const INPUT_STYLE = "w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-sm p-3 text-zinc-100 outline-none transition-colors placeholder-zinc-600 font-medium";
+// Estilo de Botón Primario: Amarillo Industrial, Texto Oscuro, Robusto
+const BUTTON_PRIMARY = "w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-black py-4 rounded-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-[0_4px_0_rgb(180,83,9)] active:shadow-none active:translate-y-[4px]";
+// Labels: Pequeños, negrita, estilo placa técnica
+const LABEL_STYLE = "text-xs font-black text-amber-500 uppercase tracking-widest mb-1 block";
 
 // ==========================================
 // CONFIGURACIÓN INICIAL (DEFAULTS)
@@ -115,10 +120,12 @@ function AppContent() {
     if (!empresa.nombre) {
       return (
         <div className={`h-screen bg-zinc-950 ${TEXTURE_DOTS} flex items-center justify-center text-white`}>
-          <div className="text-center p-8 bg-zinc-900 border border-amber-500/20 rounded-lg shadow-2xl">
-            <AlertTriangle className="mx-auto mb-4 text-amber-500" size={48} />
-            <h1 className="text-xl font-black uppercase tracking-wider mb-2">Taller no encontrado</h1>
-            <p className="text-zinc-400">El slug "{tallerSlug}" no existe.</p>
+          <div className={`${PANEL_STYLE} p-8 rounded-sm text-center max-w-md`}>
+            <div className="bg-amber-500/10 p-4 rounded-full inline-block mb-4 border border-amber-500/20">
+              <AlertTriangle className="text-amber-500" size={48} />
+            </div>
+            <h1 className="text-2xl font-black uppercase text-white mb-2">Taller no encontrado</h1>
+            <p className="text-zinc-400">El slug <span className="text-amber-500 font-mono">"{tallerSlug}"</span> no existe en el sistema.</p>
           </div>
         </div>
       );
@@ -166,47 +173,55 @@ function LandingPage() {
 
   return (
     <div className={`min-h-screen bg-zinc-950 text-white ${TEXTURE_DOTS}`}>
+      {/* Top Bar Accent */}
+      <div className={`h-2 w-full bg-amber-500 ${TEXTURE_STRIPES}`}></div>
+
       {/* Hero */}
       <div className="relative overflow-hidden">
-        {/* Efecto de luz industrial */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(255,160,0,0.08),transparent_60%)]"></div>
+        {/* Decorative Industrial Circle */}
+        <div className="absolute -top-20 -right-20 w-96 h-96 border-2 border-zinc-800 rounded-full opacity-20 border-dashed animate-spin-slow"></div>
 
         <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             {/* Izquierda - Copy */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black px-4 py-2 rounded-sm uppercase tracking-widest mb-6">
-                <Zap size={16} /> Cotizador Láser Industrial
+              <div className="inline-flex items-center gap-2 bg-zinc-900 border border-amber-500/30 text-amber-500 text-xs font-black px-3 py-1 rounded-sm uppercase tracking-widest mb-6">
+                <Zap size={14} fill="currentColor" /> Software Industrial
               </div>
-              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight text-zinc-100">
-                Cotizaciones automáticas para tu taller de <span className="text-amber-500 border-b-4 border-amber-500/20">corte láser</span>
+              <h1 className="text-5xl md:text-6xl font-black leading-none mb-6 text-zinc-100 tracking-tight">
+                COTIZADOR <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-yellow-300">LÁSER</span> AUTOMÁTICO
               </h1>
-              <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
-                Tus clientes suben su archivo DXF/SVG y obtienen un precio al instante.
-                Sin llamadas, sin esperas, sin errores de cálculo.
+              <p className="text-zinc-400 text-lg mb-8 leading-relaxed max-w-lg border-l-4 border-zinc-800 pl-4">
+                Plataforma SaaS para talleres de corte. Tus clientes suben archivos DXF/SVG y reciben un precio calculado al milímetro en segundos.
               </p>
-              <ul className="space-y-4 text-zinc-300 mb-8">
-                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Configura tus materiales y precios</span></li>
-                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Obtén una URL única para tus clientes</span></li>
-                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Recibe pedidos por WhatsApp o Email</span></li>
-              </ul>
+
+              <div className="grid gap-4">
+                <div className="flex items-center gap-4 bg-zinc-900/50 p-3 rounded-sm border border-zinc-800">
+                  <div className="bg-amber-500 text-zinc-950 p-2 rounded-sm"><Check size={20} /></div>
+                  <span className="font-bold text-zinc-300 uppercase text-sm tracking-wide">Cálculo de Vectores y Perímetro</span>
+                </div>
+                <div className="flex items-center gap-4 bg-zinc-900/50 p-3 rounded-sm border border-zinc-800">
+                  <div className="bg-amber-500 text-zinc-950 p-2 rounded-sm"><Check size={20} /></div>
+                  <span className="font-bold text-zinc-300 uppercase text-sm tracking-wide">Gestión de Materiales y Calibres</span>
+                </div>
+              </div>
             </div>
 
             {/* Derecha - Auth Form */}
-            <div className={`${PANEL_STYLE} p-8 rounded-sm relative`}>
-              {/* Tornillos decorativos */}
-              <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-              <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-              <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
+            <div className={`${PANEL_STYLE} p-8 rounded-sm relative max-w-md mx-auto w-full`}>
+              {/* Remaches decorativos */}
+              <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-zinc-700 rounded-full"></div>
+              <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-zinc-700 rounded-full"></div>
+              <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-zinc-700 rounded-full"></div>
+              <div className="absolute bottom-2 right-2 w-1.5 h-1.5 bg-zinc-700 rounded-full"></div>
 
-              <h2 className="text-xl font-black mb-6 text-center text-zinc-100 uppercase tracking-wider">
-                {authMode === 'login' ? 'Acceso Taller' : 'Registrar Taller'}
+              <h2 className="text-xl font-black mb-6 text-center text-white uppercase tracking-wider border-b-2 border-zinc-800 pb-4">
+                {authMode === 'login' ? 'Acceso Administrativo' : 'Alta de Taller'}
               </h2>
-              <form onSubmit={handleAuth} className="space-y-4">
+              <form onSubmit={handleAuth} className="space-y-5">
                 <div>
-                  <label className={LABEL_STYLE}>Correo</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={INPUT_STYLE} required placeholder="taller@ejemplo.com" />
+                  <label className={LABEL_STYLE}>Correo Electrónico</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={INPUT_STYLE} required placeholder="admin@taller.com" />
                 </div>
                 <div>
                   <label className={LABEL_STYLE}>Contraseña</label>
@@ -214,12 +229,12 @@ function LandingPage() {
                 </div>
                 <button disabled={loading} className={BUTTON_PRIMARY}>
                   {loading && <Loader2 className="animate-spin" size={18} />}
-                  {authMode === 'login' ? 'ENTRAR' : 'REGISTRARME'}
+                  {authMode === 'login' ? 'INICIAR SESIÓN' : 'REGISTRARME'}
                 </button>
               </form>
-              <div className="mt-6 text-center border-t border-zinc-800 pt-4">
-                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-zinc-500 hover:text-amber-500 font-bold transition-colors">
-                  {authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+              <div className="mt-6 text-center">
+                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-xs font-bold text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition-colors">
+                  {authMode === 'login' ? '¿Nuevo taller? Crea una cuenta' : '¿Ya tienes cuenta? Ingresa aquí'}
                 </button>
               </div>
             </div>
@@ -261,21 +276,22 @@ function OnboardingPage({ setEmpresa }) {
 
   return (
     <div className={`min-h-screen bg-zinc-950 flex items-center justify-center p-6 ${TEXTURE_DOTS}`}>
-      <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full`}>
+      <div className={`${PANEL_STYLE} p-10 rounded-sm max-w-lg w-full relative`}>
+        <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-sm mx-auto flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20">
-            <Building2 className="text-zinc-900" size={32} />
+          <div className="w-16 h-16 bg-zinc-800 border-2 border-amber-500 rounded-sm mx-auto flex items-center justify-center mb-4 text-amber-500">
+            <Building2 size={32} />
           </div>
-          <h1 className="text-2xl font-black text-white uppercase tracking-wider">¡Bienvenido!</h1>
-          <p className="text-zinc-400 mt-2">Configura los datos de tu taller para comenzar.</p>
+          <h1 className="text-2xl font-black text-white uppercase tracking-wider">Configuración Inicial</h1>
+          <p className="text-zinc-500 text-sm mt-2 font-medium">Define la identidad de tu taller.</p>
         </div>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className={LABEL_STYLE}>Nombre del Taller *</label>
-            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
+            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required placeholder="Ej: Industrias Metálicas..." />
           </div>
           <div>
-            <label className={LABEL_STYLE}>Slogan</label>
+            <label className={LABEL_STYLE}>Slogan (Opcional)</label>
             <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className={INPUT_STYLE} />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -284,17 +300,17 @@ function OnboardingPage({ setEmpresa }) {
               <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className={INPUT_STYLE} />
             </div>
             <div>
-              <label className={LABEL_STYLE}>Email</label>
+              <label className={LABEL_STYLE}>Email Contacto</label>
               <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_STYLE} />
             </div>
           </div>
           <div>
-            <label className={LABEL_STYLE}>Dirección</label>
+            <label className={LABEL_STYLE}>Dirección Física</label>
             <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className={INPUT_STYLE} />
           </div>
           <button disabled={saving} className={BUTTON_PRIMARY}>
             {saving && <Loader2 className="animate-spin" size={18} />}
-            CREAR MI TALLER
+            GUARDAR Y CONTINUAR
           </button>
         </form>
       </div>
@@ -307,7 +323,7 @@ function OnboardingPage({ setEmpresa }) {
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
-  const [tab, setTab] = useState('pedidos');
+  const [tab, setTab] = useState('pedidos'); // Arrancar en 'pedidos' es más útil
   const [copied, setCopied] = useState(false);
 
   const publicUrl = `${window.location.origin}/?taller=${empresa.slug}`;
@@ -323,53 +339,51 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   };
 
   return (
-    <div className={`min-h-screen bg-zinc-900 text-zinc-100 ${TEXTURE_DOTS}`}>
-      {/* Header */}
-      <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-500 rounded-sm flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <Zap size={24} className="text-zinc-900" />
+    <div className={`min-h-screen bg-zinc-950 text-zinc-200 ${TEXTURE_DOTS}`}>
+      {/* Header Industrial */}
+      <div className="bg-zinc-900 border-b border-zinc-800">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 bg-amber-500 flex items-center justify-center rounded-sm ${TEXTURE_STRIPES}`}>
+              <Zap size={24} className="text-zinc-950" fill="currentColor" />
             </div>
             <div>
-              <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
-              <p className="text-xs text-zinc-400 font-mono">{session?.user?.email}</p>
+              <h1 className="font-black text-xl text-white uppercase tracking-wider leading-none">{empresa.nombre}</h1>
+              <p className="text-xs text-amber-500 font-bold uppercase tracking-widest mt-1">Panel de Control</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-sm text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500">
-              <ExternalLink size={16} className="text-amber-500" /> <span className="text-zinc-300 hover:text-white">Ver Cotizador</span>
+            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors border border-zinc-700">
+              <ExternalLink size={14} /> Ver Sitio Cliente
             </a>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors">
-              <LogOut size={18} />
+            <button onClick={handleLogout} className="text-zinc-500 hover:text-red-500 transition-colors p-2">
+              <LogOut size={20} />
             </button>
           </div>
         </div>
       </div>
 
       {/* URL Banner */}
-      <div className="bg-zinc-900 border-b border-amber-500/10 px-6 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-amber-500 font-bold uppercase text-xs tracking-widest">URL Pública:</span>
-            <code className="bg-zinc-950 border border-zinc-800 px-3 py-1 rounded-sm text-zinc-300 font-mono text-xs">{publicUrl}</code>
+      <div className="bg-zinc-900/50 border-b border-zinc-800 px-6 py-2">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3 text-sm font-mono">
+            <span className="text-zinc-500 uppercase font-bold text-xs">Enlace Público:</span>
+            <code className="text-amber-500 bg-zinc-950 px-2 py-1 rounded-sm border border-zinc-800">{publicUrl}</code>
           </div>
-          <button onClick={copyUrl} className="flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-bold uppercase tracking-wider">
-            {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
+          <button onClick={copyUrl} className="flex items-center gap-2 text-amber-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+            {copied ? <><Check size={14} /> Copiado</> : <><Copy size={14} /> Copiar Enlace</>}
           </button>
         </div>
       </div>
 
       {/* Tabs de Navegación */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex gap-1 mb-8 bg-zinc-900 p-1 rounded-sm border border-zinc-800 w-fit">
           {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 ${tab === t
-                  ? 'border-amber-500 text-amber-500'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              className={`px-6 py-2 font-black text-xs uppercase tracking-widest transition-all rounded-sm ${tab === t ? 'bg-amber-500 text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'
                 }`}
             >
               {t}
@@ -434,6 +448,7 @@ function AdminPedidos({ empresaId }) {
       .from('pedidos')
       .update({ estado: nuevoEstado })
       .eq('id', id);
+
     if (error) {
       alert('Error guardando el cambio.');
       cargarPedidos();
@@ -441,66 +456,77 @@ function AdminPedidos({ empresaId }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="font-black text-xl text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">Bandeja de Entrada</h3>
-        <button onClick={cargarPedidos} className="text-zinc-500 hover:text-amber-500 text-sm flex items-center gap-1 font-bold uppercase">
-          <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex justify-between items-center border-l-4 border-amber-500 pl-4">
+        <h3 className="font-black text-2xl text-white uppercase tracking-tight">Ordenes de Trabajo</h3>
+        <button onClick={cargarPedidos} className="text-amber-500 hover:text-white text-xs font-bold uppercase flex items-center gap-2 bg-zinc-900 px-3 py-2 rounded-sm border border-zinc-800">
+          <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Refrescar Lista
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-zinc-500 font-mono">Cargando pedidos...</div>
+        <div className="text-center py-20 text-zinc-500 font-mono">CARGANDO DATOS...</div>
       ) : pedidos.length === 0 ? (
-        <div className={`${PANEL_STYLE} p-10 rounded-sm text-center`}>
-          <div className="inline-flex bg-zinc-950 p-4 rounded-full mb-4 text-zinc-600"><FileBox size={32} /></div>
-          <h3 className="text-white font-bold uppercase">No hay pedidos aún</h3>
-          <p className="text-zinc-500 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
+        <div className={`${PANEL_STYLE} p-12 rounded-sm text-center`}>
+          <div className="inline-flex bg-zinc-800 p-6 rounded-full mb-6 text-zinc-600 border border-zinc-700 border-dashed"><FileBox size={40} /></div>
+          <h3 className="text-white font-bold uppercase text-lg">Bandeja Vacía</h3>
+          <p className="text-zinc-500 text-sm mt-2 max-w-xs mx-auto">No hay cotizaciones pendientes. Asegúrate de compartir tu enlace público.</p>
         </div>
       ) : (
         <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
           <table className="w-full text-sm text-left">
-            <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
+            <thead className="bg-zinc-950 text-zinc-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
               <tr>
-                <th className="p-4">Fecha</th>
-                <th className="p-4">Cliente</th>
-                <th className="p-4">Detalles</th>
-                <th className="p-4">Estado</th>
-                <th className="p-4 text-right">Acciones</th>
+                <th className="p-5 font-bold">Fecha / ID</th>
+                <th className="p-5 font-bold">Cliente</th>
+                <th className="p-5 font-bold">Especificaciones</th>
+                <th className="p-5 font-bold">Estado</th>
+                <th className="p-5 text-right font-bold">Controles</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {pedidos.map((p) => (
-                <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors">
-                  <td className="p-4 text-zinc-400 font-mono whitespace-nowrap">{formatoFecha(p.created_at)}</td>
-                  <td className="p-4">
-                    <div className="font-bold text-zinc-200 uppercase">{p.cliente_nombre}</div>
-                    <div className="text-xs text-zinc-500 font-mono">{p.cliente_telefono}</div>
+                <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors group">
+                  <td className="p-5 text-zinc-400 font-mono whitespace-nowrap">
+                    <div className="text-white font-bold">{formatoFecha(p.created_at).split(',')[0]}</div>
+                    <div className="text-xs opacity-50">{formatoFecha(p.created_at).split(',')[1]}</div>
                   </td>
-                  <td className="p-4">
-                    <div className="text-white font-medium">{p.material_nombre}</div>
-                    <div className="text-xs text-zinc-400 font-mono">{p.cantidad} Unds - <span className="text-amber-500">{formatoPesos(p.valor_total)}</span></div>
+                  <td className="p-5">
+                    <div className="font-bold text-white uppercase tracking-wide">{p.cliente_nombre}</div>
+                    <div className="text-xs text-amber-500 font-mono mt-1">{p.cliente_telefono}</div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-5">
+                    <div className="text-zinc-200 font-medium">{p.material_nombre}</div>
+                    <div className="text-xs text-zinc-500 font-mono mt-1">
+                      <span className="bg-zinc-800 px-1 rounded-sm text-zinc-300">{p.cantidad} pzs</span>
+                      <span className="mx-2 text-zinc-600">|</span>
+                      <span className="text-amber-500 font-bold">{formatoPesos(p.valor_total)}</span>
+                    </div>
+                  </td>
+                  <td className="p-5">
                     <select
                       value={p.estado || 'pendiente'}
                       onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                      className={`bg-zinc-950 border border-zinc-700 rounded-sm px-2 py-1 text-xs font-bold uppercase outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-500 border-green-900/50' : 'text-amber-500 border-amber-900/50'
+                      className={`bg-zinc-950 border-2 rounded-sm px-3 py-1 text-xs font-bold uppercase outline-none cursor-pointer tracking-wider ${p.estado === 'realizado'
+                          ? 'border-green-900 text-green-500'
+                          : 'border-amber-900 text-amber-500'
                         }`}
                     >
                       <option value="pendiente">Pendiente</option>
-                      <option value="realizado">Realizado</option>
+                      <option value="realizado">Finalizado</option>
                     </select>
                   </td>
-                  <td className="p-4 text-right flex items-center justify-end gap-2">
-                    {p.archivo_url && (
-                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
-                        <Upload size={16} className="rotate-180" />
-                      </a>
-                    )}
-                    <button onClick={() => eliminarPedido(p.id)} className="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
-                      <Trash2 size={16} />
-                    </button>
+                  <td className="p-5 text-right">
+                    <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                      {p.archivo_url && (
+                        <a href={p.archivo_url} target="_blank" rel="noreferrer" title="Descargar DXF/SVG" className="bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 p-2 rounded-sm transition-colors border border-zinc-700">
+                          <Upload size={16} className="rotate-180" />
+                        </a>
+                      )}
+                      <button onClick={() => eliminarPedido(p.id)} title="Eliminar" className="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-500 p-2 rounded-sm transition-colors border border-zinc-700">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -513,7 +539,7 @@ function AdminPedidos({ empresaId }) {
 }
 
 // ==========================================
-// ADMIN - MATERIALES
+// ADMIN - MATERIALES (CÓDIGO COMPLETO Y CORREGIDO)
 // ==========================================
 function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   const [form, setForm] = useState({
@@ -569,41 +595,54 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Formulario */}
-      <div className={`${PANEL_STYLE} p-6 rounded-sm`}>
-        <h3 className="font-black text-white uppercase tracking-wider mb-4 border-l-4 border-amber-500 pl-3">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
+      <div className={`${PANEL_STYLE} p-8 rounded-sm relative overflow-hidden`}>
+        {/* Banda decorativa */}
+        <div className={`absolute top-0 right-0 w-32 h-32 bg-amber-500/5 -rotate-45 transform translate-x-16 -translate-y-16 pointer-events-none ${TEXTURE_STRIPES}`}></div>
+
+        <h3 className="font-black text-xl text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+          <Settings size={20} className="text-amber-500" />
+          {editingId ? 'Editar Parámetros' : 'Nuevo Material'}
+        </h3>
+
         <form onSubmit={handleSave}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="md:col-span-2">
-              <label className={LABEL_STYLE}>Nombre Material</label>
-              <input placeholder="Ej: Acero HR" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
+              <label className={LABEL_STYLE}>Nombre del Material</label>
+              <input placeholder="Ej: Acero Inoxidable 304" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
             </div>
             <div>
               <label className={LABEL_STYLE}>Calibre / Espesor</label>
-              <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className={INPUT_STYLE} />
+              <input placeholder="Ej: 3mm o Cal. 14" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className={INPUT_STYLE} />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-zinc-950/50 p-4 rounded-sm border border-zinc-800 space-y-3">
-              <h4 className="text-sm font-bold text-zinc-300 uppercase flex items-center gap-2"><Zap size={14} className="text-amber-500" /> Servicio de Corte</h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Panel Costos Corte */}
+            <div className="bg-zinc-950 p-5 rounded-sm border border-zinc-800 relative">
+              <div className="absolute top-3 right-3 text-amber-500 opacity-20"><Zap size={40} /></div>
+              <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-4 border-b border-zinc-800 pb-2">Costos de Maquinado</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>Costo / Metro</label>
-                  <input type="number" placeholder="$" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className={INPUT_STYLE} required />
+                  <label className={LABEL_STYLE}>Por Metro Lineal ($)</label>
+                  <input type="number" placeholder="0" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className={INPUT_STYLE} required />
                 </div>
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>Costo / Perforación</label>
-                  <input type="number" placeholder="$" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className={INPUT_STYLE} />
+                  <label className={LABEL_STYLE}>Por Perforación ($)</label>
+                  <input type="number" placeholder="0" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className={INPUT_STYLE} />
                 </div>
               </div>
             </div>
-            <div className="bg-zinc-950/50 p-4 rounded-sm border border-amber-500/10 space-y-3">
-              <h4 className="text-sm font-bold text-amber-500 uppercase flex items-center gap-2"><Package size={14} /> Suministro (Opcional)</h4>
+
+            {/* Panel Suministro */}
+            <div className="bg-zinc-950 p-5 rounded-sm border border-zinc-800 relative">
+              <div className="absolute top-3 right-3 text-zinc-700 opacity-20"><Package size={40} /></div>
+              <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-4 border-b border-zinc-800 pb-2">Venta de Lámina (Opcional)</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>Precio Venta</label>
-                  <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className={INPUT_STYLE} />
+                  <label className={LABEL_STYLE}>Precio Venta ($)</label>
+                  <input type="number" placeholder="0" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className={INPUT_STYLE} />
                 </div>
                 <div className="w-1/3">
                   <label className={LABEL_STYLE}>Unidad</label>
@@ -616,9 +655,10 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
               </div>
             </div>
           </div>
-          <div className="flex justify-end mt-6">
-            <button type="button" onClick={handleSave} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black py-3 px-8 rounded-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-colors">
-              {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
+
+          <div className="flex justify-end mt-8 border-t border-zinc-800 pt-6">
+            <button type="button" onClick={handleSave} disabled={saving} className={`${BUTTON_PRIMARY} w-auto px-8`}>
+              {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'ACTUALIZAR DATOS' : 'REGISTRAR MATERIAL'}
             </button>
           </div>
         </form>
@@ -627,37 +667,39 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
       {/* --- TABLA DE LA LISTA DE MATERIALES --- */}
       <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
         <table className="w-full text-sm">
-          <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
+          <thead className="bg-zinc-950 text-zinc-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
             <tr>
-              <th className="p-4 text-left">Material</th>
-              <th className="p-4 text-left">Servicio Corte</th>
-              <th className="p-4 text-left">Suministro Material</th>
-              <th className="p-4 text-right">Acciones</th>
+              <th className="p-5 text-left">Material</th>
+              <th className="p-5 text-left">Tarifa Corte</th>
+              <th className="p-5 text-left">Tarifa Material</th>
+              <th className="p-5 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
             {materiales.map(m => (
-              <tr key={m.id} className="hover:bg-zinc-800/50">
-                <td className="p-4">
-                  <div className="font-bold text-zinc-200 uppercase">{m.nombre}</div>
-                  <div className="text-xs text-zinc-500 font-mono">{m.calibre}</div>
+              <tr key={m.id} className="hover:bg-zinc-800/50 group">
+                <td className="p-5">
+                  <div className="font-bold text-white uppercase tracking-wide text-base">{m.nombre}</div>
+                  <div className="text-xs text-amber-500 font-mono mt-1 px-2 py-0.5 bg-amber-500/10 rounded-sm inline-block border border-amber-500/20">{m.calibre}</div>
                 </td>
-                <td className="p-4">
-                  <div className="text-zinc-300 font-mono font-bold">${(m.precio_metro)?.toLocaleString()} /m</div>
+                <td className="p-5">
+                  <div className="text-zinc-300 font-mono font-medium text-lg">${(m.precio_metro)?.toLocaleString()} <span className="text-xs text-zinc-600">/m</span></div>
                   <div className="text-xs text-zinc-500 font-mono">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
                 </td>
-                <td className="p-4">
+                <td className="p-5">
                   {(m.precio_material) > 0 ? (
-                    <span className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded-sm text-xs font-bold border border-amber-500/20 font-mono">
-                      ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
+                    <span className="text-zinc-300 font-mono">
+                      ${(m.precio_material)?.toLocaleString()} <span className="text-xs text-zinc-600">/ {m.unidad_cobro}</span>
                     </span>
                   ) : (
-                    <span className="text-zinc-600 text-xs italic">No vende</span>
+                    <span className="text-zinc-700 text-xs italic font-bold">NO APLICA</span>
                   )}
                 </td>
-                <td className="p-4 text-right">
-                  <button onClick={() => handleEdit(m)} className="p-2 text-zinc-400 hover:text-amber-500"><Edit size={16} /></button>
-                  <button onClick={() => handleDelete(m.id)} className="p-2 text-zinc-400 hover:text-red-500"><Trash2 size={16} /></button>
+                <td className="p-5 text-right">
+                  <div className="flex items-center justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleEdit(m)} className="p-2 bg-zinc-900 text-amber-500 hover:bg-amber-500 hover:text-zinc-900 rounded-sm border border-zinc-800 transition-colors"><Edit size={16} /></button>
+                    <button onClick={() => handleDelete(m.id)} className="p-2 bg-zinc-900 text-zinc-500 hover:bg-red-600 hover:text-white rounded-sm border border-zinc-800 transition-colors"><Trash2 size={16} /></button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -683,6 +725,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
     const fileExt = file.name.split('.').pop().toLowerCase();
     const fileName = `${session.user.id}/${fieldName}_${Date.now()}.${fileExt}`;
 
+    // Subir a Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from('empresas-assets')
       .upload(fileName, file, { upsert: true });
@@ -693,7 +736,9 @@ function AdminEmpresa({ empresa, setEmpresa }) {
       return;
     }
 
+    // Obtener URL pública
     const { data } = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
+
     setForm({ ...form, [fieldName]: data.publicUrl });
     setUploading(false);
   };
@@ -720,37 +765,37 @@ function AdminEmpresa({ empresa, setEmpresa }) {
   };
 
   return (
-    <div className={`${PANEL_STYLE} p-6 rounded-sm max-w-2xl`}>
-      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
-        <Building2 size={20} className="text-amber-500" /> Datos de la Empresa
+    <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-3xl`}>
+      <h3 className="font-black mb-8 flex items-center gap-3 text-white uppercase tracking-wider text-xl border-b border-zinc-800 pb-4">
+        <Building2 size={24} className="text-amber-500" /> Identidad Corporativa
       </h3>
 
       {/* Imágenes */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-8 mb-8">
         <div>
-          <label className={LABEL_STYLE}>Logo</label>
-          <div className="bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-center">
+          <label className={LABEL_STYLE}>Logotipo Principal</label>
+          <div className="bg-zinc-950 border border-zinc-800 rounded-sm p-6 text-center group hover:border-amber-500/50 transition-colors">
             {(form.logoUrl || form.logo_url) ? (
-              <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-16 mx-auto object-contain mb-2" />
+              <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-20 mx-auto object-contain mb-4" />
             ) : (
-              <div className="h-16 flex items-center justify-center text-zinc-600 mb-2 italic text-xs">Sin logo</div>
+              <div className="h-20 flex items-center justify-center text-zinc-700 mb-4 font-black uppercase text-xs">Sin logo</div>
             )}
-            <label className="cursor-pointer bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 text-xs font-bold px-4 py-2 rounded-sm inline-flex items-center gap-2 border border-zinc-700 transition-colors uppercase">
-              <Upload size={14} /> {uploading ? '...' : 'Subir Logo'}
+            <label className="cursor-pointer bg-zinc-900 hover:bg-amber-500 hover:text-zinc-900 text-zinc-400 text-xs font-black uppercase tracking-widest px-4 py-3 rounded-sm inline-flex items-center gap-2 border border-zinc-800 transition-all w-full justify-center">
+              <Upload size={14} /> {uploading ? '...' : 'Subir Imagen'}
               <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
             </label>
           </div>
         </div>
         <div>
-          <label className={LABEL_STYLE}>Favicon (Ícono)</label>
-          <div className="bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-center">
+          <label className={LABEL_STYLE}>Favicon (Miniatura)</label>
+          <div className="bg-zinc-950 border border-zinc-800 rounded-sm p-6 text-center group hover:border-amber-500/50 transition-colors">
             {(form.faviconUrl || form.favicon_url) ? (
-              <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-16 mx-auto object-contain mb-2" />
+              <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-20 mx-auto object-contain mb-4" />
             ) : (
-              <div className="h-16 flex items-center justify-center text-zinc-600 mb-2 italic text-xs">Sin ícono</div>
+              <div className="h-20 flex items-center justify-center text-zinc-700 mb-4 font-black uppercase text-xs">Sin ícono</div>
             )}
-            <label className="cursor-pointer bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 text-xs font-bold px-4 py-2 rounded-sm inline-flex items-center gap-2 border border-zinc-700 transition-colors uppercase">
-              <Upload size={14} /> {uploading ? '...' : 'Subir Ícono'}
+            <label className="cursor-pointer bg-zinc-900 hover:bg-amber-500 hover:text-zinc-900 text-zinc-400 text-xs font-black uppercase tracking-widest px-4 py-3 rounded-sm inline-flex items-center gap-2 border border-zinc-800 transition-all w-full justify-center">
+              <Upload size={14} /> {uploading ? '...' : 'Subir Imagen'}
               <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
             </label>
           </div>
@@ -758,35 +803,37 @@ function AdminEmpresa({ empresa, setEmpresa }) {
       </div>
 
       {/* Datos */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className={LABEL_STYLE}>Nombre</label>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="col-span-2">
+          <label className={LABEL_STYLE}>Nombre Comercial</label>
           <input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} />
         </div>
-        <div>
-          <label className={LABEL_STYLE}>Slogan</label>
+        <div className="col-span-2">
+          <label className={LABEL_STYLE}>Slogan / Subtítulo</label>
           <input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className={INPUT_STYLE} />
         </div>
         <div>
-          <label className={LABEL_STYLE}>Teléfono</label>
+          <label className={LABEL_STYLE}>Teléfono Contacto</label>
           <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className={INPUT_STYLE} />
         </div>
         <div>
-          <label className={LABEL_STYLE}>Email</label>
+          <label className={LABEL_STYLE}>Email Visible</label>
           <input value={form.email || form.email_contacto || ''} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_STYLE} />
         </div>
         <div className="col-span-2">
-          <label className={LABEL_STYLE}>Dirección</label>
+          <label className={LABEL_STYLE}>Dirección del Taller</label>
           <input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className={INPUT_STYLE} />
         </div>
         <div>
-          <label className={LABEL_STYLE}>IVA (%)</label>
+          <label className={LABEL_STYLE}>Impuesto IVA (%)</label>
           <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className={INPUT_STYLE} />
         </div>
       </div>
-      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 text-zinc-900 font-black px-6 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/10">
-        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
-      </button>
+      <div className="mt-8 pt-6 border-t border-zinc-800">
+        <button onClick={handleSave} disabled={saving || uploading} className={`${BUTTON_PRIMARY} w-auto px-8 ml-auto`}>
+          {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
+        </button>
+      </div>
     </div>
   );
 }
@@ -834,34 +881,34 @@ function AdminSeguridad() {
   };
 
   return (
-    <div className={`${PANEL_STYLE} p-6 rounded-sm max-w-md`}>
-      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
-        <Lock size={20} className="text-amber-500" /> Cambiar Contraseña
+    <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-md`}>
+      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider text-xl">
+        <Lock size={24} className="text-amber-500" /> Credenciales
       </h3>
 
-      <div className="space-y-4">
-        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-sm mb-4">
-          <p className="text-amber-500 text-sm font-bold flex items-center gap-2"><Lock size={14} /> SEGURIDAD</p>
-          <p className="text-zinc-400 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
+      <div className="space-y-6">
+        <div className={`bg-amber-500/10 border-l-4 border-amber-500 p-4 ${TEXTURE_STRIPES}`}>
+          <p className="text-amber-500 text-xs font-black uppercase tracking-widest flex items-center gap-2">Protocolo de Seguridad</p>
+          <p className="text-zinc-400 text-xs mt-1 font-medium">Requerimos tu contraseña actual para autorizar cambios.</p>
         </div>
 
         <div>
           <label className={LABEL_STYLE}>Contraseña Actual</label>
-          <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className={INPUT_STYLE} placeholder="Tu contraseña actual" />
+          <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className={INPUT_STYLE} placeholder="Requerido" />
         </div>
 
-        <div className="border-t border-zinc-800 pt-4">
+        <div className="border-t border-zinc-800 pt-6">
           <label className={LABEL_STYLE}>Nueva Contraseña</label>
           <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className={INPUT_STYLE} placeholder="Mínimo 6 caracteres" />
         </div>
 
         <div>
-          <label className={LABEL_STYLE}>Confirmar Nueva Contraseña</label>
-          <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className={INPUT_STYLE} placeholder="Repite la nueva contraseña" />
+          <label className={LABEL_STYLE}>Confirmar Contraseña</label>
+          <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className={INPUT_STYLE} placeholder="Repetir nueva contraseña" />
         </div>
 
         <button onClick={handleChangePassword} disabled={loading} className={BUTTON_PRIMARY}>
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
+          {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CLAVES
         </button>
       </div>
     </div>
@@ -1285,386 +1332,312 @@ Quedo atento a las instrucciones. ⚡`;
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-zinc-900 text-white">
-      {/* Panel Izquierdo - CONTROLES */}
-      <div className={`w-full md:w-[420px] bg-zinc-900 flex flex-col border-r border-zinc-950 ${TEXTURE_DOTS}`}>
-        <div className={`p-6 border-b border-zinc-950 bg-zinc-900 shadow-xl z-10`}>
+    <div className={`flex flex-col md:flex-row h-screen bg-zinc-950 text-zinc-200 overflow-hidden font-sans`}>
+      {/* =======================
+          PANEL IZQUIERDO (CONTROLES) 
+         ======================= */}
+      <div className={`w-full md:w-[480px] bg-zinc-900 flex flex-col border-r border-zinc-950 z-20 shadow-2xl relative ${TEXTURE_DOTS}`}>
+        {/* Header Taller */}
+        <div className="p-6 border-b border-zinc-950 bg-zinc-900 shadow-md">
           <div className="flex items-center gap-4">
             {(empresa.faviconUrl || empresa.favicon_url) ? (
-              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-sm object-cover border border-zinc-700" />
+              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-14 h-14 rounded-sm object-cover border-2 border-zinc-800" />
             ) : (
-              <div className="w-12 h-12 bg-amber-500 rounded-sm flex items-center justify-center font-black text-zinc-900 shadow-lg shadow-amber-500/20">
-                {empresa.nombre?.substring(0, 2).toUpperCase()}
+              <div className="w-14 h-14 bg-amber-500 rounded-sm flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20">
+                <Building2 size={24} strokeWidth={2.5} />
               </div>
             )}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {(empresa.logoUrl || empresa.logo_url) ? (
-                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
+                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-12 object-contain" />
               ) : (
-                <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
+                <h1 className="font-black text-2xl uppercase tracking-tighter text-white leading-none truncate">{empresa.nombre}</h1>
               )}
-              <span className="text-amber-500 text-xs font-bold uppercase tracking-widest">{empresa.slogan}</span>
+              <span className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] block mt-1">{empresa.slogan || 'COTIZADOR INDUSTRIAL'}</span>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1 font-mono">
-            <div className="flex items-center gap-2"><Phone size={12} className="text-amber-500" /> {empresa.telefono}</div>
-            <div className="flex items-center gap-2"><MapPin size={12} className="text-amber-500" /> {empresa.direccion}</div>
+
+          <div className="mt-6 flex flex-col gap-2 border-t border-zinc-800 pt-4">
+            <div className="flex items-center gap-3 text-xs font-bold text-zinc-500 uppercase tracking-wide">
+              <Phone size={14} className="text-amber-500" /> {empresa.telefono}
+            </div>
+            <div className="flex items-center gap-3 text-xs font-bold text-zinc-500 uppercase tracking-wide">
+              <MapPin size={14} className="text-amber-500" /> {empresa.direccion}
+            </div>
           </div>
         </div>
 
-        <div className="p-6 flex-1 flex flex-col overflow-y-auto">
-          <div className="mb-6">
-            <label className={LABEL_STYLE}>Material y Calibre</label>
-            <select
-              value={materialSeleccionado}
-              onChange={e => setMaterialSeleccionado(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-zinc-100 font-bold outline-none focus:border-amber-500 transition-colors"
-            >
-              {materiales.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.nombre} - {m.calibre}
-                </option>
-              ))}
-            </select>
+        {/* Scroll Area Inputs */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          {/* Selección Material */}
+          <div className="space-y-2">
+            <label className={LABEL_STYLE}>1. SELECCIÓN DE MATERIAL</label>
+            <div className="relative">
+              <select
+                value={materialSeleccionado}
+                onChange={e => setMaterialSeleccionado(e.target.value)}
+                className={`${INPUT_STYLE} h-14 appearance-none text-lg font-bold uppercase cursor-pointer bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFA000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[right_1rem_center] bg-no-repeat`}
+              >
+                {materiales.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.nombre} - {m.calibre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tarifas Informativas */}
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="bg-zinc-950 border border-zinc-800 p-2 rounded-sm flex flex-col items-center justify-center">
+                <span className="text-[10px] uppercase font-bold text-zinc-500">Corte x Metro</span>
+                <span className="text-amber-500 font-mono font-bold">{formatoPesos(materialActivo.precioMetro)}</span>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 p-2 rounded-sm flex flex-col items-center justify-center">
+                <span className="text-[10px] uppercase font-bold text-zinc-500">Perforación</span>
+                <span className="text-amber-500 font-mono font-bold">{formatoPesos(materialActivo.precioDisparo)}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-3 mb-6">
-            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
-              <span className="uppercase tracking-wide">Metro Lineal</span>
-              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioMetro)}</span>
-            </div>
-            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
-              <span className="uppercase tracking-wide">Perforación</span>
-              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioDisparo)}</span>
-            </div>
-          </div>
-
-          {/* Toggle para incluir material */}
+          {/* Toggle Material */}
           {materialTienePrecio && (
-            <div className={`mb-6 bg-amber-500/5 border border-amber-500/10 rounded-sm p-4 ${TEXTURE_STRIPES}`}>
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={incluyeMaterial}
-                  onChange={e => setIncluyeMaterial(e.target.checked)}
-                  className="w-5 h-5 bg-zinc-950 border-2 border-zinc-600 rounded-sm checked:bg-amber-500 checked:border-amber-500 cursor-pointer appearance-none transition-all relative checked:after:content-['✓'] checked:after:text-zinc-900 checked:after:absolute checked:after:left-[2px] checked:after:text-sm checked:after:font-bold"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">
-                    <Package size={16} className="text-amber-500" />
-                    Incluir Material
-                  </div>
-                  <div className="text-xs text-amber-500/80 mt-1 font-mono pl-6">
-                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
-                  </div>
+            <div className={`border-l-4 border-amber-500 bg-amber-500/5 p-4 rounded-r-sm ${TEXTURE_STRIPES}`}>
+              <label className="flex items-center cursor-pointer group justify-between">
+                <div className="flex flex-col">
+                  <span className="font-black text-white uppercase flex items-center gap-2 text-sm group-hover:text-amber-500 transition-colors">
+                    <Package size={18} /> Incluir Material
+                  </span>
+                  <span className="text-xs text-amber-500/80 font-mono mt-1 pl-6">
+                    + {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={incluyeMaterial}
+                    onChange={e => setIncluyeMaterial(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-12 h-7 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-gray-300 after:border after:rounded-full after:h-6 after:w-5 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-white"></div>
                 </div>
               </label>
             </div>
           )}
 
-          <label className="group relative border-2 border-dashed border-zinc-700 rounded-sm flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-zinc-800/50 transition-all">
-            <input
-              type="file"
-              className="hidden"
-              accept=".dxf,.svg"
-              onChange={manejarArchivo}
-            />
-            {procesando ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="animate-spin text-amber-500 mb-2" size={32} />
-                <span className="text-amber-500 font-black text-sm uppercase tracking-widest">Calculando...</span>
-              </div>
-            ) : (
-              <>
-                <Upload className="text-zinc-500 group-hover:text-amber-500 transition-colors mb-3" size={36} />
-                <h3 className="text-lg font-black uppercase tracking-wider text-zinc-300 group-hover:text-white">Subir Plano</h3>
-                <div className="flex gap-2 mt-2">
-                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.DXF</span>
-                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.SVG</span>
+          {/* Upload Zone */}
+          <div className="space-y-2">
+            <label className={LABEL_STYLE}>2. SUBIR PLANO (DXF / SVG)</label>
+            <label className={`group relative h-48 w-full flex flex-col items-center justify-center rounded-sm border-2 border-dashed border-zinc-700 hover:border-amber-500 hover:bg-zinc-900/50 cursor-pointer transition-all ${procesando ? 'border-amber-500 bg-zinc-900' : ''}`}>
+              <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} disabled={procesando} />
+
+              {procesando ? (
+                <div className="flex flex-col items-center animate-pulse">
+                  <Loader2 className="animate-spin text-amber-500 mb-2" size={40} />
+                  <span className="text-amber-500 font-black text-xs uppercase tracking-widest">Analizando Geometría...</span>
                 </div>
-              </>
-            )}
-          </label>
-          {error && (
-            <div className="mt-3 bg-red-900/20 border-l-4 border-red-500 p-3 rounded-sm text-red-400 text-xs text-center font-bold uppercase">
-              {error}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Panel Derecho - RESULTADOS */}
-      <div className={`flex-1 bg-zinc-950 flex flex-col items-center justify-center p-8 relative overflow-hidden`}>
-        {/* Fondo decorativo industrial */}
-        <div className="absolute inset-0 opacity-5 bg-[linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"></div>
-
-        <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative`}>
-          {/* Remaches decorativos esquinas */}
-          <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-          <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-          <div className="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-
-          <div className="text-center mb-8 pb-8 border-b border-zinc-800 border-dashed">
-            <h3 className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Total Estimado</h3>
-            <h2 className="text-6xl font-black text-amber-500 drop-shadow-lg tracking-tight">{formatoPesos(costoTotal)}</h2>
-            {cantidad > 1 && (
-              <span className="text-sm text-zinc-500 font-mono mt-2 block">
-                ({formatoPesos(costoUnitarioTotal)} c/u)
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-4 mb-8">
-            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800 flex justify-between items-center">
-              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
-                <FileText size={14} className="text-amber-500" /> Archivo
-              </span>
-              <span className="text-zinc-200 truncate max-w-[180px] font-mono text-sm">
-                {nombreArchivo || '---'}
-              </span>
-            </div>
-
-            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide block mb-2">
-                Cantidad de Piezas
-              </span>
-              <div className="flex items-center justify-between bg-zinc-900 rounded-sm p-1 border border-zinc-800">
-                <button
-                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                  className="w-10 h-10 bg-zinc-800 text-zinc-400 rounded-sm flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-colors"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="text-2xl font-black text-white">{cantidad}</span>
-                <button
-                  onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-amber-500 text-zinc-900 rounded-sm flex items-center justify-center hover:bg-amber-400 transition-colors"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Corte Total</span>
-                <div className="text-white font-mono text-lg font-bold mt-1">
-                  {(perimetro * cantidad).toFixed(2)}m
+              ) : (
+                <div className="text-center group-hover:-translate-y-1 transition-transform duration-300">
+                  <div className="bg-zinc-800 p-4 rounded-full inline-block mb-3 group-hover:bg-amber-500 group-hover:text-zinc-900 transition-colors">
+                    <Upload size={24} />
+                  </div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider mb-1">Click o Arrastrar</h3>
+                  <p className="text-xs text-zinc-500 font-medium">Soporta vectores DXF (mm) y SVG</p>
                 </div>
-              </div>
-              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Perforaciones</span>
-                <div className="text-amber-500 font-mono text-lg font-bold mt-1">
-                  {cantidadDisparos * cantidad}
-                </div>
-              </div>
-            </div>
-
-            {/* Mostrar área si incluye material */}
-            {incluyeMaterial && areaCm2 > 0 && (
-              <div className={`bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm ${TEXTURE_STRIPES}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-amber-500 text-xs font-bold uppercase flex items-center gap-2">
-                    <Package size={14} /> Material Incluido
-                  </span>
-                  <span className="text-amber-500 font-bold font-mono">
-                    {formatoPesos(costoMaterialUnitario * cantidad)}
-                  </span>
-                </div>
-                <div className="text-zinc-400 text-xs font-mono pl-6">
-                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
-                </div>
+              )}
+            </label>
+            {error && (
+              <div className="bg-red-900/20 border border-red-900/50 p-3 rounded-sm flex items-center gap-3">
+                <AlertTriangle className="text-red-500 shrink-0" size={18} />
+                <span className="text-red-400 text-xs font-bold uppercase">{error}</span>
               </div>
             )}
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              onClick={() => setMostrarModal(true)}
-              disabled={!nombreArchivo}
-              className={BUTTON_PRIMARY}
-            >
-              SOLICITAR CORTE
-            </button>
           </div>
         </div>
       </div>
 
-      {/* MODAL DE CONFIRMACIÓN */}
-      {mostrarModal && (
-        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
-            <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
-              <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
-                <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
-              </h3>
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="text-zinc-500 hover:text-white transition-colors"
-              >
-                <X size={24} />
-              </button>
+      {/* =======================
+          PANEL DERECHO (RESULTADOS) 
+         ======================= */}
+      <div className="flex-1 relative flex flex-col bg-zinc-950 z-10">
+        {/* Fondo técnico decorativo */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "40px 40px" }}></div>
+        <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+          <Zap size={200} strokeWidth={0.5} />
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-8 relative">
+          <div className={`${PANEL_STYLE} w-full max-w-xl p-0 overflow-hidden`}>
+            {/* Header Panel */}
+            <div className={`bg-zinc-900 p-4 border-b border-zinc-800 flex justify-between items-center ${TEXTURE_STRIPES}`}>
+              <span className="font-black text-zinc-500 uppercase tracking-widest text-xs flex items-center gap-2">
+                <Calculator size={14} /> Resumen de Cotización
+              </span>
+              <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse shadow-[0_0_10px_#FFA000]"></span>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[80vh]">
-              {/* DESGLOSE ECONÓMICO */}
-              <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
-                {/* Etiqueta lateral */}
-                <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
-
-                <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
-                  <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
-                </div>
-
-                {incluyeMaterial && (
-                  <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                    <div>
-                      <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
-                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+            <div className="p-8">
+              {/* Display de Precio Estilo LED */}
+              <div className="text-center mb-10 relative">
+                <div className="inline-block relative z-10">
+                  <h2 className="text-6xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
+                    {formatoPesos(costoTotal)}
+                  </h2>
+                  {cantidad > 1 && (
+                    <div className="absolute -bottom-6 left-0 w-full text-center">
+                      <span className="bg-zinc-800 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded-sm uppercase">
+                        Unitario: {formatoPesos(costoUnitarioTotal)}
                       </span>
                     </div>
-                    <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
-                  <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
+                  )}
                 </div>
-
-                {config.porcentajeIva > 0 && (
-                  <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
-                    <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                    <span className="text-lg font-bold text-zinc-400">
-                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
-                  <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
-                  <span className="text-3xl font-black text-amber-500 tracking-tight">
-                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
-                  </span>
-                </div>
+                {/* Glow effect back */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-amber-500 blur-[80px] opacity-10 rounded-full"></div>
               </div>
 
-              {/* TABS PERSONA/EMPRESA */}
-              <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
-                <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
-                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                >
-                  Persona Natural
-                </button>
-                <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
-                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                >
-                  Empresa / Jurídica
-                </button>
-              </div>
-
-              {/* FORMULARIO CLIENTE */}
+              {/* Ficha Técnica */}
               <div className="space-y-4">
-                <div>
-                  <label className={LABEL_STYLE}>
-                    Correo Electrónico (Obligatorio)
-                  </label>
-                  <input
-                    type="email"
-                    value={datosCliente.email}
-                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className={INPUT_STYLE}
-                    placeholder="ejemplo@correo.com"
-                  />
+                {/* Fila 1: Archivo */}
+                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-sm border border-zinc-800">
+                  <span className="text-zinc-500 text-xs font-bold uppercase">Archivo Fuente</span>
+                  <span className="text-white font-mono text-xs truncate max-w-[200px]" title={nombreArchivo}>{nombreArchivo || '---'}</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
-                    </label>
-                    <input
-                      value={datosCliente.nombre}
-                      onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
-                  </div>
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
-                    </label>
-                    <input
-                      value={datosCliente.documento}
-                      onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
+                {/* Fila 2: Cantidad (Contador Industrial) */}
+                <div className="flex items-center justify-between bg-zinc-950 p-2 rounded-sm border border-zinc-800">
+                  <span className="text-zinc-500 text-xs font-bold uppercase pl-2">Cantidad de Piezas</span>
+                  <div className="flex items-center bg-zinc-900 rounded-sm p-1 gap-4">
+                    <button onClick={() => setCantidad(c => Math.max(1, c - 1))} className="w-8 h-8 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded-sm flex items-center justify-center transition-colors"><Minus size={14} /></button>
+                    <span className="font-black text-xl w-8 text-center text-white">{cantidad}</span>
+                    <button onClick={() => setCantidad(c => c + 1)} className="w-8 h-8 bg-amber-500 hover:bg-amber-400 text-zinc-900 rounded-sm flex items-center justify-center transition-colors"><Plus size={14} /></button>
                   </div>
                 </div>
 
-                {datosCliente.tipo === 'juridica' && (
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      Nombre del Contacto
-                    </label>
-                    <input
-                      value={datosCliente.contacto}
-                      onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                      className={INPUT_STYLE}
-                      placeholder="¿Por quién preguntamos?"
-                    />
+                {/* Fila 3: Métricas Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-sm">
+                    <span className="block text-[10px] text-zinc-500 font-black uppercase mb-1">Recorrido de Corte</span>
+                    <span className="block text-xl font-mono text-zinc-200">{(perimetro * cantidad).toFixed(2)}m</span>
+                  </div>
+                  <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-sm">
+                    <span className="block text-[10px] text-zinc-500 font-black uppercase mb-1">Perforaciones</span>
+                    <span className="block text-xl font-mono text-amber-500">{cantidadDisparos * cantidad}</span>
+                  </div>
+                </div>
+
+                {/* Extra Material */}
+                {incluyeMaterial && areaCm2 > 0 && (
+                  <div className="bg-zinc-950 border-l-2 border-amber-500 p-3 rounded-r-sm flex justify-between items-center">
+                    <div>
+                      <span className="block text-[10px] text-zinc-400 font-black uppercase">Material Incluido</span>
+                      <span className="text-[10px] text-zinc-600 font-mono">Área: {(areaCm2 * cantidad).toFixed(2)} cm²</span>
+                    </div>
+                    <span className="font-mono font-bold text-amber-500">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
                   </div>
                 )}
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      Teléfono / WhatsApp
-                    </label>
-                    <input
-                      value={datosCliente.telefono}
-                      onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
+              <div className="mt-8">
+                <button
+                  onClick={() => setMostrarModal(true)}
+                  disabled={!nombreArchivo || procesando}
+                  className={BUTTON_PRIMARY}
+                >
+                  <Zap fill="currentColor" size={20} /> INICIAR ORDEN DE CORTE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =======================
+          MODAL FINAL 
+         ======================= */}
+      {mostrarModal && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`${PANEL_STYLE} w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`}>
+            {/* Header Modal */}
+            <div className="bg-zinc-900 p-5 border-b border-zinc-800 flex justify-between items-center">
+              <h3 className="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <Check className="text-amber-500" /> Confirmar Pedido
+              </h3>
+              <button onClick={() => setMostrarModal(false)} className="text-zinc-500 hover:text-white"><X size={24} /></button>
+            </div>
+
+            <div className="p-8 max-h-[80vh] overflow-y-auto">
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Columna Izquierda: Desglose */}
+                <div className="flex-1 space-y-4">
+                  <h4 className={LABEL_STYLE}>Detalle de Costos</h4>
+                  <div className="bg-zinc-950 p-4 rounded-sm border border-zinc-800 space-y-2 font-mono text-sm">
+                    <div className="flex justify-between text-zinc-400">
+                      <span>Servicio Corte</span>
+                      <span>{formatoPesos(costoCorteUnitario * cantidad)}</span>
+                    </div>
+                    {incluyeMaterial && (
+                      <div className="flex justify-between text-zinc-400">
+                        <span>Material</span>
+                        <span>{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-zinc-800 my-2 pt-2 flex justify-between text-zinc-300 font-bold">
+                      <span>Subtotal</span>
+                      <span>{formatoPesos(costoTotal)}</span>
+                    </div>
+                    {config.porcentajeIva > 0 && (
+                      <div className="flex justify-between text-zinc-500 text-xs">
+                        <span>IVA ({config.porcentajeIva}%)</span>
+                        <span>{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</span>
+                      </div>
+                    )}
+                    <div className="bg-zinc-900 -mx-4 -mb-4 mt-4 p-4 flex justify-between items-center border-t border-zinc-800">
+                      <span className="text-amber-500 font-black uppercase">Total a Pagar</span>
+                      <span className="text-2xl font-black text-white">{formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}</span>
+                    </div>
                   </div>
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      Dirección de Entrega
-                    </label>
-                    <input
-                      value={datosCliente.direccion}
-                      onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
+                </div>
+
+                {/* Columna Derecha: Formulario */}
+                <div className="flex-[1.5] space-y-4">
+                  <h4 className={LABEL_STYLE}>Datos de Facturación</h4>
+
+                  {/* Selector Tipo */}
+                  <div className="flex bg-zinc-950 p-1 rounded-sm border border-zinc-800 mb-4">
+                    {['natural', 'juridica'].map(type => (
+                      <button
+                        key={type}
+                        onClick={() => setDatosCliente({ ...datosCliente, tipo: type })}
+                        className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === type ? 'bg-amber-500 text-zinc-900' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      >
+                        {type === 'natural' ? 'Persona' : 'Empresa'}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <input placeholder="Nombre Completo / Razón Social" value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className={INPUT_STYLE} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input placeholder={datosCliente.tipo === 'natural' ? 'Cédula' : 'NIT'} value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className={INPUT_STYLE} />
+                      <input placeholder="Teléfono" value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className={INPUT_STYLE} />
+                    </div>
+                    <div>
+                      <input placeholder="Correo Electrónico" type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className={INPUT_STYLE} />
+                    </div>
+                    <div>
+                      <input placeholder="Dirección de Entrega" value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className={INPUT_STYLE} />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* FOOTER MODAL */}
-            <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={procesarAccionModal}
-                disabled={enviandoCorreo}
-                className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
-              >
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
-                CONFIRMAR PEDIDO
+            <div className="bg-zinc-900 p-5 border-t border-zinc-800 flex justify-end gap-4">
+              <button onClick={() => setMostrarModal(false)} className="text-zinc-500 hover:text-white font-bold uppercase text-xs tracking-wider px-4">Cancelar</button>
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className={`${BUTTON_PRIMARY} w-auto px-8`}>
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />} ENVIAR ORDEN
               </button>
             </div>
           </div>
