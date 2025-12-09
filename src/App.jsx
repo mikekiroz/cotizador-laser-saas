@@ -304,9 +304,9 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-yellow-400 text-slate-900">
       {/* Header */}
-      <div className="bg-slate-950 border-b border-slate-800 px-6 py-4">
+      <div className="bg-white border-b border-gray-300 px-6 py-4 shadow-md">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-xl flex items-center justify-center">
