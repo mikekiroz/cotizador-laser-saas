@@ -284,7 +284,7 @@ function OnboardingPage({ setEmpresa }) {
 }
 
 // ==========================================
-// VISTA ADMIN (AMARILLO INDUSTRIAL)
+// VISTA ADMIN (FONDO GRIS - PARA TRABAJAR)
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
@@ -304,7 +304,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   };
 
   return (
-    <div className="min-h-screen bg-yellow-400 text-slate-900">
+    <div className="min-h-screen bg-slate-100 text-slate-900">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -343,7 +343,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
       {/* Tabs de Navegación */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex gap-4 mb-8 border-b border-slate-900/10 pb-1">
+        <div className="flex gap-4 mb-8 border-b border-slate-300 pb-1">
           <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-4 ${tab === 'pedidos' ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-black'}`}>
             Pedidos Recientes
           </button>
@@ -823,6 +823,9 @@ function AdminSeguridad() {
   );
 }
 
+// ==========================================
+// VISTA CLIENTE HÍBRIDA (OSCURO / AMARILLO / BLANCO)
+// ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
@@ -1169,10 +1172,6 @@ Quedo atento a las instrucciones. ⚡`;
 
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
-  // ==========================================
-  // AQUÍ COMIENZA EL RETURN (EL DIBUJO)
-  // ESTO ES LO QUE HEMOS CAMBIADO AL "HÍBRIDO"
-  // ==========================================
   return (
     <div className="flex flex-col md:flex-row h-screen bg-yellow-400 text-slate-900">
       {/* Panel Izquierdo - AHORA OSCURO (Estilo Panel de Control) */}
