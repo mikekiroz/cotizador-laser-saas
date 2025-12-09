@@ -1272,7 +1272,7 @@ Quedo atento a las instrucciones. ⚡`;
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-900 text-white">
+    <div className="flex flex-col md:flex-row h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black text-white">
       {/* Panel Izquierdo */}
       <div className="w-full md:w-[420px] bg-slate-800 flex flex-col border-r border-slate-700">
         <div className="p-6 border-b border-slate-700 bg-slate-900">
