@@ -10,26 +10,15 @@ import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
 
 // ==========================================
-// PALETA INDUSTRIAL EXACTA Y TEXTURAS
+// ESTILOS Y TEXTURAS INDUSTRIALES
 // ==========================================
-// Colores definidos por usuario:
-// Fondo Base: #18181b (zinc-900)
-// Paneles: #27272a (zinc-800)
-// Bordes: #3f3f46 (zinc-700)
-// Amarillo: #FFA000
-
-// Patrón de puntos sutil sobre el fondo oscuro
+// Definimos clases base para las texturas solicitadas para reutilizarlas
 const TEXTURE_DOTS = "bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:20px_20px]";
-// Líneas diagonales tipo placa metálica
-const TEXTURE_STRIPES = "bg-[linear-gradient(45deg,rgba(0,0,0,0.1)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.1)_50%,rgba(0,0,0,0.1)_75%,transparent_75%,transparent)] [background-size:8px_8px]";
-
-// Estilos Componentes
-const APP_BG = "bg-[#18181b] min-h-screen text-zinc-100"; // Fondo Base (Zinc-900)
-const PANEL_STYLE = "bg-[#27272a] border border-[#3f3f46] shadow-xl"; // Paneles (Zinc-800 + Borde Zinc-700)
-const INPUT_STYLE = "w-full bg-[#18181b] border border-[#3f3f46] focus:border-[#FFA000] text-white p-3 rounded-none outline-none transition-colors placeholder-zinc-500 font-medium";
-const BUTTON_PRIMARY = "w-full bg-[#FFA000] hover:bg-[#FFAB00] disabled:bg-[#3f3f46] disabled:text-zinc-500 text-[#18181b] font-black py-4 rounded-none transition-all flex items-center justify-center gap-2 uppercase tracking-wider";
-const BUTTON_SECONDARY = "bg-[#27272a] hover:bg-[#3f3f46] text-white border border-[#3f3f46] font-bold py-2 px-4 rounded-none transition-all flex items-center gap-2 uppercase text-xs tracking-wider";
-const LABEL_STYLE = "text-xs font-bold text-[#FFA000] uppercase tracking-widest mb-2 block";
+const TEXTURE_STRIPES = "bg-[linear-gradient(45deg,rgba(0,0,0,0.2)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2)_75%,transparent_75%,transparent)] [background-size:10px_10px]";
+const PANEL_STYLE = "bg-zinc-900 border-t border-zinc-700 border-b border-zinc-950 border-x border-zinc-800 shadow-xl";
+const INPUT_STYLE = "w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-sm p-3 text-zinc-100 outline-none transition-colors placeholder-zinc-600";
+const BUTTON_PRIMARY = "w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-900 font-black py-4 rounded-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/10";
+const LABEL_STYLE = "text-xs font-bold text-amber-500 uppercase tracking-widest mb-1 block";
 
 // ==========================================
 // CONFIGURACIÓN INICIAL (DEFAULTS)
@@ -53,6 +42,7 @@ function AppContent() {
   const [loadingData, setLoadingData] = useState(true);
   const [tallerSlug, setTallerSlug] = useState(null);
 
+  // Detectar modo de la app basado en URL y sesión
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('taller');
@@ -72,6 +62,7 @@ function AppContent() {
     }
   }, [session, authLoading]);
 
+  // Cargar datos del taller para vista pública
   const cargarTallerPublico = async (slug) => {
     setLoadingData(true);
     const { data: emp } = await supabase.from('empresas').select('*').eq('slug', slug).single();
@@ -83,6 +74,7 @@ function AppContent() {
     setLoadingData(false);
   };
 
+  // Cargar datos del admin logueado
   const cargarDatosAdmin = async () => {
     setLoadingData(true);
     const { data: emp } = await supabase.from('empresas').select('*').eq('id', session.user.id).single();
@@ -94,34 +86,39 @@ function AppContent() {
     setLoadingData(false);
   };
 
+  // Loading
   if (appMode === 'loading' || (loadingData && appMode !== 'landing')) {
     return (
-      <div className={`${APP_BG} flex items-center justify-center`}>
-        <Loader2 className="animate-spin text-[#FFA000]" size={48} />
+      <div className="h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="animate-spin text-amber-500" size={48} />
       </div>
     );
   }
 
+  // Landing (no logueado)
   if (appMode === 'landing') {
     return <LandingPage />;
   }
 
+  // Admin (logueado) - sin empresa configurada = Onboarding
   if (appMode === 'admin' && !empresa.nombre) {
     return <OnboardingPage setEmpresa={setEmpresa} />;
   }
 
+  // Admin (logueado) - con empresa
   if (appMode === 'admin') {
     return <VistaAdmin empresa={empresa} setEmpresa={setEmpresa} materiales={materiales} setMateriales={setMateriales} recargar={cargarDatosAdmin} />;
   }
 
+  // Público (con ?taller=slug)
   if (appMode === 'public') {
     if (!empresa.nombre) {
       return (
-        <div className={`${APP_BG} ${TEXTURE_DOTS} flex items-center justify-center`}>
-          <div className={`${PANEL_STYLE} p-8 max-w-md text-center`}>
-            <AlertTriangle className="mx-auto mb-4 text-[#FFA000]" size={48} />
-            <h1 className="text-xl font-black uppercase text-white">Taller no encontrado</h1>
-            <p className="text-zinc-400 mt-2">El slug "{tallerSlug}" no existe.</p>
+        <div className={`h-screen bg-zinc-950 ${TEXTURE_DOTS} flex items-center justify-center text-white`}>
+          <div className="text-center p-8 bg-zinc-900 border border-amber-500/20 rounded-lg shadow-2xl">
+            <AlertTriangle className="mx-auto mb-4 text-amber-500" size={48} />
+            <h1 className="text-xl font-black uppercase tracking-wider mb-2">Taller no encontrado</h1>
+            <p className="text-zinc-400">El slug "{tallerSlug}" no existe.</p>
           </div>
         </div>
       );
@@ -144,7 +141,7 @@ function App() {
 // LANDING PAGE
 // ==========================================
 function LandingPage() {
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -168,55 +165,63 @@ function LandingPage() {
   };
 
   return (
-    <div className={`${APP_BG} ${TEXTURE_DOTS}`}>
-      {/* Barra superior estilo industrial */}
-      <div className={`h-2 w-full bg-[#FFA000] ${TEXTURE_STRIPES}`}></div>
+    <div className={`min-h-screen bg-zinc-950 text-white ${TEXTURE_DOTS}`}>
+      {/* Hero */}
+      <div className="relative overflow-hidden">
+        {/* Efecto de luz industrial */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(255,160,0,0.08),transparent_60%)]"></div>
 
-      <div className="max-w-6xl mx-auto px-6 py-20">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Izquierda */}
-          <div>
-            <div className="inline-flex items-center gap-2 bg-[#27272a] border border-[#3f3f46] text-[#FFA000] text-xs font-black px-4 py-2 mb-6">
-              <Zap size={16} /> SOFTWARE DE CORTE
+        <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Izquierda - Copy */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black px-4 py-2 rounded-sm uppercase tracking-widest mb-6">
+                <Zap size={16} /> Cotizador Láser Industrial
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight text-zinc-100">
+                Cotizaciones automáticas para tu taller de <span className="text-amber-500 border-b-4 border-amber-500/20">corte láser</span>
+              </h1>
+              <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
+                Tus clientes suben su archivo DXF/SVG y obtienen un precio al instante.
+                Sin llamadas, sin esperas, sin errores de cálculo.
+              </p>
+              <ul className="space-y-4 text-zinc-300 mb-8">
+                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Configura tus materiales y precios</span></li>
+                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Obtén una URL única para tus clientes</span></li>
+                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Recibe pedidos por WhatsApp o Email</span></li>
+              </ul>
             </div>
-            <h1 className="text-5xl font-black leading-tight mb-6 text-white uppercase">
-              Cotizador <span className="text-[#FFA000]">Láser</span> Industrial
-            </h1>
-            <p className="text-zinc-400 text-lg mb-8 border-l-4 border-[#3f3f46] pl-4">
-              Automatiza tu taller. Cálculo instantáneo de vectores DXF/SVG.
-              Interfaz robusta para trabajo pesado.
-            </p>
-          </div>
 
-          {/* Derecha - Login */}
-          <div className={`${PANEL_STYLE} p-8 relative`}>
-            {/* Tornillos decorativos */}
-            <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-[#3f3f46] rounded-full"></div>
-            <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#3f3f46] rounded-full"></div>
-            <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-[#3f3f46] rounded-full"></div>
-            <div className="absolute bottom-2 right-2 w-1.5 h-1.5 bg-[#3f3f46] rounded-full"></div>
+            {/* Derecha - Auth Form */}
+            <div className={`${PANEL_STYLE} p-8 rounded-sm relative`}>
+              {/* Tornillos decorativos */}
+              <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
+              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
+              <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
+              <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
 
-            <h2 className="text-xl font-black mb-6 text-center text-white uppercase border-b border-[#3f3f46] pb-4">
-              {authMode === 'login' ? 'Acceso Taller' : 'Registro'}
-            </h2>
-            <form onSubmit={handleAuth} className="space-y-4">
-              <div>
-                <label className={LABEL_STYLE}>Correo</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={INPUT_STYLE} required />
+              <h2 className="text-xl font-black mb-6 text-center text-zinc-100 uppercase tracking-wider">
+                {authMode === 'login' ? 'Acceso Taller' : 'Registrar Taller'}
+              </h2>
+              <form onSubmit={handleAuth} className="space-y-4">
+                <div>
+                  <label className={LABEL_STYLE}>Correo</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={INPUT_STYLE} required placeholder="taller@ejemplo.com" />
+                </div>
+                <div>
+                  <label className={LABEL_STYLE}>Contraseña</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={INPUT_STYLE} required placeholder="••••••••" />
+                </div>
+                <button disabled={loading} className={BUTTON_PRIMARY}>
+                  {loading && <Loader2 className="animate-spin" size={18} />}
+                  {authMode === 'login' ? 'ENTRAR' : 'REGISTRARME'}
+                </button>
+              </form>
+              <div className="mt-6 text-center border-t border-zinc-800 pt-4">
+                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-zinc-500 hover:text-amber-500 font-bold transition-colors">
+                  {authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+                </button>
               </div>
-              <div>
-                <label className={LABEL_STYLE}>Contraseña</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={INPUT_STYLE} required />
-              </div>
-              <button disabled={loading} className={BUTTON_PRIMARY}>
-                {loading && <Loader2 className="animate-spin" size={18} />}
-                {authMode === 'login' ? 'INGRESAR' : 'REGISTRAR'}
-              </button>
-            </form>
-            <div className="mt-6 text-center">
-              <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-xs font-bold text-zinc-500 hover:text-[#FFA000] uppercase tracking-widest">
-                {authMode === 'login' ? 'Crear cuenta nueva' : 'Ya tengo cuenta'}
-              </button>
             </div>
           </div>
         </div>
@@ -226,7 +231,7 @@ function LandingPage() {
 }
 
 // ==========================================
-// ONBOARDING
+// ONBOARDING - Primera configuración
 // ==========================================
 function OnboardingPage({ setEmpresa }) {
   const { session } = useAuth();
@@ -255,17 +260,18 @@ function OnboardingPage({ setEmpresa }) {
   };
 
   return (
-    <div className={`${APP_BG} ${TEXTURE_DOTS} flex items-center justify-center p-6`}>
-      <div className={`${PANEL_STYLE} p-8 max-w-lg w-full`}>
+    <div className={`min-h-screen bg-zinc-950 flex items-center justify-center p-6 ${TEXTURE_DOTS}`}>
+      <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full`}>
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#27272a] border-2 border-[#FFA000] mx-auto flex items-center justify-center mb-4">
-            <Building2 className="text-[#FFA000]" size={32} />
+          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-sm mx-auto flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20">
+            <Building2 className="text-zinc-900" size={32} />
           </div>
-          <h1 className="text-2xl font-black text-white uppercase">Configuración Inicial</h1>
+          <h1 className="text-2xl font-black text-white uppercase tracking-wider">¡Bienvenido!</h1>
+          <p className="text-zinc-400 mt-2">Configura los datos de tu taller para comenzar.</p>
         </div>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className={LABEL_STYLE}>Nombre del Taller</label>
+            <label className={LABEL_STYLE}>Nombre del Taller *</label>
             <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
           </div>
           <div>
@@ -288,7 +294,7 @@ function OnboardingPage({ setEmpresa }) {
           </div>
           <button disabled={saving} className={BUTTON_PRIMARY}>
             {saving && <Loader2 className="animate-spin" size={18} />}
-            GUARDAR CONFIGURACIÓN
+            CREAR MI TALLER
           </button>
         </form>
       </div>
@@ -297,7 +303,7 @@ function OnboardingPage({ setEmpresa }) {
 }
 
 // ==========================================
-// VISTA ADMIN
+// VISTA ADMIN - CON PESTAÑA PEDIDOS
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
@@ -317,51 +323,53 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   };
 
   return (
-    <div className={`${APP_BG} ${TEXTURE_DOTS}`}>
+    <div className={`min-h-screen bg-zinc-900 text-zinc-100 ${TEXTURE_DOTS}`}>
       {/* Header */}
-      <div className="bg-[#27272a] border-b border-[#3f3f46] px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 bg-[#FFA000] flex items-center justify-center ${TEXTURE_STRIPES}`}>
-              <Zap size={24} className="text-[#18181b]" fill="currentColor" />
+      <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-500 rounded-sm flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <Zap size={24} className="text-zinc-900" />
             </div>
             <div>
-              <h1 className="font-black text-lg text-white uppercase tracking-wider">{empresa.nombre}</h1>
-              <p className="text-xs text-[#FFA000] font-bold uppercase tracking-widest">Panel de Control</p>
+              <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
+              <p className="text-xs text-zinc-400 font-mono">{session?.user?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <a href={publicUrl} target="_blank" rel="noreferrer" className={BUTTON_SECONDARY}>
-              <ExternalLink size={14} /> Ver Tienda
+            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-sm text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500">
+              <ExternalLink size={16} className="text-amber-500" /> <span className="text-zinc-300 hover:text-white">Ver Cotizador</span>
             </a>
-            <button onClick={handleLogout} className="text-zinc-500 hover:text-red-500">
-              <LogOut size={20} />
+            <button onClick={handleLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors">
+              <LogOut size={18} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Barra de URL */}
-      <div className="bg-[#18181b] border-b border-[#3f3f46] px-6 py-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* URL Banner */}
+      <div className="bg-zinc-900 border-b border-amber-500/10 px-6 py-3">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-zinc-500 font-bold uppercase text-xs">Link Público:</span>
-            <code className="text-[#FFA000] bg-[#27272a] px-2 py-1 border border-[#3f3f46]">{publicUrl}</code>
+            <span className="text-amber-500 font-bold uppercase text-xs tracking-widest">URL Pública:</span>
+            <code className="bg-zinc-950 border border-zinc-800 px-3 py-1 rounded-sm text-zinc-300 font-mono text-xs">{publicUrl}</code>
           </div>
-          <button onClick={copyUrl} className="flex items-center gap-2 text-[#FFA000] hover:text-white text-xs font-bold uppercase tracking-widest">
-            {copied ? <><Check size={14} /> Copiado</> : <><Copy size={14} /> Copiar</>}
+          <button onClick={copyUrl} className="flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-bold uppercase tracking-wider">
+            {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
           </button>
         </div>
       </div>
 
-      {/* Contenido */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex gap-1 mb-8 bg-[#27272a] p-1 border border-[#3f3f46] w-fit">
+      {/* Tabs de Navegación */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
           {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-6 py-2 font-bold text-xs uppercase tracking-widest transition-all ${tab === t ? 'bg-[#FFA000] text-[#18181b]' : 'text-zinc-400 hover:text-white hover:bg-[#3f3f46]'
+              className={`px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 ${tab === t
+                  ? 'border-amber-500 text-amber-500'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
                 }`}
             >
               {t}
@@ -369,6 +377,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           ))}
         </div>
 
+        {/* Renderizado de Componentes */}
         {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
         {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
@@ -382,87 +391,114 @@ function AdminPedidos({ empresaId }) {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { cargarPedidos(); }, []);
+  useEffect(() => {
+    cargarPedidos();
+  }, []);
 
   const cargarPedidos = async () => {
     setLoading(true);
-    const { data } = await supabase.from('pedidos').select('*').eq('empresa_id', empresaId).order('created_at', { ascending: false });
-    setPedidos(data || []);
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .order('created_at', { ascending: false });
+
+    if (error) console.error("Error cargando pedidos:", error);
+    else setPedidos(data || []);
+
     setLoading(false);
   };
 
-  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
+  const formatoFecha = (fecha) => {
+    if (!fecha) return '';
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const formatoPesos = (v) => {
+    if (v === null || v === undefined) return '$0';
+    return '$' + Math.round(v).toLocaleString('es-CO');
+  };
 
   const eliminarPedido = async (id) => {
-    if (!confirm('¿Eliminar?')) return;
-    await supabase.from('pedidos').delete().eq('id', id);
-    cargarPedidos();
+    if (!confirm('¿Estás seguro de eliminar este pedido?')) return;
+    const { error } = await supabase.from('pedidos').delete().eq('id', id);
+    if (error) alert('Error al eliminar');
+    else cargarPedidos();
   };
 
   const cambiarEstado = async (id, nuevoEstado) => {
     setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
-    await supabase.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+    if (error) {
+      alert('Error guardando el cambio.');
+      cargarPedidos();
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-l-4 border-[#FFA000] pl-4">
-        <h3 className="font-black text-2xl text-white uppercase">Ordenes de Trabajo</h3>
-        <button onClick={cargarPedidos} className={BUTTON_SECONDARY}>
-          <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Refrescar
+      <div className="flex justify-between items-center">
+        <h3 className="font-black text-xl text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">Bandeja de Entrada</h3>
+        <button onClick={cargarPedidos} className="text-zinc-500 hover:text-amber-500 text-sm flex items-center gap-1 font-bold uppercase">
+          <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-zinc-500">CARGANDO...</div>
+        <div className="text-center py-10 text-zinc-500 font-mono">Cargando pedidos...</div>
       ) : pedidos.length === 0 ? (
-        <div className={`${PANEL_STYLE} p-12 text-center`}>
-          <FileBox size={40} className="mx-auto text-zinc-600 mb-4" />
-          <h3 className="text-white font-bold uppercase">Sin Pedidos</h3>
+        <div className={`${PANEL_STYLE} p-10 rounded-sm text-center`}>
+          <div className="inline-flex bg-zinc-950 p-4 rounded-full mb-4 text-zinc-600"><FileBox size={32} /></div>
+          <h3 className="text-white font-bold uppercase">No hay pedidos aún</h3>
+          <p className="text-zinc-500 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
         </div>
       ) : (
-        <div className={PANEL_STYLE}>
+        <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
           <table className="w-full text-sm text-left">
-            <thead className="bg-[#18181b] text-zinc-500 text-xs uppercase font-black border-b border-[#3f3f46]">
+            <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
               <tr>
                 <th className="p-4">Fecha</th>
                 <th className="p-4">Cliente</th>
-                <th className="p-4">Detalle</th>
+                <th className="p-4">Detalles</th>
                 <th className="p-4">Estado</th>
-                <th className="p-4 text-right">Acción</th>
+                <th className="p-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#3f3f46]">
+            <tbody className="divide-y divide-zinc-800">
               {pedidos.map((p) => (
-                <tr key={p.id} className="hover:bg-[#3f3f46] transition-colors">
-                  <td className="p-4 text-zinc-400 font-mono">
-                    {new Date(p.created_at).toLocaleDateString()}
+                <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors">
+                  <td className="p-4 text-zinc-400 font-mono whitespace-nowrap">{formatoFecha(p.created_at)}</td>
+                  <td className="p-4">
+                    <div className="font-bold text-zinc-200 uppercase">{p.cliente_nombre}</div>
+                    <div className="text-xs text-zinc-500 font-mono">{p.cliente_telefono}</div>
                   </td>
                   <td className="p-4">
-                    <div className="font-bold text-white uppercase">{p.cliente_nombre}</div>
-                    <div className="text-xs text-[#FFA000]">{p.cliente_telefono}</div>
-                  </td>
-                  <td className="p-4">
-                    <div className="text-white">{p.material_nombre}</div>
-                    <div className="text-xs text-zinc-500">{p.cantidad} unds | {formatoPesos(p.valor_total)}</div>
+                    <div className="text-white font-medium">{p.material_nombre}</div>
+                    <div className="text-xs text-zinc-400 font-mono">{p.cantidad} Unds - <span className="text-amber-500">{formatoPesos(p.valor_total)}</span></div>
                   </td>
                   <td className="p-4">
                     <select
                       value={p.estado || 'pendiente'}
                       onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                      className="bg-[#18181b] border border-[#3f3f46] text-xs font-bold uppercase p-1 text-[#FFA000]"
+                      className={`bg-zinc-950 border border-zinc-700 rounded-sm px-2 py-1 text-xs font-bold uppercase outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-500 border-green-900/50' : 'text-amber-500 border-amber-900/50'
+                        }`}
                     >
                       <option value="pendiente">Pendiente</option>
-                      <option value="realizado">Finalizado</option>
+                      <option value="realizado">Realizado</option>
                     </select>
                   </td>
-                  <td className="p-4 text-right flex justify-end gap-2">
+                  <td className="p-4 text-right flex items-center justify-end gap-2">
                     {p.archivo_url && (
-                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-[#18181b] p-2 border border-[#3f3f46] text-zinc-400 hover:text-[#FFA000]">
+                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
                         <Upload size={16} className="rotate-180" />
                       </a>
                     )}
-                    <button onClick={() => eliminarPedido(p.id)} className="bg-[#18181b] p-2 border border-[#3f3f46] text-zinc-400 hover:text-red-500">
+                    <button onClick={() => eliminarPedido(p.id)} className="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
                       <Trash2 size={16} />
                     </button>
                   </td>
@@ -476,14 +512,22 @@ function AdminPedidos({ empresaId }) {
   );
 }
 
+// ==========================================
+// ADMIN - MATERIALES
+// ==========================================
 function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
-  const [form, setForm] = useState({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2' });
+  const [form, setForm] = useState({
+    nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2'
+  });
+
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!form.nombre || !form.precioMetro) return;
     setSaving(true);
+
     const datos = {
       empresa_id: empresaId,
       nombre: form.nombre,
@@ -494,8 +538,11 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
       unidad_cobro: form.unidadCobro
     };
 
-    if (editingId) await supabase.from('materiales').update(datos).eq('id', editingId);
-    else await supabase.from('materiales').insert(datos);
+    if (editingId) {
+      await supabase.from('materiales').update(datos).eq('id', editingId);
+    } else {
+      await supabase.from('materiales').insert(datos);
+    }
 
     setForm({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2' });
     setEditingId(null);
@@ -504,53 +551,59 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   };
 
   const handleEdit = (m) => {
-    setForm({ nombre: m.nombre, calibre: m.calibre, precioMetro: m.precio_metro, precioDisparo: m.precio_disparo, precioMaterial: m.precio_material, unidadCobro: m.unidad_cobro || 'cm2' });
+    setForm({
+      nombre: m.nombre,
+      calibre: m.calibre,
+      precioMetro: m.precio_metro || 0,
+      precioDisparo: m.precio_disparo || 0,
+      precioMaterial: m.precio_material || 0,
+      unidadCobro: m.unidad_cobro || 'cm2'
+    });
     setEditingId(m.id);
   };
 
   const handleDelete = async (id) => {
-    if (confirm('¿Eliminar?')) {
-      await supabase.from('materiales').delete().eq('id', id);
-      recargar();
-    }
+    if (!confirm('¿Eliminar este material?')) return;
+    await supabase.from('materiales').delete().eq('id', id);
+    recargar();
   };
 
   return (
-    <div className="space-y-8">
-      <div className={PANEL_STYLE + " p-8 relative overflow-hidden"}>
-        <div className={`absolute top-0 right-0 w-24 h-24 bg-[#FFA000] opacity-10 -rotate-45 transform translate-x-10 -translate-y-10 ${TEXTURE_STRIPES}`}></div>
-        <h3 className="font-black text-xl text-white uppercase mb-6 border-b border-[#3f3f46] pb-2">Gestión de Materiales</h3>
+    <div className="space-y-6">
+      {/* Formulario */}
+      <div className={`${PANEL_STYLE} p-6 rounded-sm`}>
+        <h3 className="font-black text-white uppercase tracking-wider mb-4 border-l-4 border-amber-500 pl-3">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
         <form onSubmit={handleSave}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="md:col-span-2">
               <label className={LABEL_STYLE}>Nombre Material</label>
-              <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} />
+              <input placeholder="Ej: Acero HR" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
             </div>
             <div>
-              <label className={LABEL_STYLE}>Calibre</label>
-              <input value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className={INPUT_STYLE} />
+              <label className={LABEL_STYLE}>Calibre / Espesor</label>
+              <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className={INPUT_STYLE} />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#18181b] p-4 border border-[#3f3f46]">
-              <h4 className="text-xs font-black text-zinc-400 uppercase mb-4">Corte</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-zinc-950/50 p-4 rounded-sm border border-zinc-800 space-y-3">
+              <h4 className="text-sm font-bold text-zinc-300 uppercase flex items-center gap-2"><Zap size={14} className="text-amber-500" /> Servicio de Corte</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>$/Metro</label>
-                  <input type="number" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className={INPUT_STYLE} />
+                  <label className={LABEL_STYLE}>Costo / Metro</label>
+                  <input type="number" placeholder="$" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className={INPUT_STYLE} required />
                 </div>
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>$/Perforación</label>
-                  <input type="number" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className={INPUT_STYLE} />
+                  <label className={LABEL_STYLE}>Costo / Perforación</label>
+                  <input type="number" placeholder="$" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className={INPUT_STYLE} />
                 </div>
               </div>
             </div>
-            <div className="bg-[#18181b] p-4 border border-[#3f3f46]">
-              <h4 className="text-xs font-black text-zinc-400 uppercase mb-4">Suministro</h4>
+            <div className="bg-zinc-950/50 p-4 rounded-sm border border-amber-500/10 space-y-3">
+              <h4 className="text-sm font-bold text-amber-500 uppercase flex items-center gap-2"><Package size={14} /> Suministro (Opcional)</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className={LABEL_STYLE}>Precio Venta</label>
-                  <input type="number" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className={INPUT_STYLE} />
+                  <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className={INPUT_STYLE} />
                 </div>
                 <div className="w-1/3">
                   <label className={LABEL_STYLE}>Unidad</label>
@@ -563,36 +616,48 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
               </div>
             </div>
           </div>
-          <div className="mt-6 flex justify-end">
-            <button type="button" onClick={handleSave} disabled={saving} className={`${BUTTON_PRIMARY} w-auto px-8`}>
-              {saving ? <Loader2 className="animate-spin" /> : editingId ? 'ACTUALIZAR' : 'CREAR'}
+          <div className="flex justify-end mt-6">
+            <button type="button" onClick={handleSave} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black py-3 px-8 rounded-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-colors">
+              {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
             </button>
           </div>
         </form>
       </div>
 
-      <div className={PANEL_STYLE}>
+      {/* --- TABLA DE LA LISTA DE MATERIALES --- */}
+      <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
         <table className="w-full text-sm">
-          <thead className="bg-[#18181b] text-zinc-500 text-xs uppercase font-black border-b border-[#3f3f46]">
+          <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
             <tr>
               <th className="p-4 text-left">Material</th>
-              <th className="p-4 text-left">Corte</th>
-              <th className="p-4 text-left">Suministro</th>
+              <th className="p-4 text-left">Servicio Corte</th>
+              <th className="p-4 text-left">Suministro Material</th>
               <th className="p-4 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#3f3f46]">
+          <tbody className="divide-y divide-zinc-800">
             {materiales.map(m => (
-              <tr key={m.id} className="hover:bg-[#3f3f46]">
+              <tr key={m.id} className="hover:bg-zinc-800/50">
                 <td className="p-4">
-                  <div className="font-bold text-white uppercase">{m.nombre}</div>
-                  <span className="text-xs bg-[#FFA000] text-[#18181b] font-bold px-1">{m.calibre}</span>
+                  <div className="font-bold text-zinc-200 uppercase">{m.nombre}</div>
+                  <div className="text-xs text-zinc-500 font-mono">{m.calibre}</div>
                 </td>
-                <td className="p-4 text-zinc-300 font-mono">${m.precio_metro}/m</td>
-                <td className="p-4 text-zinc-300 font-mono">{m.precio_material > 0 ? `$${m.precio_material}/${m.unidad_cobro}` : '-'}</td>
-                <td className="p-4 text-right flex justify-end gap-2">
-                  <button onClick={() => handleEdit(m)} className="text-[#FFA000]"><Edit size={16} /></button>
-                  <button onClick={() => handleDelete(m.id)} className="text-red-500"><Trash2 size={16} /></button>
+                <td className="p-4">
+                  <div className="text-zinc-300 font-mono font-bold">${(m.precio_metro)?.toLocaleString()} /m</div>
+                  <div className="text-xs text-zinc-500 font-mono">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
+                </td>
+                <td className="p-4">
+                  {(m.precio_material) > 0 ? (
+                    <span className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded-sm text-xs font-bold border border-amber-500/20 font-mono">
+                      ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-600 text-xs italic">No vende</span>
+                  )}
+                </td>
+                <td className="p-4 text-right">
+                  <button onClick={() => handleEdit(m)} className="p-2 text-zinc-400 hover:text-amber-500"><Edit size={16} /></button>
+                  <button onClick={() => handleDelete(m.id)} className="p-2 text-zinc-400 hover:text-red-500"><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}
@@ -602,338 +667,1005 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
     </div>
   );
 }
-
+// ==========================================
+// ADMIN - EMPRESA
+// ==========================================
 function AdminEmpresa({ empresa, setEmpresa }) {
   const { session } = useAuth();
-  const [form, setForm] = useState(empresa);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [form, setForm] = useState(empresa);
+
+  const handleImageUpload = async (file, fieldName) => {
+    if (!file) return;
+    setUploading(true);
+
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const fileName = `${session.user.id}/${fieldName}_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('empresas-assets')
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) {
+      alert('Error subiendo imagen: ' + uploadError.message);
+      setUploading(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
+    setForm({ ...form, [fieldName]: data.publicUrl });
+    setUploading(false);
+  };
 
   const handleSave = async () => {
     setSaving(true);
-    await supabase.from('empresas').update(form).eq('id', session.user.id);
-    setEmpresa({ ...empresa, ...form });
-    alert('Guardado');
+    const datos = {
+      nombre: form.nombre,
+      slogan: form.slogan,
+      telefono: form.telefono,
+      direccion: form.direccion,
+      email_contacto: form.email || form.email_contacto,
+      logo_url: form.logoUrl || form.logo_url,
+      favicon_url: form.faviconUrl || form.favicon_url,
+      porcentaje_iva: Number(form.porcentajeIva || form.porcentaje_iva) || 19
+    };
+    const { error } = await supabase.from('empresas').update(datos).eq('id', session.user.id);
+    if (error) alert('Error: ' + error.message);
+    else {
+      setEmpresa({ ...empresa, ...form });
+      alert('¡Guardado!');
+    }
     setSaving(false);
   };
 
-  const handleImage = async (file, field) => {
-    const name = `${session.user.id}/${field}_${Date.now()}`;
-    await supabase.storage.from('empresas-assets').upload(name, file);
-    const { data } = supabase.storage.from('empresas-assets').getPublicUrl(name);
-    setForm({ ...form, [field]: data.publicUrl });
-  };
-
   return (
-    <div className={`${PANEL_STYLE} p-8 max-w-2xl`}>
-      <h3 className="font-black mb-6 text-white uppercase border-b border-[#3f3f46] pb-2">Empresa</h3>
-      <div className="grid grid-cols-2 gap-6 mb-6">
+    <div className={`${PANEL_STYLE} p-6 rounded-sm max-w-2xl`}>
+      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
+        <Building2 size={20} className="text-amber-500" /> Datos de la Empresa
+      </h3>
+
+      {/* Imágenes */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label className={LABEL_STYLE}>Logo</label>
-          <div className="bg-[#18181b] border border-[#3f3f46] p-4 text-center">
-            {form.logoUrl ? <img src={form.logoUrl} className="h-12 mx-auto mb-2" /> : <div className="text-zinc-600 text-xs mb-2">VACÍO</div>}
-            <input type="file" onChange={e => handleImage(e.target.files[0], 'logoUrl')} className="text-xs text-zinc-500" />
+          <div className="bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-center">
+            {(form.logoUrl || form.logo_url) ? (
+              <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-16 mx-auto object-contain mb-2" />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-zinc-600 mb-2 italic text-xs">Sin logo</div>
+            )}
+            <label className="cursor-pointer bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 text-xs font-bold px-4 py-2 rounded-sm inline-flex items-center gap-2 border border-zinc-700 transition-colors uppercase">
+              <Upload size={14} /> {uploading ? '...' : 'Subir Logo'}
+              <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
+            </label>
           </div>
         </div>
         <div>
-          <label className={LABEL_STYLE}>Favicon</label>
-          <div className="bg-[#18181b] border border-[#3f3f46] p-4 text-center">
-            {form.faviconUrl ? <img src={form.faviconUrl} className="h-12 mx-auto mb-2" /> : <div className="text-zinc-600 text-xs mb-2">VACÍO</div>}
-            <input type="file" onChange={e => handleImage(e.target.files[0], 'faviconUrl')} className="text-xs text-zinc-500" />
+          <label className={LABEL_STYLE}>Favicon (Ícono)</label>
+          <div className="bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-center">
+            {(form.faviconUrl || form.favicon_url) ? (
+              <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-16 mx-auto object-contain mb-2" />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-zinc-600 mb-2 italic text-xs">Sin ícono</div>
+            )}
+            <label className="cursor-pointer bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 text-xs font-bold px-4 py-2 rounded-sm inline-flex items-center gap-2 border border-zinc-700 transition-colors uppercase">
+              <Upload size={14} /> {uploading ? '...' : 'Subir Ícono'}
+              <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
+            </label>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-6">
-        <div className="col-span-2"><label className={LABEL_STYLE}>Nombre</label><input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} /></div>
-        <div className="col-span-2"><label className={LABEL_STYLE}>Slogan</label><input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className={INPUT_STYLE} /></div>
-        <div><label className={LABEL_STYLE}>Teléfono</label><input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className={INPUT_STYLE} /></div>
-        <div><label className={LABEL_STYLE}>Email</label><input value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_STYLE} /></div>
-        <div className="col-span-2"><label className={LABEL_STYLE}>Dirección</label><input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className={INPUT_STYLE} /></div>
-        <div><label className={LABEL_STYLE}>IVA %</label><input type="number" value={form.porcentajeIva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className={INPUT_STYLE} /></div>
+
+      {/* Datos */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className={LABEL_STYLE}>Nombre</label>
+          <input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} />
+        </div>
+        <div>
+          <label className={LABEL_STYLE}>Slogan</label>
+          <input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className={INPUT_STYLE} />
+        </div>
+        <div>
+          <label className={LABEL_STYLE}>Teléfono</label>
+          <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className={INPUT_STYLE} />
+        </div>
+        <div>
+          <label className={LABEL_STYLE}>Email</label>
+          <input value={form.email || form.email_contacto || ''} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_STYLE} />
+        </div>
+        <div className="col-span-2">
+          <label className={LABEL_STYLE}>Dirección</label>
+          <input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className={INPUT_STYLE} />
+        </div>
+        <div>
+          <label className={LABEL_STYLE}>IVA (%)</label>
+          <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className={INPUT_STYLE} />
+        </div>
       </div>
-      <div className="mt-6"><button onClick={handleSave} disabled={saving} className={BUTTON_PRIMARY}>{saving ? '...' : 'GUARDAR'}</button></div>
+      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 text-zinc-900 font-black px-6 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/10">
+        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
+      </button>
     </div>
   );
 }
 
+// ==========================================
+// ADMIN - SEGURIDAD
+// ==========================================
 function AdminSeguridad() {
   const { session } = useAuth();
-  const [pass, setPass] = useState({ current: '', new: '', confirm: '' });
+  const [currentPass, setCurrentPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const changePass = async () => {
-    if (pass.new !== pass.confirm) return alert('No coinciden');
-    const { error } = await supabase.auth.signInWithPassword({ email: session.user.email, password: pass.current });
-    if (error) return alert('Pass actual incorrecta');
-    await supabase.auth.updateUser({ password: pass.new });
-    alert('Actualizado');
-    setPass({ current: '', new: '', confirm: '' });
+  const handleChangePassword = async () => {
+    // Validaciones
+    if (!currentPass) { alert('Ingresa tu contraseña actual'); return; }
+    if (!newPass || newPass.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
+    if (newPass !== confirmPass) { alert('Las contraseñas no coinciden'); return; }
+
+    setLoading(true);
+
+    // Paso 1: Verificar contraseña actual
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: session.user.email,
+      password: currentPass
+    });
+
+    if (verifyError) {
+      alert('❌ Contraseña actual incorrecta');
+      setLoading(false);
+      return;
+    }
+
+    // Paso 2: Actualizar contraseña
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPass });
+
+    if (updateError) {
+      alert('Error al actualizar: ' + updateError.message);
+    } else {
+      alert('✅ ¡Contraseña actualizada correctamente!');
+      setCurrentPass(''); setNewPass(''); setConfirmPass('');
+    }
+    setLoading(false);
   };
 
   return (
-    <div className={`${PANEL_STYLE} p-8 max-w-md`}>
-      <h3 className="font-black mb-6 text-white uppercase border-b border-[#3f3f46] pb-2">Seguridad</h3>
+    <div className={`${PANEL_STYLE} p-6 rounded-sm max-w-md`}>
+      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
+        <Lock size={20} className="text-amber-500" /> Cambiar Contraseña
+      </h3>
+
       <div className="space-y-4">
-        <div><label className={LABEL_STYLE}>Actual</label><input type="password" value={pass.current} onChange={e => setPass({ ...pass, current: e.target.value })} className={INPUT_STYLE} /></div>
-        <div><label className={LABEL_STYLE}>Nueva</label><input type="password" value={pass.new} onChange={e => setPass({ ...pass, new: e.target.value })} className={INPUT_STYLE} /></div>
-        <div><label className={LABEL_STYLE}>Confirmar</label><input type="password" value={pass.confirm} onChange={e => setPass({ ...pass, confirm: e.target.value })} className={INPUT_STYLE} /></div>
-        <button onClick={changePass} className={BUTTON_PRIMARY}>CAMBIAR</button>
+        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-sm mb-4">
+          <p className="text-amber-500 text-sm font-bold flex items-center gap-2"><Lock size={14} /> SEGURIDAD</p>
+          <p className="text-zinc-400 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
+        </div>
+
+        <div>
+          <label className={LABEL_STYLE}>Contraseña Actual</label>
+          <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className={INPUT_STYLE} placeholder="Tu contraseña actual" />
+        </div>
+
+        <div className="border-t border-zinc-800 pt-4">
+          <label className={LABEL_STYLE}>Nueva Contraseña</label>
+          <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className={INPUT_STYLE} placeholder="Mínimo 6 caracteres" />
+        </div>
+
+        <div>
+          <label className={LABEL_STYLE}>Confirmar Nueva Contraseña</label>
+          <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className={INPUT_STYLE} placeholder="Repite la nueva contraseña" />
+        </div>
+
+        <button onClick={handleChangePassword} disabled={loading} className={BUTTON_PRIMARY}>
+          {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
+        </button>
       </div>
     </div>
   );
 }
 
+
+
 // ==========================================
-// VISTA CLIENTE
+// VISTA CLIENTE (PÚBLICA) - CON MATERIAL OPCIONAL
 // ==========================================
-function VistaCliente({ materials, empresa, config }) {
-  const [selectedMat, setSelectedMat] = useState(materials[0]?.id || '');
+function VistaCliente({ materials: materiales, empresa, config }) {
+  const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
-  const [areaCm2, setAreaCm2] = useState(0);
-  const [disparos, setDisparos] = useState(0);
-  const [fileName, setFileName] = useState(null);
-  const [fileBlob, setFileBlob] = useState(null);
+  const [areaCm2, setAreaCm2] = useState(0); // NUEVO: Área del bounding box
+  const [cantidadDisparos, setCantidadDisparos] = useState(0);
+  const [nombreArchivo, setNombreArchivo] = useState(null);
+  const [archivoBlob, setArchivoBlob] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [qty, setQty] = useState(1);
-  const [incMat, setIncMat] = useState(false);
-  const [client, setClient] = useState({ tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: '' });
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [enviandoCorreo, setEnviandoCorreo] = useState(false);
+  const [cantidad, setCantidad] = useState(1);
+  const [incluyeMaterial, setIncluyeMaterial] = useState(false); // NUEVO: Toggle material
+
+  // Estado del Cliente
+  const [datosCliente, setDatosCliente] = useState({
+    tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
+  });
+
+  // --- PERSISTENCIA ---
+  useEffect(() => {
+    const guardado = localStorage.getItem('maikitto_datos');
+    if (guardado) { try { setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
+  }, []);
 
   useEffect(() => {
-    if (materials.length > 0 && !selectedMat) setSelectedMat(materials[0].id);
-  }, [materials]);
+    localStorage.setItem('maikitto_datos', JSON.stringify(datosCliente));
+  }, [datosCliente]);
 
-  const mat = materials.find(m => m.id === Number(selectedMat)) || {};
-  const activeMat = { ...mat, precioMetro: mat.precioMetro || 0, precioDisparo: mat.precioDisparo || 0, precioMaterial: mat.precioMaterial || 0 };
+  useEffect(() => {
+    if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id);
+  }, [materiales]);
 
-  const calcBBox = (entities) => {
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    const upd = (x, y) => { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; };
-    entities.forEach(e => {
-      if (e.type === 'LINE') e.vertices.forEach(v => upd(v.x, v.y));
-      else if (e.type === 'LWPOLYLINE') e.vertices.forEach(v => upd(v.x, v.y));
-      else if (e.type === 'CIRCLE') { upd(e.center.x - e.radius, e.center.y - e.radius); upd(e.center.x + e.radius, e.center.y + e.radius); }
-    });
-    return ((maxX - minX) / 10) * ((maxY - minY) / 10);
+  const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
+  const materialActivo = {
+    ...rawMaterial,
+    precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0,
+    precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0,
+    precioMaterial: rawMaterial.precioMaterial || rawMaterial.precio_material || 0,
+    unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
   };
 
-  const processDXF = (text) => {
-    try {
-      const dxf = new DxfParser().parseSync(text);
-      if (!dxf.entities.length) throw new Error("Vacio");
-      let len = 0, count = 0;
-      const dist = (p1, p2) => Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-      dxf.entities.forEach(e => {
-        if (e.type === 'LINE') { len += dist(e.vertices[0], e.vertices[1]); count++; }
-        else if (e.type === 'LWPOLYLINE') {
-          for (let i = 0; i < e.vertices.length - 1; i++) len += dist(e.vertices[i], e.vertices[i + 1]);
-          if (e.closed) len += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
-          count++;
-        } else if (e.type === 'CIRCLE') { len += 2 * Math.PI * e.radius; count++; }
-      });
-      setPerimetro(len / 1000); setDisparos(count); setAreaCm2(calcBBox(dxf.entities)); setError(''); setProcesando(false);
-    } catch (e) { setError('DXF Inválido'); setProcesando(false); }
-  };
+  // --- FUNCIÓN PARA CALCULAR BOUNDING BOX ---
+  const calcularBoundingBox = (entities) => {
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
 
-  const processSVG = (text) => {
-    try {
-      const doc = new DOMParser().parseFromString(text, "image/svg+xml");
-      let len = 0, count = 0;
-      doc.querySelectorAll('path, rect, circle, line, polyline, polygon').forEach(el => {
-        if (el.getTotalLength) { len += el.getTotalLength(); count++; }
-      });
-      // Approx bbox for SVG not implemented fully here for brevity, simple scale assumption
-      setPerimetro(len / 1000 * 0.264); setDisparos(count); setAreaCm2(0); setError(''); setProcesando(false);
-    } catch (e) { setError('SVG Inválido'); setProcesando(false); }
-  };
-
-  const handleFile = (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    setFileBlob(f); setFileName(f.name); setProcesando(true);
-    const r = new FileReader();
-    r.onload = (ev) => {
-      if (f.name.endsWith('dxf')) processDXF(ev.target.result);
-      else if (f.name.endsWith('svg')) processSVG(ev.target.result);
+    const actualizarLimites = (x, y) => {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
     };
-    r.readAsText(f);
+
+    entities.forEach(e => {
+      if (e.type === 'LINE') {
+        e.vertices.forEach(v => actualizarLimites(v.x, v.y));
+      } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 0) {
+        e.vertices.forEach(v => actualizarLimites(v.x, v.y));
+      } else if (e.type === 'CIRCLE') {
+        actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
+        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
+      } else if (e.type === 'ARC') {
+        // Aproximación simple para arcos
+        actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
+        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
+      }
+    });
+
+    // Retornar área en cm² (asumiendo que las unidades del DXF son mm)
+    const anchoMm = maxX - minX;
+    const altoMm = maxY - minY;
+    const areaCm2 = (anchoMm / 10) * (altoMm / 10); // mm² a cm²
+
+    return areaCm2;
   };
 
-  const costCut = (perimetro * activeMat.precioMetro) + (disparos * activeMat.precioDisparo);
-  const costMat = incMat ? (activeMat.unidadCobro === 'cm2' ? areaCm2 * activeMat.precioMaterial : activeMat.precioMaterial) : 0;
-  const total = (costCut + costMat) * qty;
-  const iva = total * (config.porcentajeIva / 100);
+  // --- LÓGICA DE CÁLCULO DXF ---
+  const procesarDXF = (textoDXF) => {
+    try {
+      const parser = new DxfParser();
+      const dxf = parser.parseSync(textoDXF);
+      let longitudTotal = 0, conteoFiguras = 0;
 
-  const sendOrder = async () => {
-    if (!client.email || !client.nombre) return alert('Datos faltantes');
-    setSending(true);
+      if (!dxf.entities || dxf.entities.length === 0) throw new Error("Archivo vacío.");
 
-    let url = "";
-    if (fileBlob) {
-      const path = `${empresa.id}/${Date.now()}_${fileName}`;
-      await supabase.storage.from('archivos-clientes').upload(path, fileBlob);
-      const { data } = supabase.storage.from('archivos-clientes').getPublicUrl(path);
-      url = data.publicUrl;
+      const dist = (p1, p2) => Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+
+      dxf.entities.forEach(e => {
+        let valid = false;
+        if (e.type === 'LINE') {
+          longitudTotal += dist(e.vertices[0], e.vertices[1]);
+          valid = true;
+        } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 1) {
+          for (let i = 0; i < e.vertices.length - 1; i++) {
+            longitudTotal += dist(e.vertices[i], e.vertices[i + 1]);
+          }
+          if (e.closed) longitudTotal += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
+          valid = true;
+        } else if (e.type === 'CIRCLE') {
+          longitudTotal += 2 * Math.PI * e.radius;
+          valid = true;
+        } else if (e.type === 'ARC') {
+          longitudTotal += e.radius * Math.abs(e.endAngle - e.startAngle);
+          valid = true;
+        }
+        if (valid) conteoFiguras++;
+      });
+
+      // Calcular área del bounding box
+      const area = calcularBoundingBox(dxf.entities);
+
+      finalizarCalculo(longitudTotal / 1000, conteoFiguras, area);
+    } catch (err) {
+      reportarError('DXF inválido: ' + err.message);
+    }
+  };
+
+  // --- LÓGICA DE CÁLCULO SVG ---
+  const procesarSVG = (textoSVG) => {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(textoSVG, "image/svg+xml");
+
+      if (doc.querySelector('parsererror')) throw new Error("XML Inválido");
+
+      let longitudTotal = 0, conteoFiguras = 0;
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+
+      const actualizarLimites = (x, y) => {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      };
+
+      ['path', 'rect', 'circle', 'line', 'polyline', 'polygon'].forEach(sel => {
+        doc.querySelectorAll(sel).forEach(el => {
+          let len = 0;
+
+          if (el.tagName === 'circle') {
+            const r = parseFloat(el.getAttribute('r'));
+            const cx = parseFloat(el.getAttribute('cx'));
+            const cy = parseFloat(el.getAttribute('cy'));
+            len = 2 * Math.PI * r;
+            actualizarLimites(cx - r, cy - r);
+            actualizarLimites(cx + r, cy + r);
+          } else if (el.tagName === 'rect') {
+            const w = parseFloat(el.getAttribute('width'));
+            const h = parseFloat(el.getAttribute('height'));
+            const x = parseFloat(el.getAttribute('x') || 0);
+            const y = parseFloat(el.getAttribute('y') || 0);
+            len = 2 * w + 2 * h;
+            actualizarLimites(x, y);
+            actualizarLimites(x + w, y + h);
+          } else if (el.tagName === 'line') {
+            const x1 = parseFloat(el.getAttribute('x1'));
+            const y1 = parseFloat(el.getAttribute('y1'));
+            const x2 = parseFloat(el.getAttribute('x2'));
+            const y2 = parseFloat(el.getAttribute('y2'));
+            len = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            actualizarLimites(x1, y1);
+            actualizarLimites(x2, y2);
+          }
+
+          if (len === 0 && typeof el.getTotalLength === 'function') {
+            try {
+              len = el.getTotalLength();
+              // Para path, obtener bbox
+              if (el.tagName === 'path') {
+                const bbox = el.getBBox();
+                actualizarLimites(bbox.x, bbox.y);
+                actualizarLimites(bbox.x + bbox.width, bbox.y + bbox.height);
+              }
+            } catch (e) { }
+          }
+
+          if (len > 0) {
+            longitudTotal += len;
+            conteoFiguras++;
+          }
+        });
+      });
+
+      // Calcular área en cm² (asumiendo unidades en px, 1px ≈ 0.264583 mm)
+      const anchoMm = (maxX - minX) * 0.264583;
+      const altoMm = (maxY - minY) * 0.264583;
+      const areaCm2 = (anchoMm / 10) * (altoMm / 10);
+
+      finalizarCalculo(longitudTotal / 1000, conteoFiguras, areaCm2);
+    } catch (err) {
+      reportarError('SVG inválido: ' + err.message);
+    }
+  };
+
+  const finalizarCalculo = (mts, disparos, area) => {
+    setPerimetro(mts);
+    setCantidadDisparos(disparos);
+    setAreaCm2(area);
+    setError('');
+    setProcesando(false);
+  };
+
+  const reportarError = (msg) => {
+    setError(msg);
+    setPerimetro(0);
+    setCantidadDisparos(0);
+    setAreaCm2(0);
+    setProcesando(false);
+  };
+
+  const manejarArchivo = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setArchivoBlob(file);
+    setNombreArchivo(file.name);
+    setProcesando(true);
+    setError('');
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
+
+    reader.onload = (ev) => {
+      if (ext === 'dxf') procesarDXF(ev.target.result);
+      else if (ext === 'svg') procesarSVG(ev.target.result);
+      else reportarError("Formato no soportado.");
+    };
+
+    reader.readAsText(file);
+  };
+
+  // --- CÁLCULOS DE PRECIO ---
+  const costoMetroUnitario = perimetro * materialActivo.precioMetro;
+  const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
+  const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
+
+  // Calcular costo de material según unidad
+  let costoMaterialUnitario = 0;
+  if (incluyeMaterial && materialActivo.precioMaterial > 0) {
+    if (materialActivo.unidadCobro === 'cm2') {
+      costoMaterialUnitario = areaCm2 * materialActivo.precioMaterial;
+    } else if (materialActivo.unidadCobro === 'm2') {
+      costoMaterialUnitario = (areaCm2 / 10000) * materialActivo.precioMaterial;
+    } else if (materialActivo.unidadCobro === 'unidad') {
+      costoMaterialUnitario = materialActivo.precioMaterial;
+    }
+  }
+
+  const costoUnitarioTotal = costoCorteUnitario + costoMaterialUnitario;
+  const costoTotal = costoUnitarioTotal * cantidad;
+
+  const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
+
+  const procesarAccionModal = async () => {
+    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
+      alert("Por favor completa los campos obligatorios.");
+      return;
     }
 
-    await supabase.from('pedidos').insert({
-      empresa_id: empresa.id,
-      cliente_nombre: client.nombre,
-      cliente_email: client.email,
-      cliente_telefono: client.telefono,
-      cliente_documento: client.documento,
-      cliente_direccion: client.direccion,
-      archivo_nombre: fileName,
-      archivo_url: url,
-      material_nombre: `${activeMat.nombre} ${activeMat.calibre}`,
-      cantidad: qty,
-      valor_total: total + iva,
-      tipo: 'corte',
-      perimetro_metros: perimetro * qty,
-      num_perforaciones: disparos * qty,
-      incluye_material: incMat
-    });
+    setEnviandoCorreo(true);
 
-    const msg = `*NUEVO PEDIDO DE CORTE*
-Empresa: ${empresa.nombre}
-Cliente: ${client.nombre}
-Archivo: ${fileName} (${url})
-Material: ${activeMat.nombre}
-Cantidad: ${qty}
-Total: $${Math.round(total + iva).toLocaleString()}`;
+    const aplicaIvaReal = config.porcentajeIva > 0;
+    const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
+    const totalFinalReal = costoTotal + valorIvaReal;
+    const tel = empresa.telefono?.replace(/\D/g, '') || '';
+    let urlArchivoPublica = "";
 
-    window.open(`https://wa.me/57${empresa.telefono}?text=${encodeURIComponent(msg)}`, '_blank');
-    setSending(false);
-    setModalOpen(false);
+    try {
+      // 1. SUBIR ARCHIVO
+      if (archivoBlob) {
+        const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
+        const { error: uploadError } = await supabase.storage
+          .from('archivos-clientes')
+          .upload(rutaArchivo, archivoBlob);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('archivos-clientes')
+          .getPublicUrl(rutaArchivo);
+
+        urlArchivoPublica = urlData.publicUrl;
+      }
+
+      // 2. GUARDAR EN BD (con nuevos campos)
+      const { error: dbError } = await supabase.from('pedidos').insert({
+        empresa_id: empresa.id,
+        cliente_nombre: datosCliente.nombre,
+        cliente_email: datosCliente.email,
+        cliente_telefono: datosCliente.telefono,
+        cliente_documento: datosCliente.documento,
+        cliente_direccion: datosCliente.direccion,
+        archivo_nombre: nombreArchivo,
+        archivo_url: urlArchivoPublica,
+        material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+        cantidad: cantidad,
+        valor_total: totalFinalReal,
+        tipo: 'corte',
+        estado: 'pendiente',
+        // NUEVOS CAMPOS
+        perimetro_metros: perimetro * cantidad,
+        area_cm2: areaCm2 * cantidad,
+        num_perforaciones: cantidadDisparos * cantidad,
+        costo_corte: costoCorteUnitario * cantidad,
+        incluye_material: incluyeMaterial,
+        costo_material: costoMaterialUnitario * cantidad
+      });
+
+      if (dbError) throw dbError;
+
+      // 3. ENVIAR EMAIL
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: empresa.email || empresa.email_contacto,
+          subject: `Nueva Orden: ${datosCliente.nombre}`,
+          clienteNombre: datosCliente.nombre,
+          clienteDocumento: datosCliente.documento,
+          clienteTelefono: datosCliente.telefono,
+          clienteEmail: datosCliente.email,
+          clienteDireccion: datosCliente.direccion,
+          archivo: nombreArchivo,
+          archivoUrl: urlArchivoPublica,
+          material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+          cantidad: cantidad,
+          // Desglose detallado
+          perimetro: (perimetro * cantidad).toFixed(2),
+          perforaciones: cantidadDisparos * cantidad,
+          costoCorte: formatoPesos(costoCorteUnitario * cantidad),
+          incluyeMaterial: incluyeMaterial,
+          areaCm2: incluyeMaterial ? (areaCm2 * cantidad).toFixed(2) : 0,
+          costoMaterial: incluyeMaterial ? formatoPesos(costoMaterialUnitario * cantidad) : 0,
+          subtotal: formatoPesos(costoTotal),
+          iva: formatoPesos(valorIvaReal),
+          total: formatoPesos(totalFinalReal),
+          tieneIva: aplicaIvaReal,
+          empresaNombre: empresa.nombre
+        })
+      });
+
+    } catch (err) {
+      console.error('Error completo:', err);
+      alert('Error guardando pedido: ' + (err.message || err.error_description || err));
+      setEnviandoCorreo(false);
+      return;
+    }
+
+    // 4. WHATSAPP con desglose completo
+    let infoCliente = "";
+    if (datosCliente.tipo === 'natural') {
+      infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
+    } else {
+      infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
+    }
+
+    let desgloseMaterial = "";
+    if (incluyeMaterial) {
+      desgloseMaterial = `
+📦 *MATERIAL INCLUIDO:*
+   Área: ${(areaCm2 * cantidad).toFixed(2)} cm²
+   Costo: ${formatoPesos(costoMaterialUnitario * cantidad)}`;
+    }
+
+    const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
+
+━━━━━━━━━━━━━━━━━━━━━━━
+📋 *RESUMEN DEL PEDIDO*
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 *Archivo:* ${nombreArchivo}
+${urlArchivoPublica ? `🔗 ${urlArchivoPublica}` : ''}
+
+🔧 *Material:* ${materialActivo.nombre}
+📏 *Calibre:* ${materialActivo.calibre}
+🔢 *Cantidad:* ${cantidad} Unidades
+
+✂️ *SERVICIO DE CORTE:*
+   Perímetro: ${(perimetro * cantidad).toFixed(2)}m
+   Perforaciones: ${cantidadDisparos * cantidad}
+   Costo: ${formatoPesos(costoCorteUnitario * cantidad)}
+${desgloseMaterial}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+👤 *DATOS DEL CLIENTE*
+━━━━━━━━━━━━━━━━━━━━━━━
+${infoCliente}
+📞 *TEL:* ${datosCliente.telefono}
+📧 *EMAIL:* ${datosCliente.email}
+📍 *DIR:* ${datosCliente.direccion}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+💰 *RESUMEN ECONÓMICO*
+━━━━━━━━━━━━━━━━━━━━━━━
+Subtotal: ${formatoPesos(costoTotal)}
+${aplicaIvaReal ? `IVA (${config.porcentajeIva}%): ${formatoPesos(valorIvaReal)}` : ''}
+*TOTAL: ${formatoPesos(totalFinalReal)}*
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Quedo atento a las instrucciones. ⚡`;
+
+    window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    setEnviandoCorreo(false);
+    setMostrarModal(false);
   };
 
+  // Verificar si el material tiene precio configurado
+  const materialTienePrecio = materialActivo.precioMaterial > 0;
+
   return (
-    <div className={`flex flex-col md:flex-row h-screen ${APP_BG} overflow-hidden font-sans`}>
-      {/* Panel Izquierdo */}
-      <div className={`w-full md:w-[480px] bg-[#18181b] flex flex-col border-r border-[#3f3f46] z-20 shadow-2xl relative ${TEXTURE_DOTS}`}>
-        <div className="p-6 border-b border-[#3f3f46] bg-[#18181b]">
+    <div className="flex flex-col md:flex-row h-screen bg-zinc-900 text-white">
+      {/* Panel Izquierdo - CONTROLES */}
+      <div className={`w-full md:w-[420px] bg-zinc-900 flex flex-col border-r border-zinc-950 ${TEXTURE_DOTS}`}>
+        <div className={`p-6 border-b border-zinc-950 bg-zinc-900 shadow-xl z-10`}>
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-[#FFA000] rounded-none flex items-center justify-center text-[#18181b]">
-              {empresa.logoUrl ? <img src={empresa.logoUrl} className="w-full h-full object-cover" /> : <Building2 size={24} strokeWidth={2.5} />}
+            {(empresa.faviconUrl || empresa.favicon_url) ? (
+              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-sm object-cover border border-zinc-700" />
+            ) : (
+              <div className="w-12 h-12 bg-amber-500 rounded-sm flex items-center justify-center font-black text-zinc-900 shadow-lg shadow-amber-500/20">
+                {empresa.nombre?.substring(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1">
+              {(empresa.logoUrl || empresa.logo_url) ? (
+                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
+              ) : (
+                <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
+              )}
+              <span className="text-amber-500 text-xs font-bold uppercase tracking-widest">{empresa.slogan}</span>
             </div>
-            <div>
-              <h1 className="font-black text-2xl uppercase tracking-tighter text-white leading-none">{empresa.nombre}</h1>
-              <span className="text-[#FFA000] text-xs font-black uppercase tracking-[0.2em]">{empresa.slogan}</span>
-            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1 font-mono">
+            <div className="flex items-center gap-2"><Phone size={12} className="text-amber-500" /> {empresa.telefono}</div>
+            <div className="flex items-center gap-2"><MapPin size={12} className="text-amber-500" /> {empresa.direccion}</div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          <div className="space-y-2">
-            <label className={LABEL_STYLE}>1. SELECCIÓN DE MATERIAL</label>
-            <select value={selectedMat} onChange={e => setSelectedMat(e.target.value)} className={`${INPUT_STYLE} border-[#3f3f46]`}>
-              {materials.map(m => <option key={m.id} value={m.id}>{m.nombre} - {m.calibre}</option>)}
+        <div className="p-6 flex-1 flex flex-col overflow-y-auto">
+          <div className="mb-6">
+            <label className={LABEL_STYLE}>Material y Calibre</label>
+            <select
+              value={materialSeleccionado}
+              onChange={e => setMaterialSeleccionado(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-zinc-100 font-bold outline-none focus:border-amber-500 transition-colors"
+            >
+              {materiales.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} - {m.calibre}
+                </option>
+              ))}
             </select>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <div className="bg-[#18181b] border border-[#3f3f46] p-2 flex flex-col items-center">
-                <span className="text-[10px] uppercase font-bold text-zinc-500">Metro</span>
-                <span className="text-[#FFA000] font-mono font-bold">${activeMat.precioMetro}</span>
-              </div>
-              <div className="bg-[#18181b] border border-[#3f3f46] p-2 flex flex-col items-center">
-                <span className="text-[10px] uppercase font-bold text-zinc-500">Perf</span>
-                <span className="text-[#FFA000] font-mono font-bold">${activeMat.precioDisparo}</span>
-              </div>
+          </div>
+
+          <div className="space-y-3 mb-6">
+            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
+              <span className="uppercase tracking-wide">Metro Lineal</span>
+              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioMetro)}</span>
+            </div>
+            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
+              <span className="uppercase tracking-wide">Perforación</span>
+              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioDisparo)}</span>
             </div>
           </div>
 
-          {activeMat.precioMaterial > 0 && (
-            <div className={`border-l-4 border-[#FFA000] bg-[#27272a] p-4 ${TEXTURE_STRIPES}`}>
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="font-black text-white uppercase text-sm">Incluir Material <span className="block text-xs text-[#FFA000] font-mono">+${activeMat.precioMaterial}</span></span>
-                <input type="checkbox" checked={incMat} onChange={e => setIncMat(e.target.checked)} className="w-6 h-6 accent-[#FFA000]" />
+          {/* Toggle para incluir material */}
+          {materialTienePrecio && (
+            <div className={`mb-6 bg-amber-500/5 border border-amber-500/10 rounded-sm p-4 ${TEXTURE_STRIPES}`}>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={incluyeMaterial}
+                  onChange={e => setIncluyeMaterial(e.target.checked)}
+                  className="w-5 h-5 bg-zinc-950 border-2 border-zinc-600 rounded-sm checked:bg-amber-500 checked:border-amber-500 cursor-pointer appearance-none transition-all relative checked:after:content-['✓'] checked:after:text-zinc-900 checked:after:absolute checked:after:left-[2px] checked:after:text-sm checked:after:font-bold"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">
+                    <Package size={16} className="text-amber-500" />
+                    Incluir Material
+                  </div>
+                  <div className="text-xs text-amber-500/80 mt-1 font-mono pl-6">
+                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
+                  </div>
+                </div>
               </label>
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className={LABEL_STYLE}>2. SUBIR PLANO</label>
-            <label className={`h-48 w-full flex flex-col items-center justify-center border-2 border-dashed border-[#3f3f46] hover:border-[#FFA000] hover:bg-[#27272a] cursor-pointer transition-all ${procesando ? 'opacity-50' : ''}`}>
-              <input type="file" className="hidden" accept=".dxf,.svg" onChange={handleFile} disabled={procesando} />
-              {procesando ? <Loader2 className="animate-spin text-[#FFA000]" size={40} /> : (
-                <div className="text-center">
-                  <Upload className="mx-auto text-zinc-500 mb-2" size={32} />
-                  <span className="text-xs font-black text-white uppercase">DXF / SVG</span>
+          <label className="group relative border-2 border-dashed border-zinc-700 rounded-sm flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-zinc-800/50 transition-all">
+            <input
+              type="file"
+              className="hidden"
+              accept=".dxf,.svg"
+              onChange={manejarArchivo}
+            />
+            {procesando ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="animate-spin text-amber-500 mb-2" size={32} />
+                <span className="text-amber-500 font-black text-sm uppercase tracking-widest">Calculando...</span>
+              </div>
+            ) : (
+              <>
+                <Upload className="text-zinc-500 group-hover:text-amber-500 transition-colors mb-3" size={36} />
+                <h3 className="text-lg font-black uppercase tracking-wider text-zinc-300 group-hover:text-white">Subir Plano</h3>
+                <div className="flex gap-2 mt-2">
+                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.DXF</span>
+                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.SVG</span>
                 </div>
-              )}
-            </label>
-            {error && <div className="text-red-500 text-xs font-bold bg-red-900/20 p-2 border border-red-900">{error}</div>}
-          </div>
+              </>
+            )}
+          </label>
+          {error && (
+            <div className="mt-3 bg-red-900/20 border-l-4 border-red-500 p-3 rounded-sm text-red-400 text-xs text-center font-bold uppercase">
+              {error}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Panel Derecho */}
-      <div className="flex-1 flex flex-col bg-[#18181b] relative justify-center items-center p-8">
-        <div className={`absolute inset-0 opacity-5 ${TEXTURE_STRIPES}`}></div>
-        <div className={`${PANEL_STYLE} w-full max-w-xl`}>
-          <div className="bg-[#27272a] p-4 border-b border-[#3f3f46] flex justify-between">
-            <span className="font-black text-zinc-500 uppercase tracking-widest text-xs">Cotización</span>
-            <div className="w-2 h-2 bg-[#FFA000]"></div>
-          </div>
-          <div className="p-8 text-center">
-            <h2 className="text-7xl font-black text-white tracking-tighter mb-2">${Math.round(total).toLocaleString()}</h2>
-            {qty > 1 && <span className="bg-[#18181b] text-zinc-400 text-xs font-mono px-2 py-1 border border-[#3f3f46]">Unit: ${Math.round((total / qty)).toLocaleString()}</span>}
+      {/* Panel Derecho - RESULTADOS */}
+      <div className={`flex-1 bg-zinc-950 flex flex-col items-center justify-center p-8 relative overflow-hidden`}>
+        {/* Fondo decorativo industrial */}
+        <div className="absolute inset-0 opacity-5 bg-[linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"></div>
 
-            <div className="mt-8 space-y-4 text-left">
-              <div className="flex justify-between border-b border-[#3f3f46] pb-2">
-                <span className="text-zinc-500 text-xs font-bold uppercase">Archivo</span>
-                <span className="text-white font-mono text-xs">{fileName || '---'}</span>
+        <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative`}>
+          {/* Remaches decorativos esquinas */}
+          <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+          <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+          <div className="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+
+          <div className="text-center mb-8 pb-8 border-b border-zinc-800 border-dashed">
+            <h3 className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Total Estimado</h3>
+            <h2 className="text-6xl font-black text-amber-500 drop-shadow-lg tracking-tight">{formatoPesos(costoTotal)}</h2>
+            {cantidad > 1 && (
+              <span className="text-sm text-zinc-500 font-mono mt-2 block">
+                ({formatoPesos(costoUnitarioTotal)} c/u)
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-4 mb-8">
+            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800 flex justify-between items-center">
+              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
+                <FileText size={14} className="text-amber-500" /> Archivo
+              </span>
+              <span className="text-zinc-200 truncate max-w-[180px] font-mono text-sm">
+                {nombreArchivo || '---'}
+              </span>
+            </div>
+
+            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
+              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide block mb-2">
+                Cantidad de Piezas
+              </span>
+              <div className="flex items-center justify-between bg-zinc-900 rounded-sm p-1 border border-zinc-800">
+                <button
+                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
+                  className="w-10 h-10 bg-zinc-800 text-zinc-400 rounded-sm flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-colors"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="text-2xl font-black text-white">{cantidad}</span>
+                <button
+                  onClick={() => setCantidad(c => c + 1)}
+                  className="w-10 h-10 bg-amber-500 text-zinc-900 rounded-sm flex items-center justify-center hover:bg-amber-400 transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
-              <div className="flex justify-between border-b border-[#3f3f46] pb-2">
-                <span className="text-zinc-500 text-xs font-bold uppercase">Piezas</span>
-                <div className="flex items-center gap-4">
-                  <button onClick={() => setQty(q => Math.max(1, q - 1))}><Minus size={14} className="text-zinc-400" /></button>
-                  <span className="font-black text-white">{qty}</span>
-                  <button onClick={() => setQty(q => q + 1)}><Plus size={14} className="text-[#FFA000]" /></button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
+                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Corte Total</span>
+                <div className="text-white font-mono text-lg font-bold mt-1">
+                  {(perimetro * cantidad).toFixed(2)}m
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#18181b] border border-[#3f3f46] p-2">
-                  <span className="text-[10px] text-zinc-500 font-black uppercase">Corte</span>
-                  <span className="block text-xl font-mono text-zinc-200">{(perimetro * qty).toFixed(2)}m</span>
-                </div>
-                <div className="bg-[#18181b] border border-[#3f3f46] p-2">
-                  <span className="text-[10px] text-zinc-500 font-black uppercase">Perf</span>
-                  <span className="block text-xl font-mono text-[#FFA000]">{disparos * qty}</span>
+              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
+                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Perforaciones</span>
+                <div className="text-amber-500 font-mono text-lg font-bold mt-1">
+                  {cantidadDisparos * cantidad}
                 </div>
               </div>
             </div>
-            <button onClick={() => setModalOpen(true)} disabled={!fileName} className={`${BUTTON_PRIMARY} mt-8`}>
-              ORDENAR CORTE
+
+            {/* Mostrar área si incluye material */}
+            {incluyeMaterial && areaCm2 > 0 && (
+              <div className={`bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm ${TEXTURE_STRIPES}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-amber-500 text-xs font-bold uppercase flex items-center gap-2">
+                    <Package size={14} /> Material Incluido
+                  </span>
+                  <span className="text-amber-500 font-bold font-mono">
+                    {formatoPesos(costoMaterialUnitario * cantidad)}
+                  </span>
+                </div>
+                <div className="text-zinc-400 text-xs font-mono pl-6">
+                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => setMostrarModal(true)}
+              disabled={!nombreArchivo}
+              className={BUTTON_PRIMARY}
+            >
+              SOLICITAR CORTE
             </button>
           </div>
         </div>
       </div>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#18181b]/90 flex items-center justify-center p-4">
-          <div className={`${PANEL_STYLE} w-full max-w-2xl`}>
-            <div className="bg-[#27272a] p-4 border-b border-[#3f3f46] flex justify-between">
-              <h3 className="text-white font-black uppercase">Finalizar</h3>
-              <button onClick={() => setModalOpen(false)}><X className="text-zinc-500 hover:text-white" /></button>
+      {/* MODAL DE CONFIRMACIÓN */}
+      {mostrarModal && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
+            <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
+              <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
+                <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
+              </h3>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="text-zinc-500 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
             </div>
-            <div className="p-8 grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h4 className={LABEL_STYLE}>Detalle</h4>
-                <div className="bg-[#18181b] p-4 border border-[#3f3f46] font-mono text-sm space-y-2">
-                  <div className="flex justify-between text-zinc-400"><span>Corte</span><span>${Math.round(costCut * qty).toLocaleString()}</span></div>
-                  {incMat && <div className="flex justify-between text-zinc-400"><span>Material</span><span>${Math.round(costMat * qty).toLocaleString()}</span></div>}
-                  <div className="border-t border-[#3f3f46] pt-2 flex justify-between text-[#FFA000] font-bold"><span>Total + IVA</span><span>${Math.round(total + iva).toLocaleString()}</span></div>
+
+            <div className="p-6 overflow-y-auto max-h-[80vh]">
+              {/* DESGLOSE ECONÓMICO */}
+              <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
+                {/* Etiqueta lateral */}
+                <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
+
+                <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
+                  <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+                </div>
+
+                {incluyeMaterial && (
+                  <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                    <div>
+                      <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+                      </span>
+                    </div>
+                    <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
+                  <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
+                </div>
+
+                {config.porcentajeIva > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
+                    <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
+                    <span className="text-lg font-bold text-zinc-400">
+                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
+                  <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
+                  <span className="text-3xl font-black text-amber-500 tracking-tight">
+                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
+                  </span>
                 </div>
               </div>
-              <div className="space-y-4">
-                <h4 className={LABEL_STYLE}>Datos</h4>
-                <input placeholder="Nombre" value={client.nombre} onChange={e => setClient({ ...client, nombre: e.target.value })} className={INPUT_STYLE} />
-                <input placeholder="Teléfono" value={client.telefono} onChange={e => setClient({ ...client, telefono: e.target.value })} className={INPUT_STYLE} />
-                <input placeholder="Email" value={client.email} onChange={e => setClient({ ...client, email: e.target.value })} className={INPUT_STYLE} />
-                <button onClick={sendOrder} disabled={sending} className={BUTTON_PRIMARY}>
-                  {sending ? <Loader2 className="animate-spin" /> : 'ENVIAR'}
+
+              {/* TABS PERSONA/EMPRESA */}
+              <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
+                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  Persona Natural
+                </button>
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
+                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  Empresa / Jurídica
                 </button>
               </div>
+
+              {/* FORMULARIO CLIENTE */}
+              <div className="space-y-4">
+                <div>
+                  <label className={LABEL_STYLE}>
+                    Correo Electrónico (Obligatorio)
+                  </label>
+                  <input
+                    type="email"
+                    value={datosCliente.email}
+                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
+                    className={INPUT_STYLE}
+                    placeholder="ejemplo@correo.com"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
+                    </label>
+                    <input
+                      value={datosCliente.nombre}
+                      onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
+                    </label>
+                    <input
+                      value={datosCliente.documento}
+                      onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                </div>
+
+                {datosCliente.tipo === 'juridica' && (
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Nombre del Contacto
+                    </label>
+                    <input
+                      value={datosCliente.contacto}
+                      onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
+                      className={INPUT_STYLE}
+                      placeholder="¿Por quién preguntamos?"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Teléfono / WhatsApp
+                    </label>
+                    <input
+                      value={datosCliente.telefono}
+                      onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Dirección de Entrega
+                    </label>
+                    <input
+                      value={datosCliente.direccion}
+                      onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* FOOTER MODAL */}
+            <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={procesarAccionModal}
+                disabled={enviandoCorreo}
+                className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
+              >
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
+                CONFIRMAR PEDIDO
+              </button>
             </div>
           </div>
         </div>
