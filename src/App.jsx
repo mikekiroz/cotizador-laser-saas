@@ -1271,382 +1271,214 @@ Quedo atento a las instrucciones. ⚡`;
   // Verificar si el material tiene precio configurado
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
+  // ==========================================
+  // DISEÑO: AMARILLO INDUSTRIAL / BLANCO / NEGRO
+  // ==========================================
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black text-white">
-      {/* Panel Izquierdo */}
-      <div className="w-full md:w-[420px] bg-slate-800 flex flex-col border-r border-slate-700">
-        <div className="p-6 border-b border-slate-700 bg-slate-900">
+    <div className="flex flex-col md:flex-row h-screen bg-yellow-400 text-slate-900 font-sans">
+
+      {/* 1. PANEL IZQUIERDO: BLANCO (Limpio y claro) */}
+      <div className="w-full md:w-[420px] bg-white flex flex-col border-r border-yellow-600/30 shadow-2xl z-10">
+
+        {/* Cabecera Sidebar */}
+        <div className="p-6 border-b border-slate-200 bg-white">
           <div className="flex items-center gap-4">
-            {(empresa.faviconUrl || empresa.favicon_url) ? (
-              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+            {(empresa.logoUrl) ? (
+              <img src={empresa.logoUrl} alt="" className="h-12 object-contain" />
             ) : (
-              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">
-                {empresa.nombre?.substring(0, 2).toUpperCase()}
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg flex items-center justify-center border-2 border-black font-black text-2xl text-black">
+                {empresa.nombre?.substring(0, 1)}
               </div>
             )}
-            <div className="flex-1">
-              {(empresa.logoUrl || empresa.logo_url) ? (
-                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
-              ) : (
-                <h1 className="font-black text-lg uppercase">{empresa.nombre}</h1>
-              )}
-              <span className="text-yellow-500 text-xs font-bold uppercase">{empresa.slogan}</span>
+            <div>
+              <h1 className="font-black text-xl uppercase tracking-tighter text-black">{empresa.nombre}</h1>
+              <span className="bg-black text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{empresa.slogan || 'Corte Láser'}</span>
             </div>
           </div>
-          <div className="mt-3 text-xs text-slate-500 space-y-1">
-            <div className="flex items-center gap-2"><Phone size={12} /> {empresa.telefono}</div>
-            <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
+          <div className="mt-4 flex flex-col gap-1 text-xs font-bold text-slate-500">
+            <div className="flex items-center gap-2"><Phone size={14} className="text-black" /> {empresa.telefono}</div>
+            <div className="flex items-center gap-2"><MapPin size={14} className="text-black" /> {empresa.direccion}</div>
           </div>
         </div>
 
-        <div className="p-6 flex-1 flex flex-col">
-          <div className="mb-4">
-            <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Material y Calibre</label>
+        {/* Controles del Sidebar */}
+        <div className="p-6 flex-1 flex flex-col gap-6 overflow-y-auto">
+
+          {/* Selector Material */}
+          <div>
+            <label className="text-xs font-black text-black uppercase mb-1 block">Material y Calibre</label>
             <select
               value={materialSeleccionado}
               onChange={e => setMaterialSeleccionado(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 text-white font-bold"
+              className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-3 text-black font-bold focus:border-black outline-none cursor-pointer hover:bg-slate-100"
             >
-              {materiales.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.nombre} - {m.calibre}
-                </option>
-              ))}
+              {materiales.map(m => <option key={m.id} value={m.id}>{m.nombre} - {m.calibre}</option>)}
             </select>
           </div>
 
-          <div className="space-y-2 mb-4">
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
-              <span>METRO LINEAL</span>
-              <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
+          {/* Precios (Cajas grises claras) */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-slate-100 p-3 rounded border border-slate-200">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Corte / Metro</span>
+              <span className="font-mono text-black font-black text-lg">{formatoPesos(materialActivo.precioMetro)}</span>
             </div>
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
-              <span>PERFORACIÓN</span>
-              <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
+            <div className="bg-slate-100 p-3 rounded border border-slate-200">
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Perforación</span>
+              <span className="font-mono text-black font-black text-lg">{formatoPesos(materialActivo.precioDisparo)}</span>
             </div>
           </div>
 
-          {/* NUEVO: Toggle para incluir material */}
+          {/* Toggle Material */}
           {materialTienePrecio && (
-            <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={incluyeMaterial}
-                  onChange={e => setIncluyeMaterial(e.target.checked)}
-                  className="w-5 h-5 bg-slate-900 border-2 border-yellow-500 rounded checked:bg-yellow-500 cursor-pointer"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 font-bold text-white">
-                    <Package size={16} className="text-yellow-400" />
-                    Incluir Material
-                  </div>
-                  <div className="text-xs text-yellow-400 mt-1">
-                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
-                  </div>
-                </div>
-              </label>
-            </div>
+            <label className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${incluyeMaterial ? 'bg-yellow-50 border-black' : 'bg-white border-slate-200 hover:border-slate-400'}`}>
+              <div className={`w-6 h-6 border-2 rounded flex items-center justify-center ${incluyeMaterial ? 'bg-black border-black text-yellow-400' : 'bg-white border-slate-300'}`}>
+                {incluyeMaterial && <Check size={16} strokeWidth={4} />}
+              </div>
+              <input type="checkbox" checked={incluyeMaterial} onChange={e => setIncluyeMaterial(e.target.checked)} className="hidden" />
+              <div className="flex-1">
+                <div className="text-sm font-black text-black uppercase">Incluir Material</div>
+                <div className="text-xs font-bold text-slate-500">{formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}</div>
+              </div>
+            </label>
           )}
 
-          <label className="group relative border-2 border-dashed border-yellow-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
-            <input
-              type="file"
-              className="hidden"
-              accept=".dxf,.svg"
-              onChange={manejarArchivo}
-            />
+          {/* Zona de Carga (Blanca con borde punteado negro) */}
+          <label className={`group relative border-2 border-dashed rounded-xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer transition-all ${procesando ? 'bg-yellow-100 border-yellow-500' : 'bg-slate-50 border-slate-300 hover:border-black hover:bg-white'}`}>
+            <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} />
             {procesando ? (
               <div className="flex flex-col items-center">
-                <Loader2 className="animate-spin text-yellow-400 mb-2" size={32} />
-                <span className="text-yellow-400 font-bold text-sm">PROCESANDO...</span>
+                <Loader2 className="animate-spin text-black mb-2" size={40} />
+                <span className="text-black font-black text-sm uppercase">PROCESANDO...</span>
               </div>
             ) : (
               <>
-                <Upload className="text-yellow-400 mb-3" size={36} />
-                <h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3>
-                <div className="flex gap-2 mt-2">
-                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
-                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
+                <div className="bg-black text-white p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                  <Upload size={24} />
                 </div>
+                <h3 className="text-base font-black uppercase text-black">Cargar Archivo</h3>
+                <span className="text-xs font-bold text-slate-400 mt-1">DXF o SVG</span>
               </>
             )}
           </label>
-          {error && (
-            <div className="mt-3 bg-red-500/10 border border-red-500/20 p-3 rounded text-red-400 text-xs text-center">
-              {error}
-            </div>
-          )}
+
+          {error && <div className="bg-red-100 border-l-4 border-red-600 p-3 text-red-800 text-xs font-bold">{error}</div>}
         </div>
       </div>
 
-      {/* Panel Derecho */}
-      <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center p-8">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
+      {/* 2. PANEL DERECHO: AMARILLO (Industrial) */}
+      <div className="flex-1 bg-yellow-400 flex flex-col items-center justify-center p-6 md:p-12 relative">
+        {/* Decoración de fondo (Patrón sutil) */}
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+        {/* TARJETA DE COTIZACIÓN (Blanca flotante) */}
+        <div className="bg-white border-4 border-black p-8 md:p-10 max-w-xl w-full relative shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] z-10 rounded-xl">
+
           <div className="text-center mb-8">
-            <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2">Total Estimado</h3>
-            <h2 className="text-6xl font-black text-green-400">{formatoPesos(costoTotal)}</h2>
-            {cantidad > 1 && (
-              <span className="text-sm text-slate-500">
-                ({formatoPesos(costoUnitarioTotal)} c/u)
-              </span>
-            )}
+            <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-black">Costo Estimado</h3>
+            <h2 className="text-6xl font-black text-black tracking-tighter">
+              {formatoPesos(costoTotal)}
+            </h2>
+            {cantidad > 1 && <div className="mt-2 inline-block bg-slate-100 px-3 py-1 rounded text-slate-600 text-xs font-bold border border-slate-200">Unitario: {formatoPesos(costoUnitarioTotal)}</div>}
           </div>
 
-          <div className="space-y-4 mb-6">
-            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between">
-              <span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2">
-                <FileText size={14} className="text-yellow-500" /> Archivo
-              </span>
-              <span className="text-white truncate max-w-[180px]">
-                {nombreArchivo || '---'}
-              </span>
+          <div className="space-y-4 mb-8">
+            {/* Archivo */}
+            <div className="flex justify-between items-center p-4 bg-slate-50 border-2 border-slate-100 rounded-lg">
+              <span className="text-slate-500 text-xs font-bold uppercase flex gap-2 items-center"><FileText size={16} className="text-black" /> Archivo</span>
+              <span className="text-black font-bold font-mono text-sm">{nombreArchivo || '---'}</span>
             </div>
 
-            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-              <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
-                Cantidad de Piezas
-              </span>
-              <div className="flex items-center justify-between bg-slate-950 rounded-lg p-1 border border-slate-800">
-                <button
-                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                  className="w-10 h-10 bg-slate-900 text-slate-400 rounded-lg flex items-center justify-center hover:bg-yellow-500 hover:text-slate-900 transition-colors"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="text-2xl font-black text-white">{cantidad}</span>
-                <button
-                  onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-slate-900 text-slate-400 rounded-lg flex items-center justify-center hover:bg-yellow-500 hover:text-slate-900 transition-colors"
-                >
-                  <Plus size={16} />
-                </button>
+            {/* Cantidad */}
+            <div className="flex justify-between items-center p-2 bg-slate-50 border-2 border-slate-100 rounded-lg">
+              <span className="text-slate-500 text-xs font-bold uppercase ml-3">Cantidad</span>
+              <div className="flex items-center gap-1 bg-white border border-slate-200 rounded p-1">
+                <button onClick={() => setCantidad(c => Math.max(1, c - 1))} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-black hover:text-white rounded font-bold transition-colors"><Minus size={14} /></button>
+                <span className="w-10 text-center font-black text-xl text-black">{cantidad}</span>
+                <button onClick={() => setCantidad(c => c + 1)} className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-black hover:text-white rounded font-bold transition-colors"><Plus size={14} /></button>
               </div>
             </div>
 
+            {/* Datos Técnicos */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
-                <div className="text-yellow-400 font-mono text-lg font-bold">
-                  {(perimetro * cantidad).toFixed(2)}m
-                </div>
+              <div className="p-4 bg-slate-50 border-2 border-slate-100 rounded-lg">
+                <span className="text-slate-400 text-[10px] font-black uppercase block">Recorrido</span>
+                <span className="text-black font-mono font-bold text-lg">{(perimetro * cantidad).toFixed(2)} m</span>
               </div>
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
-                <div className="text-yellow-400 font-mono text-lg font-bold">
-                  {cantidadDisparos * cantidad}
-                </div>
+              <div className="p-4 bg-slate-50 border-2 border-slate-100 rounded-lg">
+                <span className="text-slate-400 text-[10px] font-black uppercase block">Perforaciones</span>
+                <span className="text-black font-mono font-bold text-lg">{cantidadDisparos * cantidad}</span>
               </div>
             </div>
-
-            {/* Mostrar área si incluye material */}
-            {incluyeMaterial && areaCm2 > 0 && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-yellow-400 text-xs font-bold uppercase flex items-center gap-2">
-                    <Package size={14} /> Material Incluido
-                  </span>
-                  <span className="text-yellow-400 font-bold">
-                    {formatoPesos(costoMaterialUnitario * cantidad)}
-                  </span>
-                </div>
-                <div className="text-slate-400 text-xs">
-                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
-                </div>
-              </div>
-            )}
           </div>
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => setMostrarModal(true)}
-              disabled={!nombreArchivo}
-              className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all"
-            >
-              SOLICITAR CORTE
-            </button>
-          </div>
+          <button
+            onClick={() => setMostrarModal(true)}
+            disabled={!nombreArchivo}
+            className="w-full bg-black hover:bg-slate-800 disabled:opacity-50 text-yellow-400 font-black py-5 text-lg rounded-lg uppercase tracking-widest transition-all transform active:scale-95"
+          >
+            SOLICITAR CORTE
+          </button>
         </div>
       </div>
 
-      {/* MODAL DE CONFIRMACIÓN */}
+      {/* MODAL (Fondo Blanco, Texto Negro) */}
       {mostrarModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden shadow-2xl">
-            <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
-              <h3 className="text-xl font-bold flex items-center gap-2 text-white">
-                <Zap className="text-yellow-400" /> Confirmar Orden de Corte
-              </h3>
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="text-slate-500 hover:text-white"
-              >
-                <X size={24} />
-              </button>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative overflow-hidden">
+
+            {/* Header Modal */}
+            <div className="bg-yellow-400 p-6 flex justify-between items-center border-b-4 border-black">
+              <h3 className="text-2xl font-black text-black flex items-center gap-2"><Zap size={24} /> CONFIRMAR ORDEN</h3>
+              <button onClick={() => setMostrarModal(false)} className="text-black hover:bg-black/10 p-2 rounded-full"><X size={24} /></button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[80vh]">
-              {/* DESGLOSE ECONÓMICO */}
-              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
-                <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                  <span className="text-slate-400 text-sm">Servicio de Corte</span>
-                  <span className="text-white font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+            <div className="p-8 max-h-[70vh] overflow-y-auto">
+
+              {/* Resumen Precio */}
+              <div className="bg-slate-50 p-6 rounded-xl border-2 border-slate-100 mb-8">
+                <div className="space-y-3 pb-4 border-b-2 border-slate-200">
+                  <div className="flex justify-between text-sm font-bold text-slate-600"><span>Servicio Corte</span><span>{formatoPesos(costoCorteUnitario * cantidad)}</span></div>
+                  {incluyeMaterial && <div className="flex justify-between text-sm font-bold text-slate-600"><span>Material</span><span>{formatoPesos(costoMaterialUnitario * cantidad)}</span></div>}
+                  {config.porcentajeIva > 0 && <div className="flex justify-between text-sm font-bold text-slate-600"><span>IVA ({config.porcentajeIva}%)</span><span>{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</span></div>}
                 </div>
-
-                {incluyeMaterial && (
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                    <div>
-                      <span className="text-yellow-400 text-sm font-bold flex items-center gap-2">
-                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
-                      </span>
-                    </div>
-                    <span className="text-yellow-400 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-slate-400 text-xs font-bold uppercase">Subtotal</span>
-                  <span className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</span>
-                </div>
-
-                {config.porcentajeIva > 0 && (
-                  <div className="flex justify-between items-center pt-2 border-t border-slate-700">
-                    <span className="text-slate-400 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                    <span className="text-xl font-bold text-yellow-400">
-                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-3 border-t-2 border-slate-600">
-                  <span className="text-white text-lg font-bold">TOTAL</span>
-                  <span className="text-3xl font-black text-white">
-                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
-                  </span>
+                <div className="flex justify-between items-center pt-4">
+                  <span className="text-black font-black text-xl">TOTAL</span>
+                  <span className="text-black font-black text-3xl">{formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}</span>
                 </div>
               </div>
 
-              {/* TABS PERSONA/EMPRESA CORREGIDOS (Amarillo Unificado) */}
-              <div className="flex gap-2 p-1 bg-slate-950 rounded-lg mb-6 border border-slate-800">
-                <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-3 text-sm font-bold rounded-md transition-all uppercase tracking-wide ${datosCliente.tipo === 'natural'
-                    ? 'bg-yellow-400 text-black shadow-lg' // Activo
-                    : 'bg-transparent text-slate-400 border border-slate-700 hover:border-slate-500 hover:text-white' // Inactivo
-                    }`}
-                >
-                  Persona Natural
-                </button>
-                <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-3 text-sm font-bold rounded-md transition-all uppercase tracking-wide ${datosCliente.tipo === 'juridica'
-                    ? 'bg-yellow-400 text-black shadow-lg' // Activo
-                    : 'bg-transparent text-slate-400 border border-slate-700 hover:border-slate-500 hover:text-white' // Inactivo
-                    }`}
-                >
-                  Empresa / Jurídica
-                </button>
+              {/* Botones Tipo Cliente (Claros) */}
+              <div className="flex p-1 bg-slate-100 rounded-lg mb-6 border border-slate-200">
+                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })} className={`flex-1 py-3 text-sm font-black uppercase rounded transition-all ${datosCliente.tipo === 'natural' ? 'bg-white text-black shadow border border-slate-200' : 'text-slate-400 hover:text-black'}`}>Persona Natural</button>
+                <button onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })} className={`flex-1 py-3 text-sm font-black uppercase rounded transition-all ${datosCliente.tipo === 'juridica' ? 'bg-white text-black shadow border border-slate-200' : 'text-slate-400 hover:text-black'}`}>Empresa</button>
               </div>
 
-              {/* FORMULARIO CLIENTE */}
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-yellow-400 uppercase mb-1 block">
-                    Correo Electrónico (Obligatorio)
-                  </label>
-                  <input
-                    type="email"
-                    value={datosCliente.email}
-                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none transition-colors"
-                    placeholder="ejemplo@correo.com"
-                  />
+              {/* Campos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <input placeholder={datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'} value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-white border-2 border-slate-200 rounded-lg p-3 text-black font-bold focus:border-black outline-none" />
+                  <input placeholder={datosCliente.tipo === 'natural' ? 'Cédula' : 'NIT'} value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-white border-2 border-slate-200 rounded-lg p-3 text-black font-bold focus:border-black outline-none" />
+                  {datosCliente.tipo === 'juridica' && <input placeholder="Nombre Contacto" value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-white border-2 border-slate-200 rounded-lg p-3 text-black font-bold focus:border-black outline-none" />}
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
-                    </label>
-                    <input
-                      value={datosCliente.nombre}
-                      onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
-                    </label>
-                    <input
-                      value={datosCliente.documento}
-                      onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
-                    />
-                  </div>
-                </div>
-
-                {datosCliente.tipo === 'juridica' && (
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      Nombre del Contacto
-                    </label>
-                    <input
-                      value={datosCliente.contacto}
-                      onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
-                      placeholder="¿Por quién preguntamos?"
-                    />
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      Teléfono / WhatsApp
-                    </label>
-                    <input
-                      value={datosCliente.telefono}
-                      onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      Dirección de Entrega
-                    </label>
-                    <input
-                      value={datosCliente.direccion}
-                      onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
-                    />
-                  </div>
+                <div className="space-y-4">
+                  <input placeholder="Email" type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-white border-2 border-slate-200 rounded-lg p-3 text-black font-bold focus:border-black outline-none" />
+                  <input placeholder="Teléfono" value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-white border-2 border-slate-200 rounded-lg p-3 text-black font-bold focus:border-black outline-none" />
+                  <input placeholder="Dirección Entrega" value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-white border-2 border-slate-200 rounded-lg p-3 text-black font-bold focus:border-black outline-none" />
                 </div>
               </div>
             </div>
 
-            {/* FOOTER MODAL */}
-            <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={procesarAccionModal}
-                disabled={enviandoCorreo}
-                className="bg-yellow-400 hover:bg-yellow-300 text-black font-black px-8 py-3 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(250,204,21,0.3)] transition-all uppercase tracking-wide"
-              >
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-                CONFIRMAR PEDIDO
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-4 bg-slate-50">
+              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-500 font-black hover:text-black uppercase">Cancelar</button>
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-black hover:bg-slate-800 text-yellow-400 px-8 py-3 rounded-lg font-black uppercase flex items-center gap-2 shadow-lg">
+                {enviandoCorreo ? <Loader2 className="animate-spin" /> : <Zap size={20} />} Confirmar
               </button>
             </div>
+
           </div>
         </div>
       )}
     </div>
   );
-}
 
-export default App;
+  export default App;
