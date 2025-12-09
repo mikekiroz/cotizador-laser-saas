@@ -1407,17 +1407,17 @@ Quedo atento a las instrucciones. ⚡`;
               <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
                 Cantidad de Piezas
               </span>
-              <div className="flex items-center justify-between bg-slate-900 rounded-lg p-1 border border-slate-800">
+              <div className="flex items-center justify-between bg-slate-950 rounded-lg p-1 border border-slate-800">
                 <button
                   onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                  className="w-10 h-10 bg-slate-800 text-slate-400 rounded-lg flex items-center justify-center hover:bg-slate-700"
+                  className="w-10 h-10 bg-slate-900 text-slate-400 rounded-lg flex items-center justify-center hover:bg-yellow-500 hover:text-slate-900 transition-colors"
                 >
                   <Minus size={16} />
                 </button>
-                <span className="text-2xl font-black">{cantidad}</span>
+                <span className="text-2xl font-black text-white">{cantidad}</span>
                 <button
                   onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-yellow-500 text-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-yellow-500"
+                  className="w-10 h-10 bg-slate-900 text-slate-400 rounded-lg flex items-center justify-center hover:bg-yellow-500 hover:text-slate-900 transition-colors"
                 >
                   <Plus size={16} />
                 </button>
