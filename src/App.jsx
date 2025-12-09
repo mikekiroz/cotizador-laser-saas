@@ -823,9 +823,6 @@ function AdminSeguridad() {
   );
 }
 
-// ==========================================
-// VISTA CLIENTE (AMARILLO INDUSTRIAL / BLANCO)
-// ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
@@ -1109,7 +1106,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
 
       if (dbError) throw dbError;
 
-      // Email dummy call (needs backend)
+      // Email dummy call
       // await fetch('/api/send-email', ...);
 
     } catch (err) {
@@ -1172,16 +1169,20 @@ Quedo atento a las instrucciones. ⚡`;
 
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
+  // ==========================================
+  // AQUÍ COMIENZA EL RETURN (EL DIBUJO)
+  // ESTO ES LO QUE HEMOS CAMBIADO AL "HÍBRIDO"
+  // ==========================================
   return (
     <div className="flex flex-col md:flex-row h-screen bg-yellow-400 text-slate-900">
-      {/* Panel Izquierdo */}
-      <div className="w-full md:w-[420px] bg-white flex flex-col border-r border-slate-300 shadow-2xl z-10">
-        <div className="p-6 border-b border-slate-200 bg-white">
+      {/* Panel Izquierdo - AHORA OSCURO (Estilo Panel de Control) */}
+      <div className="w-full md:w-[420px] bg-slate-900 flex flex-col border-r border-slate-800 shadow-2xl z-10 text-white">
+        <div className="p-6 border-b border-slate-800 bg-slate-950">
           <div className="flex items-center gap-4">
             {(empresa.faviconUrl || empresa.favicon_url) ? (
               <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
-              <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center font-black text-yellow-400">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg flex items-center justify-center font-black text-slate-900">
                 {empresa.nombre?.substring(0, 2).toUpperCase()}
               </div>
             )}
@@ -1189,12 +1190,12 @@ Quedo atento a las instrucciones. ⚡`;
               {(empresa.logoUrl || empresa.logo_url) ? (
                 <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
               ) : (
-                <h1 className="font-black text-lg uppercase text-black">{empresa.nombre}</h1>
+                <h1 className="font-black text-lg uppercase text-white">{empresa.nombre}</h1>
               )}
-              <span className="text-yellow-600 text-xs font-bold uppercase">{empresa.slogan}</span>
+              <span className="text-yellow-400 text-xs font-bold uppercase">{empresa.slogan}</span>
             </div>
           </div>
-          <div className="mt-3 text-xs text-slate-500 space-y-1 font-medium">
+          <div className="mt-3 text-xs text-slate-400 space-y-1 font-medium">
             <div className="flex items-center gap-2"><Phone size={12} /> {empresa.telefono}</div>
             <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
           </div>
@@ -1202,11 +1203,11 @@ Quedo atento a las instrucciones. ⚡`;
 
         <div className="p-6 flex-1 flex flex-col">
           <div className="mb-4">
-            <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Material y Calibre</label>
+            <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">Material y Calibre</label>
             <select
               value={materialSeleccionado}
               onChange={e => setMaterialSeleccionado(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-black font-bold focus:border-yellow-500 outline-none"
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-white font-bold focus:border-yellow-500 outline-none"
             >
               {materiales.map(m => (
                 <option key={m.id} value={m.id}>
@@ -1217,31 +1218,31 @@ Quedo atento a las instrucciones. ⚡`;
           </div>
 
           <div className="space-y-2 mb-4">
-            <div className="bg-black text-yellow-400 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm shadow-md">
               <span>METRO LINEAL</span>
               <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
             </div>
-            <div className="bg-black text-yellow-400 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm shadow-md">
               <span>PERFORACIÓN</span>
               <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
             </div>
           </div>
 
           {materialTienePrecio && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div className="mb-4 bg-slate-800 border border-slate-700 rounded-xl p-4">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={incluyeMaterial}
                   onChange={e => setIncluyeMaterial(e.target.checked)}
-                  className="w-5 h-5 bg-white border-2 border-slate-300 rounded checked:bg-black cursor-pointer"
+                  className="w-5 h-5 bg-slate-900 border-2 border-slate-600 rounded checked:bg-yellow-400 cursor-pointer"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 font-bold text-black">
-                    <Package size={16} className="text-yellow-600" />
+                  <div className="flex items-center gap-2 font-bold text-white">
+                    <Package size={16} className="text-yellow-400" />
                     Incluir Material
                   </div>
-                  <div className="text-xs text-slate-600 mt-1 font-bold">
+                  <div className="text-xs text-slate-400 mt-1 font-bold">
                     {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
                   </div>
                 </div>
@@ -1249,38 +1250,38 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
           )}
 
-          <label className="group relative border-2 border-dashed border-slate-300 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-black hover:bg-slate-50 transition-all">
+          <label className="group relative border-2 border-dashed border-slate-700 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-yellow-400 hover:bg-slate-800/50 transition-all">
             <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} />
             {procesando ? (
               <div className="flex flex-col items-center">
-                <Loader2 className="animate-spin text-black mb-2" size={32} />
-                <span className="text-black font-bold text-sm">PROCESANDO...</span>
+                <Loader2 className="animate-spin text-yellow-400 mb-2" size={32} />
+                <span className="text-yellow-400 font-bold text-sm">PROCESANDO...</span>
               </div>
             ) : (
               <>
-                <Upload className="text-slate-400 group-hover:text-black mb-3 transition-colors" size={36} />
-                <h3 className="text-lg font-black uppercase text-slate-700 group-hover:text-black">ARRASTRA TU PLANO AQUÍ</h3>
+                <Upload className="text-slate-500 group-hover:text-yellow-400 mb-3 transition-colors" size={36} />
+                <h3 className="text-lg font-black uppercase text-slate-300 group-hover:text-white">ARRASTRA TU PLANO AQUÍ</h3>
                 <div className="flex gap-2 mt-2">
-                  <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded">.DXF</span>
-                  <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded">.SVG</span>
+                  <span className="bg-slate-800 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
+                  <span className="bg-slate-800 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
                 </div>
               </>
             )}
           </label>
           {error && (
-            <div className="mt-3 bg-red-50 border border-red-200 p-3 rounded text-red-600 text-xs text-center font-bold">
+            <div className="mt-3 bg-red-900/20 border border-red-900/50 p-3 rounded text-red-400 text-xs text-center font-bold">
               {error}
             </div>
           )}
         </div>
       </div>
 
-      {/* Panel Derecho */}
+      {/* Panel Derecho - FONDO AMARILLO, TARJETA BLANCA */}
       <div className="flex-1 bg-yellow-400 flex flex-col items-center justify-center p-8">
-        <div className="bg-white border border-slate-200 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
+        <div className="bg-white border-4 border-slate-900 p-8 rounded-3xl max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]">
           <div className="text-center mb-8">
-            <h3 className="text-slate-400 text-xs uppercase tracking-widest mb-2 font-bold">Total Estimado</h3>
-            <h2 className="text-6xl font-black text-black">{formatoPesos(costoTotal)}</h2>
+            <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-bold">Total Estimado</h3>
+            <h2 className="text-6xl font-black text-slate-900">{formatoPesos(costoTotal)}</h2>
             {cantidad > 1 && (
               <span className="text-sm text-slate-500 font-bold">
                 ({formatoPesos(costoUnitarioTotal)} c/u)
@@ -1289,30 +1290,30 @@ Quedo atento a las instrucciones. ⚡`;
           </div>
 
           <div className="space-y-4 mb-6">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between">
+            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 flex justify-between">
               <span className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2">
-                <FileText size={14} className="text-black" /> Archivo
+                <FileText size={14} className="text-slate-900" /> Archivo
               </span>
-              <span className="text-black font-bold truncate max-w-[180px]">
+              <span className="text-slate-900 font-bold truncate max-w-[180px]">
                 {nombreArchivo || '---'}
               </span>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
               <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
                 Cantidad de Piezas
               </span>
-              <div className="flex items-center justify-between bg-white rounded-lg p-1 border border-slate-200">
+              <div className="flex items-center justify-between bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
                 <button
                   onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                  className="w-10 h-10 bg-slate-100 text-black rounded-lg flex items-center justify-center hover:bg-slate-200"
+                  className="w-10 h-10 bg-slate-200 text-slate-600 rounded-lg flex items-center justify-center hover:bg-slate-300"
                 >
                   <Minus size={16} />
                 </button>
-                <span className="text-2xl font-black text-black">{cantidad}</span>
+                <span className="text-2xl font-black text-slate-900">{cantidad}</span>
                 <button
                   onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center hover:bg-slate-800"
+                  className="w-10 h-10 bg-slate-900 text-yellow-400 rounded-lg flex items-center justify-center hover:bg-black"
                 >
                   <Plus size={16} />
                 </button>
@@ -1320,15 +1321,15 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
                 <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
-                <div className="text-black font-mono text-lg font-bold">
+                <div className="text-slate-900 font-mono text-lg font-bold">
                   {(perimetro * cantidad).toFixed(2)}m
                 </div>
               </div>
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
                 <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
-                <div className="text-black font-mono text-lg font-bold">
+                <div className="text-slate-900 font-mono text-lg font-bold">
                   {cantidadDisparos * cantidad}
                 </div>
               </div>
@@ -1340,7 +1341,7 @@ Quedo atento a las instrucciones. ⚡`;
                   <span className="text-yellow-800 text-xs font-bold uppercase flex items-center gap-2">
                     <Package size={14} /> Material Incluido
                   </span>
-                  <span className="text-black font-bold">
+                  <span className="text-slate-900 font-bold">
                     {formatoPesos(costoMaterialUnitario * cantidad)}
                   </span>
                 </div>
@@ -1355,7 +1356,7 @@ Quedo atento a las instrucciones. ⚡`;
             <button
               onClick={() => setMostrarModal(true)}
               disabled={!nombreArchivo}
-              className="w-full bg-black hover:bg-slate-800 disabled:opacity-50 text-yellow-400 py-4 rounded-xl font-black uppercase shadow-lg transform hover:scale-[1.02] transition-all"
+              className="w-full bg-slate-900 hover:bg-black disabled:opacity-50 text-yellow-400 py-4 rounded-xl font-black uppercase shadow-xl transform hover:scale-[1.02] transition-all"
             >
               SOLICITAR CORTE
             </button>
@@ -1366,68 +1367,68 @@ Quedo atento a las instrucciones. ⚡`;
       {/* MODAL DE CONFIRMACIÓN */}
       {mostrarModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-2xl overflow-hidden shadow-2xl">
-            <div className="flex justify-between items-center p-6 border-b border-slate-200 bg-white">
-              <h3 className="text-xl font-bold flex items-center gap-2 text-black">
+          <div className="bg-white rounded-2xl border-4 border-slate-900 w-full max-w-2xl overflow-hidden shadow-2xl">
+            <div className="flex justify-between items-center p-6 border-b border-slate-200 bg-slate-50">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900">
                 <Zap className="text-yellow-500" /> Confirmar Orden de Corte
               </h3>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-400 hover:text-black">
+              <button onClick={() => setMostrarModal(false)} className="text-slate-400 hover:text-red-500">
                 <X size={24} />
               </button>
             </div>
 
             <div className="p-6 overflow-y-auto max-h-[80vh]">
               {/* DESGLOSE ECONÓMICO */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 space-y-3">
-                <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-                  <span className="text-slate-500 text-sm font-bold">Servicio de Corte</span>
-                  <span className="text-black font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+              <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-6 space-y-3">
+                <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
+                  <span className="text-yellow-800 text-sm font-bold">Servicio de Corte</span>
+                  <span className="text-slate-900 font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
                 </div>
 
                 {incluyeMaterial && (
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                  <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
                     <div>
-                      <span className="text-yellow-700 text-sm font-bold flex items-center gap-2">
+                      <span className="text-yellow-800 text-sm font-bold flex items-center gap-2">
                         <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
                       </span>
                     </div>
-                    <span className="text-black font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                    <span className="text-slate-900 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-slate-500 text-xs font-bold uppercase">Subtotal</span>
-                  <span className="text-2xl font-black text-black">{formatoPesos(costoTotal)}</span>
+                  <span className="text-yellow-800 text-xs font-bold uppercase">Subtotal</span>
+                  <span className="text-2xl font-black text-slate-900">{formatoPesos(costoTotal)}</span>
                 </div>
 
                 {config.porcentajeIva > 0 && (
-                  <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                    <span className="text-slate-500 text-sm font-bold">+ IVA ({config.porcentajeIva}%)</span>
+                  <div className="flex justify-between items-center pt-2 border-t border-yellow-200">
+                    <span className="text-yellow-800 text-sm font-bold">+ IVA ({config.porcentajeIva}%)</span>
                     <span className="text-xl font-bold text-slate-700">
                       {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-3 border-t-2 border-black">
-                  <span className="text-black text-lg font-bold">TOTAL</span>
-                  <span className="text-3xl font-black text-black">
+                <div className="flex justify-between items-center pt-3 border-t-2 border-slate-900">
+                  <span className="text-slate-900 text-lg font-bold">TOTAL</span>
+                  <span className="text-3xl font-black text-slate-900">
                     {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
                   </span>
                 </div>
               </div>
 
               {/* TABS PERSONA/EMPRESA */}
-              <div className="flex p-1 bg-slate-100 rounded-lg mb-6 border border-slate-200">
+              <div className="flex p-1 bg-slate-200 rounded-lg mb-6 border border-slate-300">
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-black text-yellow-400 shadow' : 'text-slate-500 hover:text-black'}`}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-slate-900 text-yellow-400 shadow' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Persona Natural
                 </button>
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-black text-yellow-400 shadow' : 'text-slate-500 hover:text-black'}`}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-slate-900 text-yellow-400 shadow' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Empresa / Jurídica
                 </button>
@@ -1436,14 +1437,14 @@ Quedo atento a las instrucciones. ⚡`;
               {/* FORMULARIO CLIENTE */}
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-black uppercase mb-1 block">
+                  <label className="text-xs font-bold text-slate-900 uppercase mb-1 block">
                     Correo Electrónico (Obligatorio)
                   </label>
                   <input
                     type="email"
                     value={datosCliente.email}
                     onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium"
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
@@ -1453,40 +1454,40 @@ Quedo atento a las instrucciones. ⚡`;
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
                     </label>
-                    <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                    <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
                     </label>
-                    <input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                    <input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
                   </div>
                 </div>
 
                 {datosCliente.tipo === 'juridica' && (
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto</label>
-                    <input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" placeholder="¿Por quién preguntamos?" />
+                    <input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" placeholder="¿Por quién preguntamos?" />
                   </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label>
-                    <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                    <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label>
-                    <input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                    <input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* FOOTER MODAL */}
-            <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white">
-              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-500 font-bold hover:text-black">Cancelar</button>
-              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-black hover:bg-slate-800 text-yellow-400 font-black px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg">
+            <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
+              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-500 font-bold hover:text-slate-900">Cancelar</button>
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-slate-900 hover:bg-black text-yellow-400 font-black px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg">
                 {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
                 CONFIRMAR PEDIDO
               </button>
