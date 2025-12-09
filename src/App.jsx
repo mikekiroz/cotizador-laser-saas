@@ -824,9 +824,10 @@ function AdminSeguridad() {
 }
 
 // ==========================================
-// VISTA CLIENTE HÍBRIDA (OSCURO / AMARILLO / BLANCO)
+// VISTA CLIENTE (ESTILO INDUSTRIAL PREMIUM - FOTO DE FONDO)
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
+  // --- LÓGICA (NO TOCAR) ---
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
   const [areaCm2, setAreaCm2] = useState(0);
@@ -848,14 +849,8 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     const guardado = localStorage.getItem('maikitto_datos');
     if (guardado) { try { setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('maikitto_datos', JSON.stringify(datosCliente));
-  }, [datosCliente]);
-
-  useEffect(() => {
-    if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id);
-  }, [materiales]);
+  useEffect(() => { localStorage.setItem('maikitto_datos', JSON.stringify(datosCliente)); }, [datosCliente]);
+  useEffect(() => { if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id); }, [materiales]);
 
   const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
   const materialActivo = {
@@ -866,216 +861,90 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
   };
 
+  // --- CÁLCULOS GEOMETRÍA ---
   const calcularBoundingBox = (entities) => {
-    let minX = Infinity, maxX = -Infinity;
-    let minY = Infinity, maxY = -Infinity;
-
-    const actualizarLimites = (x, y) => {
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    };
-
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const actualizar = (x, y) => { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; };
     entities.forEach(e => {
-      if (e.type === 'LINE') {
-        e.vertices.forEach(v => actualizarLimites(v.x, v.y));
-      } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 0) {
-        e.vertices.forEach(v => actualizarLimites(v.x, v.y));
-      } else if (e.type === 'CIRCLE') {
-        actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
-        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
-      } else if (e.type === 'ARC') {
-        actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
-        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
-      }
+      if (e.type === 'LINE') e.vertices.forEach(v => actualizar(v.x, v.y));
+      else if (e.type === 'LWPOLYLINE') e.vertices.forEach(v => actualizar(v.x, v.y));
+      else if (e.type === 'CIRCLE' || e.type === 'ARC') { actualizar(e.center.x - e.radius, e.center.y - e.radius); actualizar(e.center.x + e.radius, e.center.y + e.radius); }
     });
-
-    const anchoMm = maxX - minX;
-    const altoMm = maxY - minY;
-    const areaCm2 = (anchoMm / 10) * (altoMm / 10);
-    return areaCm2;
+    return ((maxX - minX) / 10) * ((maxY - minY) / 10);
   };
 
   const procesarDXF = (textoDXF) => {
     try {
-      const parser = new DxfParser();
-      const dxf = parser.parseSync(textoDXF);
-      let longitudTotal = 0, conteoFiguras = 0;
-
+      const parser = new DxfParser(); const dxf = parser.parseSync(textoDXF);
+      let len = 0, count = 0;
       if (!dxf.entities || dxf.entities.length === 0) throw new Error("Archivo vacío.");
-
       const dist = (p1, p2) => Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-
       dxf.entities.forEach(e => {
-        let valid = false;
-        if (e.type === 'LINE') {
-          longitudTotal += dist(e.vertices[0], e.vertices[1]);
-          valid = true;
-        } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 1) {
-          for (let i = 0; i < e.vertices.length - 1; i++) {
-            longitudTotal += dist(e.vertices[i], e.vertices[i + 1]);
-          }
-          if (e.closed) longitudTotal += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
-          valid = true;
-        } else if (e.type === 'CIRCLE') {
-          longitudTotal += 2 * Math.PI * e.radius;
-          valid = true;
-        } else if (e.type === 'ARC') {
-          longitudTotal += e.radius * Math.abs(e.endAngle - e.startAngle);
-          valid = true;
+        if (e.type === 'LINE') { len += dist(e.vertices[0], e.vertices[1]); count++; }
+        else if (e.type === 'LWPOLYLINE') {
+          for (let i = 0; i < e.vertices.length - 1; i++) len += dist(e.vertices[i], e.vertices[i + 1]);
+          if (e.closed) len += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
+          count++;
         }
-        if (valid) conteoFiguras++;
+        else if (e.type === 'CIRCLE') { len += 2 * Math.PI * e.radius; count++; }
+        else if (e.type === 'ARC') { len += e.radius * Math.abs(e.endAngle - e.startAngle); count++; }
       });
-
-      const area = calcularBoundingBox(dxf.entities);
-      finalizarCalculo(longitudTotal / 1000, conteoFiguras, area);
-    } catch (err) {
-      reportarError('DXF inválido: ' + err.message);
-    }
+      finalizarCalculo(len / 1000, count, calcularBoundingBox(dxf.entities));
+    } catch (err) { reportarError('DXF inválido: ' + err.message); }
   };
 
   const procesarSVG = (textoSVG) => {
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(textoSVG, "image/svg+xml");
+      const parser = new DOMParser(); const doc = parser.parseFromString(textoSVG, "image/svg+xml");
       if (doc.querySelector('parsererror')) throw new Error("XML Inválido");
-
-      let longitudTotal = 0, conteoFiguras = 0;
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-
-      const actualizarLimites = (x, y) => {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      };
-
+      let len = 0, count = 0, minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      const upd = (x, y) => { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; };
       ['path', 'rect', 'circle', 'line', 'polyline', 'polygon'].forEach(sel => {
         doc.querySelectorAll(sel).forEach(el => {
-          let len = 0;
-          if (el.tagName === 'circle') {
-            const r = parseFloat(el.getAttribute('r'));
-            const cx = parseFloat(el.getAttribute('cx'));
-            const cy = parseFloat(el.getAttribute('cy'));
-            len = 2 * Math.PI * r;
-            actualizarLimites(cx - r, cy - r);
-            actualizarLimites(cx + r, cy + r);
-          } else if (el.tagName === 'rect') {
-            const w = parseFloat(el.getAttribute('width'));
-            const h = parseFloat(el.getAttribute('height'));
-            const x = parseFloat(el.getAttribute('x') || 0);
-            const y = parseFloat(el.getAttribute('y') || 0);
-            len = 2 * w + 2 * h;
-            actualizarLimites(x, y);
-            actualizarLimites(x + w, y + h);
-          } else if (el.tagName === 'line') {
-            const x1 = parseFloat(el.getAttribute('x1'));
-            const y1 = parseFloat(el.getAttribute('y1'));
-            const x2 = parseFloat(el.getAttribute('x2'));
-            const y2 = parseFloat(el.getAttribute('y2'));
-            len = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-            actualizarLimites(x1, y1);
-            actualizarLimites(x2, y2);
-          }
-          if (len === 0 && typeof el.getTotalLength === 'function') {
-            try {
-              len = el.getTotalLength();
-              if (el.tagName === 'path') {
-                const bbox = el.getBBox();
-                actualizarLimites(bbox.x, bbox.y);
-                actualizarLimites(bbox.x + bbox.width, bbox.y + bbox.height);
-              }
-            } catch (e) { }
-          }
-          if (len > 0) {
-            longitudTotal += len;
-            conteoFiguras++;
-          }
+          let l = 0;
+          if (el.tagName === 'circle') { const r = parseFloat(el.getAttribute('r')), cx = parseFloat(el.getAttribute('cx')), cy = parseFloat(el.getAttribute('cy')); l = 2 * Math.PI * r; upd(cx - r, cy - r); upd(cx + r, cy + r); }
+          else if (el.tagName === 'rect') { const w = parseFloat(el.getAttribute('width')), h = parseFloat(el.getAttribute('height')), x = parseFloat(el.getAttribute('x') || 0), y = parseFloat(el.getAttribute('y') || 0); l = 2 * w + 2 * h; upd(x, y); upd(x + w, y + h); }
+          else if (el.tagName === 'line') { const x1 = parseFloat(el.getAttribute('x1')), x2 = parseFloat(el.getAttribute('x2')), y1 = parseFloat(el.getAttribute('y1')), y2 = parseFloat(el.getAttribute('y2')); l = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)); upd(x1, y1); upd(x2, y2); }
+          if (l === 0 && typeof el.getTotalLength === 'function') { try { l = el.getTotalLength(); if (el.tagName === 'path') { const b = el.getBBox(); upd(b.x, b.y); upd(b.x + b.width, b.y + b.height); } } catch (e) { } }
+          if (l > 0) { len += l; count++; }
         });
       });
-
-      const anchoMm = (maxX - minX) * 0.264583;
-      const altoMm = (maxY - minY) * 0.264583;
-      const areaCm2 = (anchoMm / 10) * (altoMm / 10);
-      finalizarCalculo(longitudTotal / 1000, conteoFiguras, areaCm2);
-    } catch (err) {
-      reportarError('SVG inválido: ' + err.message);
-    }
+      finalizarCalculo(len / 1000, count, ((maxX - minX) * 0.264583 / 10) * ((maxY - minY) * 0.264583 / 10));
+    } catch (err) { reportarError('SVG inválido: ' + err.message); }
   };
 
-  const finalizarCalculo = (mts, disparos, area) => {
-    setPerimetro(mts);
-    setCantidadDisparos(disparos);
-    setAreaCm2(area);
-    setError('');
-    setProcesando(false);
-  };
-
-  const reportarError = (msg) => {
-    setError(msg);
-    setPerimetro(0);
-    setCantidadDisparos(0);
-    setAreaCm2(0);
-    setProcesando(false);
-  };
-
+  const finalizarCalculo = (mts, disparos, area) => { setPerimetro(mts); setCantidadDisparos(disparos); setAreaCm2(area); setError(''); setProcesando(false); };
+  const reportarError = (msg) => { setError(msg); setPerimetro(0); setCantidadDisparos(0); setAreaCm2(0); setProcesando(false); };
   const manejarArchivo = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setArchivoBlob(file);
-    setNombreArchivo(file.name);
-    setProcesando(true);
-    setError('');
-
-    const ext = file.name.split('.').pop().toLowerCase();
-    const reader = new FileReader();
-
-    reader.onload = (ev) => {
-      if (ext === 'dxf') procesarDXF(ev.target.result);
-      else if (ext === 'svg') procesarSVG(ev.target.result);
-      else reportarError("Formato no soportado.");
-    };
-
+    const file = e.target.files[0]; if (!file) return;
+    setArchivoBlob(file); setNombreArchivo(file.name); setProcesando(true); setError('');
+    const ext = file.name.split('.').pop().toLowerCase(); const reader = new FileReader();
+    reader.onload = (ev) => { if (ext === 'dxf') procesarDXF(ev.target.result); else if (ext === 'svg') procesarSVG(ev.target.result); else reportarError("Formato no soportado."); };
     reader.readAsText(file);
   };
 
+  // --- COSTOS ---
   const costoMetroUnitario = perimetro * materialActivo.precioMetro;
   const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
   const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
-
   let costoMaterialUnitario = 0;
   if (incluyeMaterial && materialActivo.precioMaterial > 0) {
-    if (materialActivo.unidadCobro === 'cm2') {
-      costoMaterialUnitario = areaCm2 * materialActivo.precioMaterial;
-    } else if (materialActivo.unidadCobro === 'm2') {
-      costoMaterialUnitario = (areaCm2 / 10000) * materialActivo.precioMaterial;
-    } else if (materialActivo.unidadCobro === 'unidad') {
-      costoMaterialUnitario = materialActivo.precioMaterial;
-    }
+    if (materialActivo.unidadCobro === 'cm2') costoMaterialUnitario = areaCm2 * materialActivo.precioMaterial;
+    else if (materialActivo.unidadCobro === 'm2') costoMaterialUnitario = (areaCm2 / 10000) * materialActivo.precioMaterial;
+    else if (materialActivo.unidadCobro === 'unidad') costoMaterialUnitario = materialActivo.precioMaterial;
   }
-
   const costoUnitarioTotal = costoCorteUnitario + costoMaterialUnitario;
   const costoTotal = costoUnitarioTotal * cantidad;
-
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
   const procesarAccionModal = async () => {
-    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
-      alert("Por favor completa los campos obligatorios.");
-      return;
-    }
-
+    if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) { alert("Completa los campos obligatorios."); return; }
     setEnviandoCorreo(true);
-
     const aplicaIvaReal = config.porcentajeIva > 0;
     const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
     const totalFinalReal = costoTotal + valorIvaReal;
     const tel = empresa.telefono?.replace(/\D/g, '') || '';
     let urlArchivoPublica = "";
-
     try {
       if (archivoBlob) {
         const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
@@ -1084,412 +953,217 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         const { data: urlData } = supabase.storage.from('archivos-clientes').getPublicUrl(rutaArchivo);
         urlArchivoPublica = urlData.publicUrl;
       }
-
       const { error: dbError } = await supabase.from('pedidos').insert({
-        empresa_id: empresa.id,
-        cliente_nombre: datosCliente.nombre,
-        cliente_email: datosCliente.email,
-        cliente_telefono: datosCliente.telefono,
-        cliente_documento: datosCliente.documento,
-        cliente_direccion: datosCliente.direccion,
-        archivo_nombre: nombreArchivo,
-        archivo_url: urlArchivoPublica,
+        empresa_id: empresa.id, cliente_nombre: datosCliente.nombre, cliente_email: datosCliente.email,
+        cliente_telefono: datosCliente.telefono, cliente_documento: datosCliente.documento, cliente_direccion: datosCliente.direccion,
+        archivo_nombre: nombreArchivo, archivo_url: urlArchivoPublica,
         material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
-        cantidad: cantidad,
-        valor_total: totalFinalReal,
-        tipo: 'corte',
-        estado: 'pendiente',
-        perimetro_metros: perimetro * cantidad,
-        area_cm2: areaCm2 * cantidad,
-        num_perforaciones: cantidadDisparos * cantidad,
-        costo_corte: costoCorteUnitario * cantidad,
-        incluye_material: incluyeMaterial,
-        costo_material: costoMaterialUnitario * cantidad
+        cantidad: cantidad, valor_total: totalFinalReal, tipo: 'corte', estado: 'pendiente',
+        perimetro_metros: perimetro * cantidad, area_cm2: areaCm2 * cantidad, num_perforaciones: cantidadDisparos * cantidad,
+        costo_corte: costoCorteUnitario * cantidad, incluye_material: incluyeMaterial, costo_material: costoMaterialUnitario * cantidad
       });
-
       if (dbError) throw dbError;
+    } catch (err) { alert('Error: ' + err.message); setEnviandoCorreo(false); return; }
 
-      // Email dummy call
-      // await fetch('/api/send-email', ...);
-
-    } catch (err) {
-      console.error('Error completo:', err);
-      alert('Error guardando pedido: ' + (err.message || err.error_description || err));
-      setEnviandoCorreo(false);
-      return;
-    }
-
-    let infoCliente = "";
-    if (datosCliente.tipo === 'natural') {
-      infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
-    } else {
-      infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
-    }
-
-    let desgloseMaterial = "";
-    if (incluyeMaterial) {
-      desgloseMaterial = `
-📦 *MATERIAL INCLUIDO:*
-   Área: ${(areaCm2 * cantidad).toFixed(2)} cm²
-   Costo: ${formatoPesos(costoMaterialUnitario * cantidad)}`;
-    }
-
-    const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
-📄 *Archivo:* ${nombreArchivo}
-${urlArchivoPublica ? `🔗 ${urlArchivoPublica}` : ''}
-
-🔧 *Material:* ${materialActivo.nombre}
-📏 *Calibre:* ${materialActivo.calibre}
-🔢 *Cantidad:* ${cantidad} Unidades
-
-✂️ *SERVICIO DE CORTE:*
-   Perímetro: ${(perimetro * cantidad).toFixed(2)}m
-   Perforaciones: ${cantidadDisparos * cantidad}
-   Costo: ${formatoPesos(costoCorteUnitario * cantidad)}
-${desgloseMaterial}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-👤 *DATOS DEL CLIENTE*
-━━━━━━━━━━━━━━━━━━━━━━━
-${infoCliente}
-📞 *TEL:* ${datosCliente.telefono}
-📧 *EMAIL:* ${datosCliente.email}
-📍 *DIR:* ${datosCliente.direccion}
-
-━━━━━━━━━━━━━━━━━━━━━━━
-💰 *RESUMEN ECONÓMICO*
-━━━━━━━━━━━━━━━━━━━━━━━
-Subtotal: ${formatoPesos(costoTotal)}
-${aplicaIvaReal ? `IVA (${config.porcentajeIva}%): ${formatoPesos(valorIvaReal)}` : ''}
-*TOTAL: ${formatoPesos(totalFinalReal)}*
-━━━━━━━━━━━━━━━━━━━━━━━
-Quedo atento a las instrucciones. ⚡`;
-
+    let infoCliente = datosCliente.tipo === 'natural' ? `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}` : `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}`;
+    let desgloseMaterial = incluyeMaterial ? `\n📦 *MATERIAL:* ${(areaCm2 * cantidad).toFixed(2)} cm² (${formatoPesos(costoMaterialUnitario * cantidad)})` : "";
+    const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:\n📄 *Archivo:* ${nombreArchivo}\n${urlArchivoPublica}\n\n🔧 *Material:* ${materialActivo.nombre} (${materialActivo.calibre})\n🔢 *Cantidad:* ${cantidad}\n\n✂️ *CORTE:*\n   Perímetro: ${(perimetro * cantidad).toFixed(2)}m\n   Perforaciones: ${cantidadDisparos * cantidad}\n   Costo: ${formatoPesos(costoCorteUnitario * cantidad)}${desgloseMaterial}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n👤 *CLIENTE*\n━━━━━━━━━━━━━━━━━━━━━━━\n${infoCliente}\n📞 ${datosCliente.telefono}\n📍 ${datosCliente.direccion}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n💰 *TOTAL: ${formatoPesos(totalFinalReal)}*\n━━━━━━━━━━━━━━━━━━━━━━━`;
     window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
-    setEnviandoCorreo(false);
-    setMostrarModal(false);
+    setEnviandoCorreo(false); setMostrarModal(false);
   };
 
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
+  // ==========================================
+  // DISEÑO INDUSTRIAL PREMIUM (FOTO DE FONDO + OVERLAYS)
+  // ==========================================
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-yellow-400 text-slate-900">
-      {/* Panel Izquierdo - AHORA OSCURO (Estilo Panel de Control) */}
-      <div className="w-full md:w-[420px] bg-slate-900 flex flex-col border-r border-slate-800 shadow-2xl z-10 text-white">
-        <div className="p-6 border-b border-slate-800 bg-slate-950">
+    <div className="flex flex-col md:flex-row h-screen bg-zinc-950 text-white relative overflow-hidden">
+
+      {/* 1. FONDO DE IMAGEN INDUSTRIAL (Overlay) */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80"
+          alt="Industrial Background"
+          className="w-full h-full object-cover opacity-30 grayscale" // Foto en escala de grises y oscura
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-zinc-900/50"></div>
+      </div>
+
+      {/* 2. PANEL IZQUIERDO (SÓLIDO OSCURO - ESTILO DASHBOARD) */}
+      <div className="w-full md:w-[420px] bg-zinc-900/95 backdrop-blur-sm flex flex-col border-r border-yellow-500/20 shadow-2xl z-10 relative">
+        {/* Cabecera Empresa */}
+        <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-4">
-            {(empresa.faviconUrl || empresa.favicon_url) ? (
-              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
-            ) : (
-              <div className="w-12 h-12 bg-yellow-400 rounded-lg flex items-center justify-center font-black text-slate-900">
-                {empresa.nombre?.substring(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1">
-              {(empresa.logoUrl || empresa.logo_url) ? (
-                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
-              ) : (
-                <h1 className="font-black text-lg uppercase text-white">{empresa.nombre}</h1>
-              )}
-              <span className="text-yellow-400 text-xs font-bold uppercase">{empresa.slogan}</span>
+            {(empresa.logoUrl) ? <img src={empresa.logoUrl} alt="" className="h-10 object-contain" /> : <div className="w-10 h-10 bg-yellow-500 rounded flex items-center justify-center font-bold text-black">{empresa.nombre?.substring(0, 2)}</div>}
+            <div>
+              <h1 className="font-bold text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
+              <span className="text-yellow-500 text-[10px] font-bold uppercase tracking-widest">{empresa.slogan || 'Industrial Services'}</span>
             </div>
           </div>
-          <div className="mt-3 text-xs text-slate-400 space-y-1 font-medium">
-            <div className="flex items-center gap-2"><Phone size={12} /> {empresa.telefono}</div>
-            <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
+          <div className="mt-4 flex gap-4 text-xs text-zinc-400">
+            <div className="flex items-center gap-1"><Phone size={12} className="text-yellow-500" /> {empresa.telefono}</div>
+            <div className="flex items-center gap-1"><MapPin size={12} className="text-yellow-500" /> {empresa.direccion}</div>
           </div>
         </div>
 
-        <div className="p-6 flex-1 flex flex-col">
-          <div className="mb-4">
-            <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">Material y Calibre</label>
-            <select
-              value={materialSeleccionado}
-              onChange={e => setMaterialSeleccionado(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-white font-bold focus:border-yellow-500 outline-none"
-            >
-              {materiales.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.nombre} - {m.calibre}
-                </option>
-              ))}
+        {/* Controles */}
+        <div className="p-6 flex-1 flex flex-col gap-6 overflow-y-auto">
+          <div>
+            <label className="text-[10px] font-bold text-yellow-500/80 uppercase mb-2 block tracking-widest">Configuración Material</label>
+            <select value={materialSeleccionado} onChange={e => setMaterialSeleccionado(e.target.value)} className="w-full bg-black/40 border border-white/20 rounded-none p-4 text-white font-bold focus:border-yellow-500 outline-none transition-colors">
+              {materiales.map(m => <option key={m.id} value={m.id} className="bg-zinc-900">{m.nombre} - {m.calibre}</option>)}
             </select>
           </div>
 
-          <div className="space-y-2 mb-4">
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm shadow-md">
-              <span>METRO LINEAL</span>
-              <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white/5 p-3 border-l-2 border-yellow-500">
+              <span className="text-[10px] text-zinc-400 uppercase block">Corte / Metro</span>
+              <span className="font-mono text-white font-bold">{formatoPesos(materialActivo.precioMetro)}</span>
             </div>
-            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm shadow-md">
-              <span>PERFORACIÓN</span>
-              <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
+            <div className="bg-white/5 p-3 border-l-2 border-yellow-500">
+              <span className="text-[10px] text-zinc-400 uppercase block">Perforación</span>
+              <span className="font-mono text-white font-bold">{formatoPesos(materialActivo.precioDisparo)}</span>
             </div>
           </div>
 
           {materialTienePrecio && (
-            <div className="mb-4 bg-slate-800 border border-slate-700 rounded-xl p-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={incluyeMaterial}
-                  onChange={e => setIncluyeMaterial(e.target.checked)}
-                  className="w-5 h-5 bg-slate-900 border-2 border-slate-600 rounded checked:bg-yellow-400 cursor-pointer"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 font-bold text-white">
-                    <Package size={16} className="text-yellow-400" />
-                    Incluir Material
-                  </div>
-                  <div className="text-xs text-slate-400 mt-1 font-bold">
-                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
-                  </div>
-                </div>
-              </label>
-            </div>
+            <label className={`flex items-center gap-4 p-4 border transition-all cursor-pointer ${incluyeMaterial ? 'bg-yellow-500/10 border-yellow-500' : 'bg-transparent border-white/10 hover:border-white/30'}`}>
+              <div className={`w-5 h-5 border-2 flex items-center justify-center ${incluyeMaterial ? 'border-yellow-500 bg-yellow-500 text-black' : 'border-zinc-500'}`}>
+                {incluyeMaterial && <Check size={14} strokeWidth={4} />}
+              </div>
+              <input type="checkbox" checked={incluyeMaterial} onChange={e => setIncluyeMaterial(e.target.checked)} className="hidden" />
+              <div className="flex-1">
+                <div className="text-sm font-bold text-white uppercase">Incluir Material</div>
+                <div className="text-xs text-zinc-400">{formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}</div>
+              </div>
+            </label>
           )}
 
-          <label className="group relative border-2 border-dashed border-slate-700 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-yellow-400 hover:bg-slate-800/50 transition-all">
+          <label className={`group relative border-2 border-dashed rounded-lg flex-1 min-h-[160px] flex flex-col items-center justify-center cursor-pointer transition-all ${procesando ? 'border-yellow-500 bg-yellow-500/5' : 'border-white/20 hover:border-yellow-500 hover:bg-white/5'}`}>
             <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} />
             {procesando ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="animate-spin text-yellow-400 mb-2" size={32} />
-                <span className="text-yellow-400 font-bold text-sm">PROCESANDO...</span>
+              <div className="flex flex-col items-center animate-pulse">
+                <Settings className="animate-spin text-yellow-500 mb-2" size={32} />
+                <span className="text-yellow-500 font-bold text-xs uppercase tracking-widest">Analizando Geometría...</span>
               </div>
             ) : (
               <>
-                <Upload className="text-slate-500 group-hover:text-yellow-400 mb-3 transition-colors" size={36} />
-                <h3 className="text-lg font-black uppercase text-slate-300 group-hover:text-white">ARRASTRA TU PLANO AQUÍ</h3>
-                <div className="flex gap-2 mt-2">
-                  <span className="bg-slate-800 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
-                  <span className="bg-slate-800 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
-                </div>
+                <Upload className="text-zinc-500 group-hover:text-yellow-500 mb-3 transition-colors" size={32} />
+                <h3 className="text-sm font-bold uppercase text-zinc-300 group-hover:text-white">Subir Archivo DXF / SVG</h3>
+                <span className="text-[10px] text-zinc-500 mt-2">Arrastra o haz click para cotizar</span>
               </>
             )}
           </label>
-          {error && (
-            <div className="mt-3 bg-red-900/20 border border-red-900/50 p-3 rounded text-red-400 text-xs text-center font-bold">
-              {error}
-            </div>
-          )}
+
+          {error && <div className="bg-red-500/10 border-l-4 border-red-500 p-3 text-red-200 text-xs font-medium">{error}</div>}
         </div>
       </div>
 
-      {/* Panel Derecho - FONDO AMARILLO, TARJETA BLANCA */}
-      <div className="flex-1 bg-yellow-400 flex flex-col items-center justify-center p-8">
-        <div className="bg-white border-4 border-slate-900 p-8 rounded-3xl max-w-lg w-full shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]">
-          <div className="text-center mb-8">
-            <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2 font-bold">Total Estimado</h3>
-            <h2 className="text-6xl font-black text-slate-900">{formatoPesos(costoTotal)}</h2>
-            {cantidad > 1 && (
-              <span className="text-sm text-slate-500 font-bold">
-                ({formatoPesos(costoUnitarioTotal)} c/u)
-              </span>
-            )}
+      {/* 3. PANEL DERECHO (VISUALIZACIÓN - TARJETA FLOTANTE) */}
+      <div className="flex-1 relative z-10 flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
+
+        {/* Tarjeta estilo "Glassmorphism" oscuro */}
+        <div className="bg-zinc-950/80 backdrop-blur-md border border-white/10 p-8 md:p-10 max-w-xl w-full relative shadow-2xl">
+          {/* Decoración estilo industrial (esquinas) */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-yellow-500"></div>
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-yellow-500"></div>
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-yellow-500"></div>
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-yellow-500"></div>
+
+          <div className="text-center mb-10">
+            <h3 className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">Cotización en Tiempo Real</h3>
+            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tighter">
+              {formatoPesos(costoTotal)}
+            </h2>
+            {cantidad > 1 && <div className="mt-2 inline-block bg-yellow-500/20 px-3 py-1 rounded text-yellow-500 text-xs font-bold uppercase tracking-wider">Unitario: {formatoPesos(costoUnitarioTotal)}</div>}
           </div>
 
-          <div className="space-y-4 mb-6">
-            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 flex justify-between">
-              <span className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2">
-                <FileText size={14} className="text-slate-900" /> Archivo
-              </span>
-              <span className="text-slate-900 font-bold truncate max-w-[180px]">
-                {nombreArchivo || '---'}
-              </span>
+          <div className="space-y-1 mb-8">
+            {/* Fila Archivo */}
+            <div className="flex items-center justify-between p-4 bg-white/5 border-b border-white/5 hover:bg-white/10 transition-colors">
+              <span className="text-zinc-400 text-xs font-bold uppercase flex items-center gap-2"><FileText size={14} /> Archivo</span>
+              <span className="text-white font-mono text-sm truncate max-w-[150px]">{nombreArchivo || '---'}</span>
             </div>
 
-            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
-              <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
-                Cantidad de Piezas
-              </span>
-              <div className="flex items-center justify-between bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
-                <button
-                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                  className="w-10 h-10 bg-slate-200 text-slate-600 rounded-lg flex items-center justify-center hover:bg-slate-300"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="text-2xl font-black text-slate-900">{cantidad}</span>
-                <button
-                  onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-slate-900 text-yellow-400 rounded-lg flex items-center justify-center hover:bg-black"
-                >
-                  <Plus size={16} />
-                </button>
+            {/* Fila Cantidad */}
+            <div className="flex items-center justify-between p-4 bg-white/5 border-b border-white/5 hover:bg-white/10 transition-colors">
+              <span className="text-zinc-400 text-xs font-bold uppercase">Piezas</span>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setCantidad(c => Math.max(1, c - 1))} className="text-zinc-500 hover:text-white transition-colors"><Minus size={16} /></button>
+                <span className="text-xl font-bold text-white w-8 text-center">{cantidad}</span>
+                <button onClick={() => setCantidad(c => c + 1)} className="text-yellow-500 hover:text-yellow-400 transition-colors"><Plus size={16} /></button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
-                <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
-                <div className="text-slate-900 font-mono text-lg font-bold">
-                  {(perimetro * cantidad).toFixed(2)}m
-                </div>
+            {/* Fila Detalles Técnicos */}
+            <div className="grid grid-cols-2 bg-white/5 border-b border-white/5">
+              <div className="p-4 border-r border-white/5">
+                <span className="text-zinc-500 text-[10px] uppercase block mb-1">Recorrido</span>
+                <span className="text-white font-mono font-bold">{(perimetro * cantidad).toFixed(2)} m</span>
               </div>
-              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
-                <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
-                <div className="text-slate-900 font-mono text-lg font-bold">
-                  {cantidadDisparos * cantidad}
-                </div>
+              <div className="p-4">
+                <span className="text-zinc-500 text-[10px] uppercase block mb-1">Perforaciones</span>
+                <span className="text-white font-mono font-bold">{cantidadDisparos * cantidad}</span>
               </div>
             </div>
 
+            {/* Fila Material Incluido (Condicional) */}
             {incluyeMaterial && areaCm2 > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-yellow-800 text-xs font-bold uppercase flex items-center gap-2">
-                    <Package size={14} /> Material Incluido
-                  </span>
-                  <span className="text-slate-900 font-bold">
-                    {formatoPesos(costoMaterialUnitario * cantidad)}
-                  </span>
+              <div className="p-4 bg-yellow-500/10 flex justify-between items-center border-l-2 border-yellow-500">
+                <div>
+                  <span className="text-yellow-500 text-xs font-bold uppercase block">Suministro Material</span>
+                  <span className="text-yellow-500/60 text-[10px]">{(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}</span>
                 </div>
-                <div className="text-slate-600 text-xs font-bold">
-                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
-                </div>
+                <span className="text-white font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
               </div>
             )}
           </div>
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => setMostrarModal(true)}
-              disabled={!nombreArchivo}
-              className="w-full bg-slate-900 hover:bg-black disabled:opacity-50 text-yellow-400 py-4 rounded-xl font-black uppercase shadow-xl transform hover:scale-[1.02] transition-all"
-            >
-              SOLICITAR CORTE
-            </button>
-          </div>
+          <button
+            onClick={() => setMostrarModal(true)}
+            disabled={!nombreArchivo}
+            className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-black py-4 uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-all transform active:scale-95"
+          >
+            Confirmar Pedido
+          </button>
         </div>
       </div>
 
-      {/* MODAL DE CONFIRMACIÓN */}
+      {/* MODAL OSCURO */}
       {mostrarModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border-4 border-slate-900 w-full max-w-2xl overflow-hidden shadow-2xl">
-            <div className="flex justify-between items-center p-6 border-b border-slate-200 bg-slate-50">
-              <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900">
-                <Zap className="text-yellow-500" /> Confirmar Orden de Corte
-              </h3>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-400 hover:text-red-500">
-                <X size={24} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 w-full max-w-2xl shadow-2xl relative">
+            <button onClick={() => setMostrarModal(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X size={24} /></button>
+            <div className="p-8">
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2"><span className="text-yellow-500">///</span> Confirmar Orden</h3>
 
-            <div className="p-6 overflow-y-auto max-h-[80vh]">
-              {/* DESGLOSE ECONÓMICO */}
-              <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-6 space-y-3">
-                <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
-                  <span className="text-yellow-800 text-sm font-bold">Servicio de Corte</span>
-                  <span className="text-slate-900 font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+              <div className="bg-black/40 p-6 mb-8 border-l-4 border-yellow-500 space-y-2">
+                <div className="flex justify-between text-zinc-400 text-sm"><span>Corte Laser</span><span className="text-white font-mono">{formatoPesos(costoCorteUnitario * cantidad)}</span></div>
+                {incluyeMaterial && <div className="flex justify-between text-zinc-400 text-sm"><span>Material</span><span className="text-white font-mono">{formatoPesos(costoMaterialUnitario * cantidad)}</span></div>}
+                {config.porcentajeIva > 0 && <div className="flex justify-between text-zinc-400 text-sm"><span>IVA ({config.porcentajeIva}%)</span><span className="text-white font-mono">{formatoPesos(costoTotal * (config.porcentajeIva / 100))}</span></div>}
+                <div className="flex justify-between text-white text-xl font-bold pt-4 border-t border-white/10 mt-2"><span>TOTAL</span><span className="text-yellow-500 font-mono">{formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}</span></div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tus Datos</h4>
+                  <input placeholder="Nombre / Empresa" value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-black border border-zinc-700 p-3 text-white focus:border-yellow-500 outline-none" />
+                  <input placeholder="Email" type="email" value={datosCliente.email} onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })} className="w-full bg-black border border-zinc-700 p-3 text-white focus:border-yellow-500 outline-none" />
                 </div>
-
-                {incluyeMaterial && (
-                  <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
-                    <div>
-                      <span className="text-yellow-800 text-sm font-bold flex items-center gap-2">
-                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
-                      </span>
-                    </div>
-                    <span className="text-slate-900 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-yellow-800 text-xs font-bold uppercase">Subtotal</span>
-                  <span className="text-2xl font-black text-slate-900">{formatoPesos(costoTotal)}</span>
-                </div>
-
-                {config.porcentajeIva > 0 && (
-                  <div className="flex justify-between items-center pt-2 border-t border-yellow-200">
-                    <span className="text-yellow-800 text-sm font-bold">+ IVA ({config.porcentajeIva}%)</span>
-                    <span className="text-xl font-bold text-slate-700">
-                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-center pt-3 border-t-2 border-slate-900">
-                  <span className="text-slate-900 text-lg font-bold">TOTAL</span>
-                  <span className="text-3xl font-black text-slate-900">
-                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
-                  </span>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Entrega</h4>
+                  <input placeholder="Teléfono" value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-black border border-zinc-700 p-3 text-white focus:border-yellow-500 outline-none" />
+                  <input placeholder="Dirección" value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-black border border-zinc-700 p-3 text-white focus:border-yellow-500 outline-none" />
                 </div>
               </div>
 
-              {/* TABS PERSONA/EMPRESA */}
-              <div className="flex p-1 bg-slate-200 rounded-lg mb-6 border border-slate-300">
-                <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-slate-900 text-yellow-400 shadow' : 'text-slate-500 hover:text-slate-900'}`}
-                >
-                  Persona Natural
-                </button>
-                <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-slate-900 text-yellow-400 shadow' : 'text-slate-500 hover:text-slate-900'}`}
-                >
-                  Empresa / Jurídica
+              <div className="mt-8 flex justify-end gap-4">
+                <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-zinc-400 hover:text-white text-sm uppercase font-bold tracking-wider">Cancelar</button>
+                <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-3 font-bold uppercase tracking-wider flex items-center gap-2">
+                  {enviandoCorreo ? <Loader2 className="animate-spin" /> : <Zap size={18} />} Enviar Pedido
                 </button>
               </div>
-
-              {/* FORMULARIO CLIENTE */}
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-900 uppercase mb-1 block">
-                    Correo Electrónico (Obligatorio)
-                  </label>
-                  <input
-                    type="email"
-                    value={datosCliente.email}
-                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium"
-                    placeholder="ejemplo@correo.com"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
-                    </label>
-                    <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
-                    </label>
-                    <input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
-                  </div>
-                </div>
-
-                {datosCliente.tipo === 'juridica' && (
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto</label>
-                    <input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" placeholder="¿Por quién preguntamos?" />
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label>
-                    <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label>
-                    <input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-yellow-500 outline-none font-medium" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* FOOTER MODAL */}
-            <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
-              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-500 font-bold hover:text-slate-900">Cancelar</button>
-              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-slate-900 hover:bg-black text-yellow-400 font-black px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg">
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-                CONFIRMAR PEDIDO
-              </button>
             </div>
           </div>
         </div>
