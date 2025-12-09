@@ -1518,30 +1518,30 @@ Quedo atento a las instrucciones. ⚡`;
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-3 border-t-2 border-green-500/30">
-                  <span className="text-green-400 text-lg font-bold">TOTAL</span>
-                  <span className="text-3xl font-black text-green-400">
+                <div className="flex justify-between items-center pt-3 border-t-2 border-slate-600">
+                  <span className="text-white text-lg font-bold">TOTAL</span>
+                  <span className="text-3xl font-black text-white">
                     {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
                   </span>
                 </div>
               </div>
 
-              {/* TABS PERSONA/EMPRESA */}
-              <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
+              {/* TABS PERSONA/EMPRESA CORREGIDOS (Amarillo Unificado) */}
+              <div className="flex gap-2 p-1 bg-slate-950 rounded-lg mb-6 border border-slate-800">
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural'
-                    ? 'bg-yellow-500 text-slate-900 text-white'
-                    : 'text-slate-400 hover:text-white'
+                  className={`flex-1 py-3 text-sm font-bold rounded-md transition-all uppercase tracking-wide ${datosCliente.tipo === 'natural'
+                    ? 'bg-yellow-400 text-black shadow-lg' // Activo
+                    : 'bg-transparent text-slate-400 border border-slate-700 hover:border-slate-500 hover:text-white' // Inactivo
                     }`}
                 >
                   Persona Natural
                 </button>
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica'
-                    ? 'bg-yellow-500 text-slate-900 text-white'
-                    : 'text-slate-400 hover:text-white'
+                  className={`flex-1 py-3 text-sm font-bold rounded-md transition-all uppercase tracking-wide ${datosCliente.tipo === 'juridica'
+                    ? 'bg-yellow-400 text-black shadow-lg' // Activo
+                    : 'bg-transparent text-slate-400 border border-slate-700 hover:border-slate-500 hover:text-white' // Inactivo
                     }`}
                 >
                   Empresa / Jurídica
@@ -1558,7 +1558,7 @@ Quedo atento a las instrucciones. ⚡`;
                     type="email"
                     value={datosCliente.email}
                     onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none transition-colors"
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
@@ -1571,7 +1571,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.nombre}
                       onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
                     />
                   </div>
                   <div>
@@ -1581,7 +1581,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.documento}
                       onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
                     />
                   </div>
                 </div>
@@ -1594,7 +1594,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.contacto}
                       onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
                       placeholder="¿Por quién preguntamos?"
                     />
                   </div>
@@ -1608,7 +1608,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.telefono}
                       onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
                     />
                   </div>
                   <div>
@@ -1618,7 +1618,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.direccion}
                       onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-400 outline-none"
                     />
                   </div>
                 </div>
@@ -1629,14 +1629,14 @@ Quedo atento a las instrucciones. ⚡`;
             <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
               <button
                 onClick={() => setMostrarModal(false)}
-                className="px-6 py-3 text-slate-400 font-bold hover:text-white"
+                className="px-6 py-3 text-slate-400 font-bold hover:text-white transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={procesarAccionModal}
                 disabled={enviandoCorreo}
-                className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2"
+                className="bg-yellow-400 hover:bg-yellow-300 text-black font-black px-8 py-3 rounded-xl flex items-center gap-2 shadow-[0_0_15px_rgba(250,204,21,0.3)] transition-all uppercase tracking-wide"
               >
                 {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
                 CONFIRMAR PEDIDO
