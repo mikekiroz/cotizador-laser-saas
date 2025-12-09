@@ -79,7 +79,7 @@ function AppContent() {
   if (appMode === 'loading' || (loadingData && appMode !== 'landing')) {
     return (
       <div className="h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="animate-spin text-cyan-400" size={48} />
+        <Loader2 className="animate-spin text-yellow-400" size={48} />
       </div>
     );
   }
@@ -162,11 +162,11 @@ function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Izquierda - Copy */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-bold px-4 py-2 rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm font-bold px-4 py-2 rounded-full mb-6">
                 <Zap size={16} /> COTIZADOR LÁSER SAAS
               </div>
               <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6">
-                Cotizaciones automáticas para tu taller de <span className="text-cyan-400">corte láser</span>
+                Cotizaciones automáticas para tu taller de <span className="text-yellow-400">corte láser</span>
               </h1>
               <p className="text-slate-400 text-lg mb-8">
                 Tus clientes suben su archivo DXF/SVG y obtienen un precio al instante.
@@ -187,13 +187,13 @@ function LandingPage() {
               <form onSubmit={handleAuth} className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Correo</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" required />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Contraseña</label>
-                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" required />
                 </div>
-                <button disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                <button disabled={loading} className="w-full bg-yellow-500 text-slate-900 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                   {loading && <Loader2 className="animate-spin" size={18} />}
                   {authMode === 'login' ? 'ENTRAR' : 'REGISTRARME'}
                 </button>
@@ -244,7 +244,7 @@ function OnboardingPage({ setEmpresa }) {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
       <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-lg w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center mb-4">
             <Building2 className="text-white" size={32} />
           </div>
           <h1 className="text-2xl font-bold text-white">¡Bienvenido!</h1>
@@ -253,27 +253,27 @@ function OnboardingPage({ setEmpresa }) {
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase">Nombre del Taller *</label>
-            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
+            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" required />
           </div>
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase">Slogan</label>
-            <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+            <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase">Teléfono</label>
-              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
-              <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+              <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" />
             </div>
           </div>
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase">Dirección</label>
-            <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+            <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" />
           </div>
-          <button disabled={saving} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+          <button disabled={saving} className="w-full bg-yellow-500 text-slate-900 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
             {saving && <Loader2 className="animate-spin" size={18} />}
             CREAR MI TALLER
           </button>
@@ -309,7 +309,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       <div className="bg-slate-950 border-b border-slate-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-indigo-500 rounded-xl flex items-center justify-center">
               <Zap size={20} className="text-white" />
             </div>
             <div>
@@ -329,13 +329,13 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       </div>
 
       {/* URL Banner */}
-      <div className="bg-cyan-500/10 border-b border-cyan-500/20 px-6 py-3">
+      <div className="bg-yellow-500/10 border-b border-yellow-500/20 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-400">Tu URL pública:</span>
-            <code className="bg-slate-800 px-3 py-1 rounded text-cyan-400 font-mono">{publicUrl}</code>
+            <code className="bg-slate-800 px-3 py-1 rounded text-yellow-400 font-mono">{publicUrl}</code>
           </div>
-          <button onClick={copyUrl} className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-bold">
+          <button onClick={copyUrl} className="flex items-center gap-2 text-yellow-400 hover:text-cyan-300 text-sm font-bold">
             {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
           </button>
         </div>
@@ -344,16 +344,16 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       {/* Tabs de Navegación */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex gap-4 mb-8 border-b border-slate-800 pb-1">
-          <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'pedidos' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'pedidos' ? 'border-yellow-500 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             Pedidos Recientes
           </button>
-          <button onClick={() => setTab('materiales')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'materiales' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          <button onClick={() => setTab('materiales')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'materiales' ? 'border-yellow-500 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             Materiales
           </button>
-          <button onClick={() => setTab('empresa')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'empresa' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          <button onClick={() => setTab('empresa')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'empresa' ? 'border-yellow-500 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             Configuración
           </button>
-          <button onClick={() => setTab('seguridad')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'seguridad' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+          <button onClick={() => setTab('seguridad')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'seguridad' ? 'border-yellow-500 text-yellow-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             Seguridad
           </button>
         </div>
@@ -432,7 +432,7 @@ function AdminPedidos({ empresaId }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-xl">Bandeja de Entrada</h3>
-        <button onClick={cargarPedidos} className="text-slate-400 hover:text-cyan-400 text-sm flex items-center gap-1">
+        <button onClick={cargarPedidos} className="text-slate-400 hover:text-yellow-400 text-sm flex items-center gap-1">
           <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
         </button>
       </div>
@@ -482,7 +482,7 @@ function AdminPedidos({ empresaId }) {
                   </td>
                   <td className="p-4 text-right flex items-center justify-end gap-2">
                     {p.archivo_url && (
-                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-cyan-600 hover:text-white text-slate-200 p-2 rounded-lg">
+                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-yellow-500 text-slate-900 hover:text-white text-slate-200 p-2 rounded-lg">
                         <Upload size={16} className="rotate-180" />
                       </a>
                     )}
@@ -587,14 +587,14 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
               </div>
             </div>
             <div className="bg-slate-900/50 p-4 rounded-lg border border-cyan-700/50 space-y-3">
-              <h4 className="text-sm font-bold text-cyan-400">Suministro de Material (Opcional)</h4>
+              <h4 className="text-sm font-bold text-yellow-400">Suministro de Material (Opcional)</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-cyan-500 uppercase block mb-1">Precio Venta</label>
+                  <label className="text-xs font-bold text-yellow-500 uppercase block mb-1">Precio Venta</label>
                   <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" />
                 </div>
                 <div className="w-1/3">
-                  <label className="text-xs font-bold text-cyan-500 uppercase block mb-1">Unidad</label>
+                  <label className="text-xs font-bold text-yellow-500 uppercase block mb-1">Unidad</label>
                   <select value={form.unidadCobro} onChange={e => setForm({ ...form, unidadCobro: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white">
                     <option value="cm2">cm²</option>
                     <option value="m2">m²</option>
@@ -605,7 +605,7 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
             </div>
           </div>
           <div className="flex justify-end mt-6">
-            <button type="button" onClick={handleSave} disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
+            <button type="button" onClick={handleSave} disabled={saving} className="bg-yellow-500 text-slate-900 hover:bg-yellow-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
               {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
             </button>
           </div>
@@ -636,7 +636,7 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
                 </td>
                 <td className="p-4">
                   {(m.precio_material) > 0 ? (
-                    <span className="bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded text-xs font-bold border border-cyan-900">
+                    <span className="bg-cyan-900/30 text-yellow-400 px-2 py-1 rounded text-xs font-bold border border-cyan-900">
                       ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
                     </span>
                   ) : (
@@ -712,7 +712,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-2xl">
-      <h3 className="font-bold mb-6 flex items-center gap-2"><Building2 size={20} className="text-cyan-400" /> Datos de la Empresa</h3>
+      <h3 className="font-bold mb-6 flex items-center gap-2"><Building2 size={20} className="text-yellow-400" /> Datos de la Empresa</h3>
 
       {/* Imágenes */}
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -724,7 +724,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
             ) : (
               <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin logo</div>
             )}
-            <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+            <label className="cursor-pointer bg-yellow-500 text-slate-900 hover:bg-yellow-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
               <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Logo'}
               <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
             </label>
@@ -738,7 +738,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
             ) : (
               <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin ícono</div>
             )}
-            <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+            <label className="cursor-pointer bg-yellow-500 text-slate-900 hover:bg-yellow-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
               <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Ícono'}
               <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
             </label>
@@ -773,7 +773,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
           <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
       </div>
-      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
+      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-yellow-500 text-slate-900 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
         {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
       </button>
     </div>
@@ -824,7 +824,7 @@ function AdminSeguridad() {
 
   return (
     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-md">
-      <h3 className="font-bold mb-6 flex items-center gap-2"><Lock size={20} className="text-cyan-400" /> Cambiar Contraseña</h3>
+      <h3 className="font-bold mb-6 flex items-center gap-2"><Lock size={20} className="text-yellow-400" /> Cambiar Contraseña</h3>
 
       <div className="space-y-4">
         <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg mb-4">
@@ -847,7 +847,7 @@ function AdminSeguridad() {
           <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Repite la nueva contraseña" />
         </div>
 
-        <button onClick={handleChangePassword} disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
+        <button onClick={handleChangePassword} disabled={loading} className="w-full bg-yellow-500 text-slate-900 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
         </button>
       </div>
@@ -1328,20 +1328,20 @@ Quedo atento a las instrucciones. ⚡`;
 
           {/* NUEVO: Toggle para incluir material */}
           {materialTienePrecio && (
-            <div className="mb-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+            <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={incluyeMaterial}
                   onChange={e => setIncluyeMaterial(e.target.checked)}
-                  className="w-5 h-5 bg-slate-900 border-2 border-cyan-500 rounded checked:bg-cyan-500 cursor-pointer"
+                  className="w-5 h-5 bg-slate-900 border-2 border-yellow-500 rounded checked:bg-yellow-500 cursor-pointer"
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 font-bold text-white">
-                    <Package size={16} className="text-cyan-400" />
+                    <Package size={16} className="text-yellow-400" />
                     Incluir Material
                   </div>
-                  <div className="text-xs text-cyan-400 mt-1">
+                  <div className="text-xs text-yellow-400 mt-1">
                     {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
                   </div>
                 </div>
@@ -1349,7 +1349,7 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
           )}
 
-          <label className="group relative border-2 border-dashed border-cyan-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
+          <label className="group relative border-2 border-dashed border-yellow-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
             <input
               type="file"
               className="hidden"
@@ -1358,12 +1358,12 @@ Quedo atento a las instrucciones. ⚡`;
             />
             {procesando ? (
               <div className="flex flex-col items-center">
-                <Loader2 className="animate-spin text-cyan-400 mb-2" size={32} />
-                <span className="text-cyan-400 font-bold text-sm">PROCESANDO...</span>
+                <Loader2 className="animate-spin text-yellow-400 mb-2" size={32} />
+                <span className="text-yellow-400 font-bold text-sm">PROCESANDO...</span>
               </div>
             ) : (
               <>
-                <Upload className="text-cyan-400 mb-3" size={36} />
+                <Upload className="text-yellow-400 mb-3" size={36} />
                 <h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3>
                 <div className="flex gap-2 mt-2">
                   <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
@@ -1396,7 +1396,7 @@ Quedo atento a las instrucciones. ⚡`;
           <div className="space-y-4 mb-6">
             <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between">
               <span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2">
-                <FileText size={14} className="text-cyan-500" /> Archivo
+                <FileText size={14} className="text-yellow-500" /> Archivo
               </span>
               <span className="text-white truncate max-w-[180px]">
                 {nombreArchivo || '---'}
@@ -1417,7 +1417,7 @@ Quedo atento a las instrucciones. ⚡`;
                 <span className="text-2xl font-black">{cantidad}</span>
                 <button
                   onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-cyan-600 text-white rounded-lg flex items-center justify-center hover:bg-cyan-500"
+                  className="w-10 h-10 bg-yellow-500 text-slate-900 text-white rounded-lg flex items-center justify-center hover:bg-yellow-500"
                 >
                   <Plus size={16} />
                 </button>
@@ -1427,7 +1427,7 @@ Quedo atento a las instrucciones. ⚡`;
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
                 <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
-                <div className="text-cyan-400 font-mono text-lg font-bold">
+                <div className="text-yellow-400 font-mono text-lg font-bold">
                   {(perimetro * cantidad).toFixed(2)}m
                 </div>
               </div>
@@ -1441,12 +1441,12 @@ Quedo atento a las instrucciones. ⚡`;
 
             {/* Mostrar área si incluye material */}
             {incluyeMaterial && areaCm2 > 0 && (
-              <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl">
+              <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-xl">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-cyan-400 text-xs font-bold uppercase flex items-center gap-2">
+                  <span className="text-yellow-400 text-xs font-bold uppercase flex items-center gap-2">
                     <Package size={14} /> Material Incluido
                   </span>
-                  <span className="text-cyan-400 font-bold">
+                  <span className="text-yellow-400 font-bold">
                     {formatoPesos(costoMaterialUnitario * cantidad)}
                   </span>
                 </div>
@@ -1496,11 +1496,11 @@ Quedo atento a las instrucciones. ⚡`;
                 {incluyeMaterial && (
                   <div className="flex justify-between items-center pb-3 border-b border-slate-700">
                     <div>
-                      <span className="text-cyan-400 text-sm font-bold flex items-center gap-2">
+                      <span className="text-yellow-400 text-sm font-bold flex items-center gap-2">
                         <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
                       </span>
                     </div>
-                    <span className="text-cyan-400 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                    <span className="text-yellow-400 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
                   </div>
                 )}
 
@@ -1512,7 +1512,7 @@ Quedo atento a las instrucciones. ⚡`;
                 {config.porcentajeIva > 0 && (
                   <div className="flex justify-between items-center pt-2 border-t border-slate-700">
                     <span className="text-slate-400 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                    <span className="text-xl font-bold text-cyan-400">
+                    <span className="text-xl font-bold text-yellow-400">
                       {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
                     </span>
                   </div>
@@ -1531,7 +1531,7 @@ Quedo atento a las instrucciones. ⚡`;
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
                   className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural'
-                    ? 'bg-cyan-600 text-white'
+                    ? 'bg-yellow-500 text-slate-900 text-white'
                     : 'text-slate-400 hover:text-white'
                     }`}
                 >
@@ -1540,7 +1540,7 @@ Quedo atento a las instrucciones. ⚡`;
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
                   className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica'
-                    ? 'bg-cyan-600 text-white'
+                    ? 'bg-yellow-500 text-slate-900 text-white'
                     : 'text-slate-400 hover:text-white'
                     }`}
                 >
@@ -1551,14 +1551,14 @@ Quedo atento a las instrucciones. ⚡`;
               {/* FORMULARIO CLIENTE */}
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">
+                  <label className="text-xs font-bold text-yellow-400 uppercase mb-1 block">
                     Correo Electrónico (Obligatorio)
                   </label>
                   <input
                     type="email"
                     value={datosCliente.email}
                     onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
@@ -1571,7 +1571,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.nombre}
                       onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
                     />
                   </div>
                   <div>
@@ -1581,7 +1581,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.documento}
                       onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
                     />
                   </div>
                 </div>
@@ -1594,7 +1594,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.contacto}
                       onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
                       placeholder="¿Por quién preguntamos?"
                     />
                   </div>
@@ -1608,7 +1608,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.telefono}
                       onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
                     />
                   </div>
                   <div>
@@ -1618,7 +1618,7 @@ Quedo atento a las instrucciones. ⚡`;
                     <input
                       value={datosCliente.direccion}
                       onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none"
                     />
                   </div>
                 </div>
