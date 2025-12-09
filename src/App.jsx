@@ -78,8 +78,8 @@ function AppContent() {
   // Loading
   if (appMode === 'loading' || (loadingData && appMode !== 'landing')) {
     return (
-      <div className="h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="animate-spin text-cyan-400" size={48} />
+      <div className="h-screen bg-yellow-400 flex items-center justify-center">
+        <Loader2 className="animate-spin text-black" size={48} />
       </div>
     );
   }
@@ -103,11 +103,11 @@ function AppContent() {
   if (appMode === 'public') {
     if (!empresa.nombre) {
       return (
-        <div className="h-screen bg-slate-950 flex items-center justify-center text-white">
+        <div className="h-screen bg-yellow-400 flex items-center justify-center text-slate-900">
           <div className="text-center">
-            <AlertTriangle className="mx-auto mb-4 text-yellow-400" size={48} />
+            <AlertTriangle className="mx-auto mb-4 text-black" size={48} />
             <h1 className="text-xl font-bold">Taller no encontrado</h1>
-            <p className="text-slate-400">El slug "{tallerSlug}" no existe.</p>
+            <p className="text-slate-700">El slug "{tallerSlug}" no existe.</p>
           </div>
         </div>
       );
@@ -127,7 +127,7 @@ function App() {
 }
 
 // ==========================================
-// LANDING PAGE
+// LANDING PAGE (AMARILLO INDUSTRIAL)
 // ==========================================
 function LandingPage() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
@@ -154,52 +154,52 @@ function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-yellow-400 text-slate-900">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(6,182,212,0.15),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(255,255,255,0.4),transparent_50%)]"></div>
         <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Izquierda - Copy */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-bold px-4 py-2 rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 bg-black text-yellow-400 text-sm font-bold px-4 py-2 rounded-full mb-6">
                 <Zap size={16} /> COTIZADOR LÁSER SAAS
               </div>
-              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6">
-                Cotizaciones automáticas para tu taller de <span className="text-cyan-400">corte láser</span>
+              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 text-black">
+                Cotizaciones automáticas para tu taller de <span className="text-white bg-black px-2">corte láser</span>
               </h1>
-              <p className="text-slate-400 text-lg mb-8">
+              <p className="text-slate-800 text-lg mb-8 font-medium">
                 Tus clientes suben su archivo DXF/SVG y obtienen un precio al instante.
                 Sin llamadas, sin esperas, sin errores de cálculo.
               </p>
-              <ul className="space-y-3 text-slate-300 mb-8">
-                <li className="flex items-center gap-2"><Check size={20} className="text-green-400" /> Configura tus materiales y precios</li>
-                <li className="flex items-center gap-2"><Check size={20} className="text-green-400" /> Obtén una URL única para tus clientes</li>
-                <li className="flex items-center gap-2"><Check size={20} className="text-green-400" /> Recibe pedidos por WhatsApp o Email</li>
+              <ul className="space-y-3 text-slate-900 mb-8 font-bold">
+                <li className="flex items-center gap-2"><div className="bg-black text-yellow-400 rounded-full p-1"><Check size={14} /></div> Configura tus materiales y precios</li>
+                <li className="flex items-center gap-2"><div className="bg-black text-yellow-400 rounded-full p-1"><Check size={14} /></div> Obtén una URL única para tus clientes</li>
+                <li className="flex items-center gap-2"><div className="bg-black text-yellow-400 rounded-full p-1"><Check size={14} /></div> Recibe pedidos por WhatsApp o Email</li>
               </ul>
             </div>
 
             {/* Derecha - Auth Form */}
-            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
-              <h2 className="text-xl font-bold mb-6 text-center">
+            <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-2xl">
+              <h2 className="text-xl font-bold mb-6 text-center text-black">
                 {authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
               </h2>
               <form onSubmit={handleAuth} className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Correo</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" required />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Contraseña</label>
-                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" required />
                 </div>
-                <button disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                <button disabled={loading} className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-700 text-yellow-400 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                   {loading && <Loader2 className="animate-spin" size={18} />}
                   {authMode === 'login' ? 'ENTRAR' : 'REGISTRARME'}
                 </button>
               </form>
               <div className="mt-6 text-center">
-                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-slate-400 hover:text-white">
+                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-slate-500 hover:text-black font-bold">
                   {authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
                 </button>
               </div>
@@ -212,7 +212,7 @@ function LandingPage() {
 }
 
 // ==========================================
-// ONBOARDING - Primera configuración
+// ONBOARDING
 // ==========================================
 function OnboardingPage({ setEmpresa }) {
   const { session } = useAuth();
@@ -241,39 +241,39 @@ function OnboardingPage({ setEmpresa }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-      <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-lg w-full">
+    <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6 text-slate-900">
+      <div className="bg-white border border-slate-200 p-8 rounded-2xl max-w-lg w-full shadow-xl">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center mb-4">
-            <Building2 className="text-white" size={32} />
+          <div className="w-16 h-16 bg-black text-yellow-400 rounded-2xl mx-auto flex items-center justify-center mb-4">
+            <Building2 size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-white">¡Bienvenido!</h1>
-          <p className="text-slate-400">Configura los datos de tu taller para comenzar.</p>
+          <h1 className="text-2xl font-bold text-black">¡Bienvenido!</h1>
+          <p className="text-slate-500">Configura los datos de tu taller para comenzar.</p>
         </div>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase">Nombre del Taller *</label>
-            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
+            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" required />
           </div>
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase">Slogan</label>
-            <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+            <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase">Teléfono</label>
-              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" />
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
-              <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+              <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" />
             </div>
           </div>
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase">Dirección</label>
-            <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
+            <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-black focus:border-yellow-500 outline-none" />
           </div>
-          <button disabled={saving} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+          <button disabled={saving} className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-700 text-yellow-400 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
             {saving && <Loader2 className="animate-spin" size={18} />}
             CREAR MI TALLER
           </button>
@@ -284,11 +284,11 @@ function OnboardingPage({ setEmpresa }) {
 }
 
 // ==========================================
-// VISTA ADMIN - CON PESTAÑA PEDIDOS
+// VISTA ADMIN (AMARILLO INDUSTRIAL)
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
-  const [tab, setTab] = useState('pedidos'); // Arrancar en 'pedidos' es más útil
+  const [tab, setTab] = useState('pedidos');
   const [copied, setCopied] = useState(false);
 
   const publicUrl = `${window.location.origin}/?taller=${empresa.slug}`;
@@ -306,22 +306,22 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   return (
     <div className="min-h-screen bg-yellow-400 text-slate-900">
       {/* Header */}
-      <div className="bg-white border-b border-gray-300 px-6 py-4 shadow-md">
+      <div className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-xl flex items-center justify-center">
-              <Zap size={20} className="text-white" />
+            <div className="w-10 h-10 bg-black text-yellow-400 rounded-xl flex items-center justify-center">
+              <Zap size={20} />
             </div>
             <div>
-              <h1 className="font-bold text-lg">{empresa.nombre}</h1>
+              <h1 className="font-bold text-lg text-black">{empresa.nombre}</h1>
               <p className="text-xs text-slate-500">{session?.user?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-black hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
               <ExternalLink size={16} /> Ver Cotizador
             </a>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-500 hover:text-black transition-colors font-bold">
               <LogOut size={18} /> Salir
             </button>
           </div>
@@ -329,195 +329,178 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       </div>
 
       {/* URL Banner */}
-      <div className="bg-white border-b border-gray-300 px-6 py-3 shadow-sm">
+      <div className="bg-white border-b border-slate-200 px-6 py-3 shadow-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-slate-600 font-bold">
-              <code className="bg-slate-900 px-3 py-1 rounded text-yellow-400 font-mono border border-black">
-              </div>
-              <button onClick={copyUrl} className="flex items-center gap-2 text-slate-900 hover:text-yellow-600 text-sm font-bold">
-                {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
-              </button>
+            <span className="text-slate-600 font-bold">Tu URL pública:</span>
+            <code className="bg-slate-900 px-3 py-1 rounded text-yellow-400 font-mono border border-black">{publicUrl}</code>
           </div>
-        </div>
-
-        {/* Tabs de Navegación */}
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="flex gap-4 mb-8 border-b border-slate-900/20 pb-1">
-            <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'pedidos' ? 'border-black text-black' : 'border-transparent text-slate-700 hover:text-black'}`}>
-              Pedidos Recientes
-            </button>
-            <button onClick={() => setTab('materiales')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'materiales' ? 'border-black text-black' : 'border-transparent text-slate-700 hover:text-black'}`}>
-              Materiales
-            </button>
-            <button onClick={() => setTab('empresa')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'empresa' ? 'border-black text-black' : 'border-transparent text-slate-700 hover:text-black'}`}>
-              Configuración
-            </button>
-            <button onClick={() => setTab('seguridad')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'seguridad' ? 'border-black text-black' : 'border-transparent text-slate-700 hover:text-black'}`}>
-              Seguridad
-            </button>
-          </div>
-
-          {/* Renderizado de Componentes */}
-          {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
-          {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
-          {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
-          {tab === 'seguridad' && <AdminSeguridad />}
+          <button onClick={copyUrl} className="flex items-center gap-2 text-slate-900 hover:text-yellow-600 text-sm font-bold">
+            {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
+          </button>
         </div>
       </div>
-      );
+
+      {/* Tabs de Navegación */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="flex gap-4 mb-8 border-b border-slate-900/10 pb-1">
+          <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-4 ${tab === 'pedidos' ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-black'}`}>
+            Pedidos Recientes
+          </button>
+          <button onClick={() => setTab('materiales')} className={`px-4 py-2 font-bold text-sm transition-all border-b-4 ${tab === 'materiales' ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-black'}`}>
+            Materiales
+          </button>
+          <button onClick={() => setTab('empresa')} className={`px-4 py-2 font-bold text-sm transition-all border-b-4 ${tab === 'empresa' ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-black'}`}>
+            Configuración
+          </button>
+          <button onClick={() => setTab('seguridad')} className={`px-4 py-2 font-bold text-sm transition-all border-b-4 ${tab === 'seguridad' ? 'border-black text-black' : 'border-transparent text-slate-500 hover:text-black'}`}>
+            Seguridad
+          </button>
+        </div>
+
+        {/* Renderizado de Componentes */}
+        {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
+        {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
+        {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
+        {tab === 'seguridad' && <AdminSeguridad />}
+      </div>
+    </div>
+  );
 }
 
-      function AdminPedidos({empresaId}) {
+function AdminPedidos({ empresaId }) {
   const [pedidos, setPedidos] = useState([]);
-      const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-        cargarPedidos();
+    cargarPedidos();
   }, []);
 
   const cargarPedidos = async () => {
-        setLoading(true);
-      const {data, error} = await supabase
+    setLoading(true);
+    const { data, error } = await supabase
       .from('pedidos')
       .select('*')
       .eq('empresa_id', empresaId)
-      .order('created_at', {ascending: false });
+      .order('created_at', { ascending: false });
 
-      if (error) console.error("Error cargando pedidos:", error);
-      else setPedidos(data || []);
+    if (error) console.error("Error cargando pedidos:", error);
+    else setPedidos(data || []);
 
-      setLoading(false);
+    setLoading(false);
   };
 
-  // --- FUNCIONES AUXILIARES (AHORA DENTRO DEL COMPONENTE) ---
   const formatoFecha = (fecha) => {
     if (!fecha) return '';
-      return new Date(fecha).toLocaleDateString('es-CO', {
-        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
     });
   };
 
   const formatoPesos = (v) => {
     if (v === null || v === undefined) return '$0';
-      return '$' + Math.round(v).toLocaleString('es-CO');
+    return '$' + Math.round(v).toLocaleString('es-CO');
   };
 
-  // --- FUNCIONES DE GESTIÓN ---
   const eliminarPedido = async (id) => {
     if (!confirm('¿Estás seguro de eliminar este pedido?')) return;
-
-      const {error} = await supabase.from('pedidos').delete().eq('id', id);
-
-      if (error) alert('Error al eliminar');
-      else cargarPedidos();
+    const { error } = await supabase.from('pedidos').delete().eq('id', id);
+    if (error) alert('Error al eliminar');
+    else cargarPedidos();
   };
 
   const cambiarEstado = async (id, nuevoEstado) => {
-        // Actualización optimista para que no "rebote"
-        setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
-
-      const {error} = await supabase
-      .from('pedidos')
-      .update({estado: nuevoEstado })
-      .eq('id', id);
-
-      if (error) {
-        alert('Error guardando el cambio.');
-      cargarPedidos(); // Revertir si hay error
-    }
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
+    const { error } = await supabase.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
+    if (error) { alert('Error guardando el cambio.'); cargarPedidos(); }
   };
 
-      return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="font-bold text-xl">Bandeja de Entrada</h3>
-          <button onClick={cargarPedidos} className="text-slate-400 hover:text-cyan-400 text-sm flex items-center gap-1">
-            <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-10 text-slate-500">Cargando pedidos...</div>
-        ) : pedidos.length === 0 ? (
-          <div className="bg-slate-800 p-10 rounded-xl text-center border border-slate-700">
-            <div className="inline-flex bg-slate-900 p-4 rounded-full mb-4 text-slate-500"><FileBox size={32} /></div>
-            <h3 className="text-white font-bold">No hay pedidos aún</h3>
-            <p className="text-slate-400 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
-          </div>
-        ) : (
-          <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-950 text-slate-400 text-xs uppercase font-bold">
-                <tr>
-                  <th className="p-4">Fecha</th>
-                  <th className="p-4">Cliente</th>
-                  <th className="p-4">Detalles</th>
-                  <th className="p-4">Estado</th>
-                  <th className="p-4 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {pedidos.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
-                    <td className="p-4 text-slate-400 whitespace-nowrap">{formatoFecha(p.created_at)}</td>
-                    <td className="p-4">
-                      <div className="font-bold text-white">{p.cliente_nombre}</div>
-                      <div className="text-xs text-slate-400">{p.cliente_telefono}</div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-white">{p.material_nombre}</div>
-                      <div className="text-xs text-slate-500">{p.cantidad} Unds - {formatoPesos(p.valor_total)}</div>
-                    </td>
-                    <td className="p-4">
-                      <select
-                        value={p.estado || 'pendiente'}
-                        onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                        className={`bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-bold outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-400 border-green-900' : 'text-yellow-400 border-yellow-900'
-                          }`}
-                      >
-                        <option value="pendiente">Pendiente</option>
-                        <option value="realizado">Realizado</option>
-                      </select>
-                    </td>
-                    <td className="p-4 text-right flex items-center justify-end gap-2">
-                      {p.archivo_url && (
-                        <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-cyan-600 hover:text-white text-slate-200 p-2 rounded-lg">
-                          <Upload size={16} className="rotate-180" />
-                        </a>
-                      )}
-                      <button onClick={() => eliminarPedido(p.id)} className="bg-slate-700 hover:bg-red-500 hover:text-white text-slate-200 p-2 rounded-lg">
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="font-bold text-xl text-black">Bandeja de Entrada</h3>
+        <button onClick={cargarPedidos} className="text-slate-600 hover:text-black text-sm flex items-center gap-1 font-bold">
+          <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
+        </button>
       </div>
-      );
+
+      {loading ? (
+        <div className="text-center py-10 text-slate-500">Cargando pedidos...</div>
+      ) : pedidos.length === 0 ? (
+        <div className="bg-white p-10 rounded-xl text-center border border-slate-200 shadow-xl">
+          <div className="inline-flex bg-slate-100 p-4 rounded-full mb-4 text-slate-500"><FileBox size={32} /></div>
+          <h3 className="text-black font-bold">No hay pedidos aún</h3>
+          <p className="text-slate-500 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xl">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-100 text-slate-600 text-xs uppercase font-bold border-b border-slate-200">
+              <tr>
+                <th className="p-4">Fecha</th>
+                <th className="p-4">Cliente</th>
+                <th className="p-4">Detalles</th>
+                <th className="p-4">Estado</th>
+                <th className="p-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {pedidos.map((p) => (
+                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="p-4 text-slate-500 whitespace-nowrap">{formatoFecha(p.created_at)}</td>
+                  <td className="p-4">
+                    <div className="font-bold text-black">{p.cliente_nombre}</div>
+                    <div className="text-xs text-slate-500">{p.cliente_telefono}</div>
+                  </td>
+                  <td className="p-4">
+                    <div className="text-black">{p.material_nombre}</div>
+                    <div className="text-xs text-slate-500">{p.cantidad} Unds - {formatoPesos(p.valor_total)}</div>
+                  </td>
+                  <td className="p-4">
+                    <select
+                      value={p.estado || 'pendiente'}
+                      onChange={(e) => cambiarEstado(p.id, e.target.value)}
+                      className={`bg-white border rounded px-2 py-1 text-xs font-bold outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-600 border-green-200 bg-green-50' : 'text-yellow-600 border-yellow-200 bg-yellow-50'}`}
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="realizado">Realizado</option>
+                    </select>
+                  </td>
+                  <td className="p-4 text-right flex items-center justify-end gap-2">
+                    {p.archivo_url && (
+                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-slate-100 hover:bg-black hover:text-white text-slate-600 p-2 rounded-lg border border-slate-200">
+                        <Upload size={16} className="rotate-180" />
+                      </a>
+                    )}
+                    <button onClick={() => eliminarPedido(p.id)} className="bg-slate-100 hover:bg-red-500 hover:text-white text-slate-600 p-2 rounded-lg border border-slate-200">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
 }
 
-      // ==========================================
-      // ADMIN - MATERIALES (CÓDIGO COMPLETO Y CORREGIDO)
-      // ==========================================
-      function AdminMateriales({empresaId, materiales, setMateriales, recargar}) {
+function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   const [form, setForm] = useState({
-        nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2'
+    nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2'
   });
 
-      const [editingId, setEditingId] = useState(null);
-      const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async (e) => {
-        e.preventDefault();
-      if (!form.nombre || !form.precioMetro) return;
-      setSaving(true);
+    e.preventDefault();
+    if (!form.nombre || !form.precioMetro) return;
+    setSaving(true);
 
-      const datos = {
-        empresa_id: empresaId,
+    const datos = {
+      empresa_id: empresaId,
       nombre: form.nombre,
       calibre: form.calibre,
       precio_metro: Number(form.precioMetro),
@@ -526,173 +509,166 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       unidad_cobro: form.unidadCobro
     };
 
-      if (editingId) {
-        await supabase.from('materiales').update(datos).eq('id', editingId);
+    if (editingId) {
+      await supabase.from('materiales').update(datos).eq('id', editingId);
     } else {
-        await supabase.from('materiales').insert(datos);
+      await supabase.from('materiales').insert(datos);
     }
 
-      setForm({nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2' });
-      setEditingId(null);
-      setSaving(false);
-      recargar();
+    setForm({ nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2' });
+    setEditingId(null);
+    setSaving(false);
+    recargar();
   };
 
   const handleEdit = (m) => {
-        setForm({
-          nombre: m.nombre,
-          calibre: m.calibre,
-          precioMetro: m.precio_metro || 0,
-          precioDisparo: m.precio_disparo || 0,
-          precioMaterial: m.precio_material || 0,
-          unidadCobro: m.unidad_cobro || 'cm2'
-        });
-      setEditingId(m.id);
+    setForm({
+      nombre: m.nombre,
+      calibre: m.calibre,
+      precioMetro: m.precio_metro || 0,
+      precioDisparo: m.precio_disparo || 0,
+      precioMaterial: m.precio_material || 0,
+      unidadCobro: m.unidad_cobro || 'cm2'
+    });
+    setEditingId(m.id);
   };
 
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar este material?')) return;
-      await supabase.from('materiales').delete().eq('id', id);
-      recargar();
+    await supabase.from('materiales').delete().eq('id', id);
+    recargar();
   };
 
-      return (
-      <div className="space-y-6">
-        {/* Formulario */}
-        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-          <h3 className="font-bold mb-4">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
-          <form onSubmit={handleSave}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="md:col-span-2">
-                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre Material</label>
-                <input placeholder="Ej: Acero HR" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" required />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Calibre / Espesor</label>
-                <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
-              </div>
+  return (
+    <div className="space-y-6">
+      {/* Formulario */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xl">
+        <h3 className="font-bold mb-4 text-black">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
+        <form onSubmit={handleSave}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="md:col-span-2">
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre Material</label>
+              <input placeholder="Ej: Acero HR" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" required />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 space-y-3">
-                <h4 className="text-sm font-bold text-white">Servicio de Corte</h4>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Costo / Metro</label>
-                    <input type="number" placeholder="$" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" required />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Costo / Perforación</label>
-                    <input type="number" placeholder="$" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" />
-                  </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Calibre / Espesor</label>
+              <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+              <h4 className="text-sm font-bold text-slate-700">Servicio de Corte</h4>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Costo / Metro</label>
+                  <input type="number" placeholder="$" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg p-3 text-black" required />
                 </div>
-              </div>
-              <div className="bg-slate-900/50 p-4 rounded-lg border border-cyan-700/50 space-y-3">
-                <h4 className="text-sm font-bold text-cyan-400">Suministro de Material (Opcional)</h4>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="text-xs font-bold text-cyan-500 uppercase block mb-1">Precio Venta</label>
-                    <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" />
-                  </div>
-                  <div className="w-1/3">
-                    <label className="text-xs font-bold text-cyan-500 uppercase block mb-1">Unidad</label>
-                    <select value={form.unidadCobro} onChange={e => setForm({ ...form, unidadCobro: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white">
-                      <option value="cm2">cm²</option>
-                      <option value="m2">m²</option>
-                      <option value="unidad">Unidad</option>
-                    </select>
-                  </div>
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Costo / Perforación</label>
+                  <input type="number" placeholder="$" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg p-3 text-black" />
                 </div>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
-              <button type="button" onClick={handleSave} disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
-                {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
-              </button>
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 space-y-3">
+              <h4 className="text-sm font-bold text-yellow-700">Suministro de Material (Opcional)</h4>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-yellow-700 uppercase block mb-1">Precio Venta</label>
+                  <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg p-3 text-black" />
+                </div>
+                <div className="w-1/3">
+                  <label className="text-xs font-bold text-yellow-700 uppercase block mb-1">Unidad</label>
+                  <select value={form.unidadCobro} onChange={e => setForm({ ...form, unidadCobro: e.target.value })} className="w-full bg-white border border-slate-300 rounded-lg p-3 text-black">
+                    <option value="cm2">cm²</option>
+                    <option value="m2">m²</option>
+                    <option value="unidad">Unidad</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </form>
-        </div>
-
-        {/* --- TABLA DE LA LISTA DE MATERIALES --- */}
-        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-950 text-slate-400 text-xs uppercase">
-              <tr>
-                <th className="p-4 text-left">Material</th>
-                <th className="p-4 text-left">Servicio Corte</th>
-                <th className="p-4 text-left">Suministro Material</th>
-                <th className="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700">
-              {materiales.map(m => (
-                <tr key={m.id} className="hover:bg-slate-700/50">
-                  <td className="p-4">
-                    <div className="font-bold text-white">{m.nombre}</div>
-                    <div className="text-xs text-slate-400">{m.calibre}</div>
-                  </td>
-                  <td className="p-4">
-                    <div className="text-green-400 font-mono">${(m.precio_metro)?.toLocaleString()} /m</div>
-                    <div className="text-xs text-slate-500">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
-                  </td>
-                  <td className="p-4">
-                    {(m.precio_material) > 0 ? (
-                      <span className="bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded text-xs font-bold border border-cyan-900">
-                        ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600 text-xs">No vende</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-right">
-                    <button onClick={() => handleEdit(m)} className="p-2"><Edit size={16} /></button>
-                    <button onClick={() => handleDelete(m.id)} className="p-2"><Trash2 size={16} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          </div>
+          <div className="flex justify-end mt-6">
+            <button type="button" onClick={handleSave} disabled={saving} className="bg-black hover:bg-slate-800 text-yellow-400 font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
+              {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
+            </button>
+          </div>
+        </form>
       </div>
-      );
+
+      {/* Tabla */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xl">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
+            <tr>
+              <th className="p-4 text-left">Material</th>
+              <th className="p-4 text-left">Servicio Corte</th>
+              <th className="p-4 text-left">Suministro Material</th>
+              <th className="p-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {materiales.map(m => (
+              <tr key={m.id} className="hover:bg-slate-50">
+                <td className="p-4">
+                  <div className="font-bold text-black">{m.nombre}</div>
+                  <div className="text-xs text-slate-500">{m.calibre}</div>
+                </td>
+                <td className="p-4">
+                  <div className="text-green-600 font-mono">${(m.precio_metro)?.toLocaleString()} /m</div>
+                  <div className="text-xs text-slate-500">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
+                </td>
+                <td className="p-4">
+                  {(m.precio_material) > 0 ? (
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold border border-yellow-200">
+                      ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-xs">No vende</span>
+                  )}
+                </td>
+                <td className="p-4 text-right">
+                  <button onClick={() => handleEdit(m)} className="p-2 text-slate-500 hover:text-black"><Edit size={16} /></button>
+                  <button onClick={() => handleDelete(m.id)} className="p-2 text-slate-500 hover:text-red-500"><Trash2 size={16} /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
-      // ==========================================
-      // ADMIN - EMPRESA
-      // ==========================================
-      function AdminEmpresa({empresa, setEmpresa}) {
-  const {session} = useAuth();
-      const [saving, setSaving] = useState(false);
-      const [uploading, setUploading] = useState(false);
-      const [form, setForm] = useState(empresa);
+
+function AdminEmpresa({ empresa, setEmpresa }) {
+  const { session } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [form, setForm] = useState(empresa);
 
   const handleImageUpload = async (file, fieldName) => {
     if (!file) return;
-      setUploading(true);
+    setUploading(true);
 
-      const fileExt = file.name.split('.').pop().toLowerCase();
-      const fileName = `${session.user.id}/${fieldName}_${Date.now()}.${fileExt}`;
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const fileName = `${session.user.id}/${fieldName}_${Date.now()}.${fileExt}`;
 
-      // Subir a Supabase Storage
-      const {error: uploadError } = await supabase.storage
-      .from('empresas-assets')
-      .upload(fileName, file, {upsert: true });
+    const { error: uploadError } = await supabase.storage.from('empresas-assets').upload(fileName, file, { upsert: true });
 
-      if (uploadError) {
-        alert('Error subiendo imagen: ' + uploadError.message);
+    if (uploadError) {
+      alert('Error subiendo imagen: ' + uploadError.message);
       setUploading(false);
       return;
     }
 
-      // Obtener URL pública
-      const {data} = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
-
-      setForm({...form, [fieldName]: data.publicUrl });
-      setUploading(false);
+    const { data } = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
+    setForm({ ...form, [fieldName]: data.publicUrl });
+    setUploading(false);
   };
 
   const handleSave = async () => {
-        setSaving(true);
-      const datos = {
-        nombre: form.nombre,
+    setSaving(true);
+    const datos = {
+      nombre: form.nombre,
       slogan: form.slogan,
       telefono: form.telefono,
       direccion: form.direccion,
@@ -701,211 +677,198 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       favicon_url: form.faviconUrl || form.favicon_url,
       porcentaje_iva: Number(form.porcentajeIva || form.porcentaje_iva) || 19
     };
-      const {error} = await supabase.from('empresas').update(datos).eq('id', session.user.id);
-      if (error) alert('Error: ' + error.message);
-      else {
-        setEmpresa({ ...empresa, ...form });
+    const { error } = await supabase.from('empresas').update(datos).eq('id', session.user.id);
+    if (error) alert('Error: ' + error.message);
+    else {
+      setEmpresa({ ...empresa, ...form });
       alert('¡Guardado!');
     }
-      setSaving(false);
+    setSaving(false);
   };
 
-      return (
-      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-2xl">
-        <h3 className="font-bold mb-6 flex items-center gap-2"><Building2 size={20} className="text-cyan-400" /> Datos de la Empresa</h3>
+  return (
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xl max-w-2xl">
+      <h3 className="font-bold mb-6 flex items-center gap-2 text-black"><Building2 size={20} className="text-yellow-600" /> Datos de la Empresa</h3>
 
-        {/* Imágenes */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Logo</label>
-            <div className="bg-slate-900 border border-slate-600 rounded-lg p-4 text-center">
-              {(form.logoUrl || form.logo_url) ? (
-                <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-16 mx-auto object-contain mb-2" />
-              ) : (
-                <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin logo</div>
-              )}
-              <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
-                <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Logo'}
-                <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
-              </label>
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Favicon (Ícono)</label>
-            <div className="bg-slate-900 border border-slate-600 rounded-lg p-4 text-center">
-              {(form.faviconUrl || form.favicon_url) ? (
-                <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-16 mx-auto object-contain mb-2" />
-              ) : (
-                <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin ícono</div>
-              )}
-              <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
-                <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Ícono'}
-                <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
-              </label>
-            </div>
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Logo</label>
+          <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 text-center">
+            {(form.logoUrl || form.logo_url) ? (
+              <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-16 mx-auto object-contain mb-2" />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-slate-400 mb-2">Sin logo</div>
+            )}
+            <label className="cursor-pointer bg-black hover:bg-slate-800 text-yellow-400 text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Logo'}
+              <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
+            </label>
           </div>
         </div>
-
-        {/* Datos */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">Nombre</label>
-            <input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">Slogan</label>
-            <input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">Teléfono</label>
-            <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
-            <input value={form.email || form.email_contacto || ''} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
-          </div>
-          <div className="col-span-2">
-            <label className="text-xs font-bold text-slate-500 uppercase">Dirección</label>
-            <input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">IVA (%)</label>
-            <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Favicon (Ícono)</label>
+          <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 text-center">
+            {(form.faviconUrl || form.favicon_url) ? (
+              <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-16 mx-auto object-contain mb-2" />
+            ) : (
+              <div className="h-16 flex items-center justify-center text-slate-400 mb-2">Sin ícono</div>
+            )}
+            <label className="cursor-pointer bg-black hover:bg-slate-800 text-yellow-400 text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Ícono'}
+              <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
+            </label>
           </div>
         </div>
-        <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
-          {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
-        </button>
       </div>
-      );
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">Nombre</label>
+          <input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">Slogan</label>
+          <input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">Teléfono</label>
+          <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+          <input value={form.email || form.email_contacto || ''} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+        </div>
+        <div className="col-span-2">
+          <label className="text-xs font-bold text-slate-500 uppercase">Dirección</label>
+          <input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">IVA (%)</label>
+          <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" />
+        </div>
+      </div>
+      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-black hover:bg-slate-800 disabled:bg-slate-700 text-yellow-400 font-bold px-6 py-3 rounded-xl flex items-center gap-2">
+        {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
+      </button>
+    </div>
+  );
 }
 
-      // ==========================================
-      // ADMIN - SEGURIDAD
-      // ==========================================
-      function AdminSeguridad() {
-  const {session} = useAuth();
-      const [currentPass, setCurrentPass] = useState('');
-      const [newPass, setNewPass] = useState('');
-      const [confirmPass, setConfirmPass] = useState('');
-      const [loading, setLoading] = useState(false);
+function AdminSeguridad() {
+  const { session } = useAuth();
+  const [currentPass, setCurrentPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChangePassword = async () => {
-    // Validaciones
-    if (!currentPass) {alert('Ingresa tu contraseña actual'); return; }
-      if (!newPass || newPass.length < 6) {alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
-      if (newPass !== confirmPass) {alert('Las contraseñas no coinciden'); return; }
+    if (!currentPass) { alert('Ingresa tu contraseña actual'); return; }
+    if (!newPass || newPass.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
+    if (newPass !== confirmPass) { alert('Las contraseñas no coinciden'); return; }
 
-      setLoading(true);
+    setLoading(true);
 
-      // Paso 1: Verificar contraseña actual
-      const {error: verifyError } = await supabase.auth.signInWithPassword({
-        email: session.user.email,
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: session.user.email,
       password: currentPass
     });
 
-      if (verifyError) {
-        alert('❌ Contraseña actual incorrecta');
+    if (verifyError) {
+      alert('❌ Contraseña actual incorrecta');
       setLoading(false);
       return;
     }
 
-      // Paso 2: Actualizar contraseña
-      const {error: updateError } = await supabase.auth.updateUser({password: newPass });
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPass });
 
-      if (updateError) {
-        alert('Error al actualizar: ' + updateError.message);
+    if (updateError) {
+      alert('Error al actualizar: ' + updateError.message);
     } else {
-        alert('✅ ¡Contraseña actualizada correctamente!');
+      alert('✅ ¡Contraseña actualizada correctamente!');
       setCurrentPass(''); setNewPass(''); setConfirmPass('');
     }
-      setLoading(false);
+    setLoading(false);
   };
 
-      return (
-      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-md">
-        <h3 className="font-bold mb-6 flex items-center gap-2"><Lock size={20} className="text-cyan-400" /> Cambiar Contraseña</h3>
+  return (
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xl max-w-md">
+      <h3 className="font-bold mb-6 flex items-center gap-2 text-black"><Lock size={20} className="text-yellow-600" /> Cambiar Contraseña</h3>
 
-        <div className="space-y-4">
-          <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg mb-4">
-            <p className="text-yellow-400 text-sm font-bold">🔐 Seguridad</p>
-            <p className="text-slate-400 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">Contraseña Actual</label>
-            <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Tu contraseña actual" />
-          </div>
-
-          <div className="border-t border-slate-700 pt-4">
-            <label className="text-xs font-bold text-slate-500 uppercase">Nueva Contraseña</label>
-            <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Mínimo 6 caracteres" />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase">Confirmar Nueva Contraseña</label>
-            <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Repite la nueva contraseña" />
-          </div>
-
-          <button onClick={handleChangePassword} disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
-            {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
-          </button>
+      <div className="space-y-4">
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
+          <p className="text-yellow-800 text-sm font-bold">🔐 Seguridad</p>
+          <p className="text-slate-600 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
         </div>
+
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">Contraseña Actual</label>
+          <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" placeholder="Tu contraseña actual" />
+        </div>
+
+        <div className="border-t border-slate-200 pt-4">
+          <label className="text-xs font-bold text-slate-500 uppercase">Nueva Contraseña</label>
+          <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" placeholder="Mínimo 6 caracteres" />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-slate-500 uppercase">Confirmar Nueva Contraseña</label>
+          <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black" placeholder="Repite la nueva contraseña" />
+        </div>
+
+        <button onClick={handleChangePassword} disabled={loading} className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-700 text-yellow-400 font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
+          {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
+        </button>
       </div>
-      );
+    </div>
+  );
 }
 
-
-
-      // ==========================================
-      // VISTA CLIENTE (PÚBLICA) - CON MATERIAL OPCIONAL
-      // ==========================================
-      function VistaCliente({materials: materiales, empresa, config }) {
+// ==========================================
+// VISTA CLIENTE (AMARILLO INDUSTRIAL / BLANCO)
+// ==========================================
+function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
-      const [perimetro, setPerimetro] = useState(0);
-      const [areaCm2, setAreaCm2] = useState(0); // NUEVO: Área del bounding box
-      const [cantidadDisparos, setCantidadDisparos] = useState(0);
-      const [nombreArchivo, setNombreArchivo] = useState(null);
-      const [archivoBlob, setArchivoBlob] = useState(null);
-      const [procesando, setProcesando] = useState(false);
-      const [error, setError] = useState('');
-      const [mostrarModal, setMostrarModal] = useState(false);
-      const [enviandoCorreo, setEnviandoCorreo] = useState(false);
-      const [cantidad, setCantidad] = useState(1);
-      const [incluyeMaterial, setIncluyeMaterial] = useState(false); // NUEVO: Toggle material
+  const [perimetro, setPerimetro] = useState(0);
+  const [areaCm2, setAreaCm2] = useState(0);
+  const [cantidadDisparos, setCantidadDisparos] = useState(0);
+  const [nombreArchivo, setNombreArchivo] = useState(null);
+  const [archivoBlob, setArchivoBlob] = useState(null);
+  const [procesando, setProcesando] = useState(false);
+  const [error, setError] = useState('');
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [enviandoCorreo, setEnviandoCorreo] = useState(false);
+  const [cantidad, setCantidad] = useState(1);
+  const [incluyeMaterial, setIncluyeMaterial] = useState(false);
 
-      // Estado del Cliente
-      const [datosCliente, setDatosCliente] = useState({
-        tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
+  const [datosCliente, setDatosCliente] = useState({
+    tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
   });
 
-  // --- PERSISTENCIA ---
   useEffect(() => {
     const guardado = localStorage.getItem('maikitto_datos');
-      if (guardado) { try {setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
+    if (guardado) { try { setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
   }, []);
 
   useEffect(() => {
-        localStorage.setItem('maikitto_datos', JSON.stringify(datosCliente));
+    localStorage.setItem('maikitto_datos', JSON.stringify(datosCliente));
   }, [datosCliente]);
 
   useEffect(() => {
     if (materiales.length > 0 && !materialSeleccionado) setMaterialSeleccionado(materiales[0].id);
   }, [materiales]);
 
-  const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || { };
-      const materialActivo = {
-        ...rawMaterial,
-        precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0,
-      precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0,
-      precioMaterial: rawMaterial.precioMaterial || rawMaterial.precio_material || 0,
-      unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
+  const rawMaterial = materiales.find(m => m.id === Number(materialSeleccionado)) || {};
+  const materialActivo = {
+    ...rawMaterial,
+    precioMetro: rawMaterial.precioMetro || rawMaterial.precio_metro || 0,
+    precioDisparo: rawMaterial.precioDisparo || rawMaterial.precio_disparo || 0,
+    precioMaterial: rawMaterial.precioMaterial || rawMaterial.precio_material || 0,
+    unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
   };
 
-  // --- FUNCIÓN PARA CALCULAR BOUNDING BOX ---
   const calcularBoundingBox = (entities) => {
-        let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
 
     const actualizarLimites = (x, y) => {
       if (x < minX) minX = x;
@@ -921,23 +884,19 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
         e.vertices.forEach(v => actualizarLimites(v.x, v.y));
       } else if (e.type === 'CIRCLE') {
         actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
-      actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
+        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
       } else if (e.type === 'ARC') {
-        // Aproximación simple para arcos
         actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
-      actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
+        actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
       }
     });
 
-      // Retornar área en cm² (asumiendo que las unidades del DXF son mm)
-      const anchoMm = maxX - minX;
-      const altoMm = maxY - minY;
-      const areaCm2 = (anchoMm / 10) * (altoMm / 10); // mm² a cm²
-
-      return areaCm2;
+    const anchoMm = maxX - minX;
+    const altoMm = maxY - minY;
+    const areaCm2 = (anchoMm / 10) * (altoMm / 10);
+    return areaCm2;
   };
 
-  // --- LÓGICA DE CÁLCULO DXF ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
@@ -950,40 +909,36 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
       dxf.entities.forEach(e => {
         let valid = false;
-      if (e.type === 'LINE') {
-        longitudTotal += dist(e.vertices[0], e.vertices[1]);
-      valid = true;
+        if (e.type === 'LINE') {
+          longitudTotal += dist(e.vertices[0], e.vertices[1]);
+          valid = true;
         } else if (e.type === 'LWPOLYLINE' && e.vertices?.length > 1) {
           for (let i = 0; i < e.vertices.length - 1; i++) {
-        longitudTotal += dist(e.vertices[i], e.vertices[i + 1]);
+            longitudTotal += dist(e.vertices[i], e.vertices[i + 1]);
           }
-      if (e.closed) longitudTotal += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
-      valid = true;
+          if (e.closed) longitudTotal += dist(e.vertices[e.vertices.length - 1], e.vertices[0]);
+          valid = true;
         } else if (e.type === 'CIRCLE') {
-        longitudTotal += 2 * Math.PI * e.radius;
-      valid = true;
+          longitudTotal += 2 * Math.PI * e.radius;
+          valid = true;
         } else if (e.type === 'ARC') {
-        longitudTotal += e.radius * Math.abs(e.endAngle - e.startAngle);
-      valid = true;
+          longitudTotal += e.radius * Math.abs(e.endAngle - e.startAngle);
+          valid = true;
         }
-      if (valid) conteoFiguras++;
+        if (valid) conteoFiguras++;
       });
 
-      // Calcular área del bounding box
       const area = calcularBoundingBox(dxf.entities);
-
       finalizarCalculo(longitudTotal / 1000, conteoFiguras, area);
     } catch (err) {
-        reportarError('DXF inválido: ' + err.message);
+      reportarError('DXF inválido: ' + err.message);
     }
   };
 
-  // --- LÓGICA DE CÁLCULO SVG ---
   const procesarSVG = (textoSVG) => {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(textoSVG, "image/svg+xml");
-
       if (doc.querySelector('parsererror')) throw new Error("XML Inválido");
 
       let longitudTotal = 0, conteoFiguras = 0;
@@ -993,14 +948,13 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       const actualizarLimites = (x, y) => {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
+        if (y < minY) minY = y;
         if (y > maxY) maxY = y;
       };
 
       ['path', 'rect', 'circle', 'line', 'polyline', 'polygon'].forEach(sel => {
         doc.querySelectorAll(sel).forEach(el => {
           let len = 0;
-
           if (el.tagName === 'circle') {
             const r = parseFloat(el.getAttribute('r'));
             const cx = parseFloat(el.getAttribute('cx'));
@@ -1025,11 +979,9 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
             actualizarLimites(x1, y1);
             actualizarLimites(x2, y2);
           }
-
           if (len === 0 && typeof el.getTotalLength === 'function') {
             try {
               len = el.getTotalLength();
-              // Para path, obtener bbox
               if (el.tagName === 'path') {
                 const bbox = el.getBBox();
                 actualizarLimites(bbox.x, bbox.y);
@@ -1037,7 +989,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
               }
             } catch (e) { }
           }
-
           if (len > 0) {
             longitudTotal += len;
             conteoFiguras++;
@@ -1045,44 +996,42 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
         });
       });
 
-      // Calcular área en cm² (asumiendo unidades en px, 1px ≈ 0.264583 mm)
       const anchoMm = (maxX - minX) * 0.264583;
       const altoMm = (maxY - minY) * 0.264583;
       const areaCm2 = (anchoMm / 10) * (altoMm / 10);
-
       finalizarCalculo(longitudTotal / 1000, conteoFiguras, areaCm2);
     } catch (err) {
-        reportarError('SVG inválido: ' + err.message);
+      reportarError('SVG inválido: ' + err.message);
     }
   };
 
   const finalizarCalculo = (mts, disparos, area) => {
-        setPerimetro(mts);
-      setCantidadDisparos(disparos);
-      setAreaCm2(area);
-      setError('');
-      setProcesando(false);
+    setPerimetro(mts);
+    setCantidadDisparos(disparos);
+    setAreaCm2(area);
+    setError('');
+    setProcesando(false);
   };
 
   const reportarError = (msg) => {
-        setError(msg);
-      setPerimetro(0);
-      setCantidadDisparos(0);
-      setAreaCm2(0);
-      setProcesando(false);
+    setError(msg);
+    setPerimetro(0);
+    setCantidadDisparos(0);
+    setAreaCm2(0);
+    setProcesando(false);
   };
 
   const manejarArchivo = (e) => {
     const file = e.target.files[0];
-      if (!file) return;
+    if (!file) return;
 
-      setArchivoBlob(file);
-      setNombreArchivo(file.name);
-      setProcesando(true);
-      setError('');
+    setArchivoBlob(file);
+    setNombreArchivo(file.name);
+    setProcesando(true);
+    setError('');
 
-      const ext = file.name.split('.').pop().toLowerCase();
-      const reader = new FileReader();
+    const ext = file.name.split('.').pop().toLowerCase();
+    const reader = new FileReader();
 
     reader.onload = (ev) => {
       if (ext === 'dxf') procesarDXF(ev.target.result);
@@ -1090,563 +1039,463 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       else reportarError("Formato no soportado.");
     };
 
-      reader.readAsText(file);
+    reader.readAsText(file);
   };
 
-      // --- CÁLCULOS DE PRECIO ---
-      const costoMetroUnitario = perimetro * materialActivo.precioMetro;
-      const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
-      const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
+  const costoMetroUnitario = perimetro * materialActivo.precioMetro;
+  const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
+  const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
 
-      // Calcular costo de material según unidad
-      let costoMaterialUnitario = 0;
+  let costoMaterialUnitario = 0;
   if (incluyeMaterial && materialActivo.precioMaterial > 0) {
     if (materialActivo.unidadCobro === 'cm2') {
-        costoMaterialUnitario = areaCm2 * materialActivo.precioMaterial;
+      costoMaterialUnitario = areaCm2 * materialActivo.precioMaterial;
     } else if (materialActivo.unidadCobro === 'm2') {
-        costoMaterialUnitario = (areaCm2 / 10000) * materialActivo.precioMaterial;
+      costoMaterialUnitario = (areaCm2 / 10000) * materialActivo.precioMaterial;
     } else if (materialActivo.unidadCobro === 'unidad') {
-        costoMaterialUnitario = materialActivo.precioMaterial;
+      costoMaterialUnitario = materialActivo.precioMaterial;
     }
   }
 
-      const costoUnitarioTotal = costoCorteUnitario + costoMaterialUnitario;
-      const costoTotal = costoUnitarioTotal * cantidad;
+  const costoUnitarioTotal = costoCorteUnitario + costoMaterialUnitario;
+  const costoTotal = costoUnitarioTotal * cantidad;
 
   const formatoPesos = (v) => '$' + Math.round(v || 0).toLocaleString('es-CO');
 
   const procesarAccionModal = async () => {
     if (!datosCliente.email || !datosCliente.telefono || !datosCliente.nombre) {
-        alert("Por favor completa los campos obligatorios.");
+      alert("Por favor completa los campos obligatorios.");
       return;
     }
 
-      setEnviandoCorreo(true);
+    setEnviandoCorreo(true);
 
     const aplicaIvaReal = config.porcentajeIva > 0;
-      const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
-      const totalFinalReal = costoTotal + valorIvaReal;
-      const tel = empresa.telefono?.replace(/\D/g, '') || '';
-      let urlArchivoPublica = "";
+    const valorIvaReal = aplicaIvaReal ? costoTotal * (config.porcentajeIva / 100) : 0;
+    const totalFinalReal = costoTotal + valorIvaReal;
+    const tel = empresa.telefono?.replace(/\D/g, '') || '';
+    let urlArchivoPublica = "";
 
-      try {
-      // 1. SUBIR ARCHIVO
+    try {
       if (archivoBlob) {
         const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
-      const {error: uploadError } = await supabase.storage
-      .from('archivos-clientes')
-      .upload(rutaArchivo, archivoBlob);
-
-      if (uploadError) throw uploadError;
-
-      const {data: urlData } = supabase.storage
-      .from('archivos-clientes')
-      .getPublicUrl(rutaArchivo);
-
-      urlArchivoPublica = urlData.publicUrl;
+        const { error: uploadError } = await supabase.storage.from('archivos-clientes').upload(rutaArchivo, archivoBlob);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('archivos-clientes').getPublicUrl(rutaArchivo);
+        urlArchivoPublica = urlData.publicUrl;
       }
 
-      // 2. GUARDAR EN BD (con nuevos campos)
-      const {error: dbError } = await supabase.from('pedidos').insert({
+      const { error: dbError } = await supabase.from('pedidos').insert({
         empresa_id: empresa.id,
-      cliente_nombre: datosCliente.nombre,
-      cliente_email: datosCliente.email,
-      cliente_telefono: datosCliente.telefono,
-      cliente_documento: datosCliente.documento,
-      cliente_direccion: datosCliente.direccion,
-      archivo_nombre: nombreArchivo,
-      archivo_url: urlArchivoPublica,
-      material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
-      cantidad: cantidad,
-      valor_total: totalFinalReal,
-      tipo: 'corte',
-      estado: 'pendiente',
-      // NUEVOS CAMPOS
-      perimetro_metros: perimetro * cantidad,
-      area_cm2: areaCm2 * cantidad,
-      num_perforaciones: cantidadDisparos * cantidad,
-      costo_corte: costoCorteUnitario * cantidad,
-      incluye_material: incluyeMaterial,
-      costo_material: costoMaterialUnitario * cantidad
+        cliente_nombre: datosCliente.nombre,
+        cliente_email: datosCliente.email,
+        cliente_telefono: datosCliente.telefono,
+        cliente_documento: datosCliente.documento,
+        cliente_direccion: datosCliente.direccion,
+        archivo_nombre: nombreArchivo,
+        archivo_url: urlArchivoPublica,
+        material_nombre: `${materialActivo.nombre} - ${materialActivo.calibre}`,
+        cantidad: cantidad,
+        valor_total: totalFinalReal,
+        tipo: 'corte',
+        estado: 'pendiente',
+        perimetro_metros: perimetro * cantidad,
+        area_cm2: areaCm2 * cantidad,
+        num_perforaciones: cantidadDisparos * cantidad,
+        costo_corte: costoCorteUnitario * cantidad,
+        incluye_material: incluyeMaterial,
+        costo_material: costoMaterialUnitario * cantidad
       });
 
       if (dbError) throw dbError;
 
-      // 3. ENVIAR EMAIL
-      await fetch('/api/send-email', {
-        method: 'POST',
-      headers: {'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: empresa.email || empresa.email_contacto,
-      subject: `Nueva Orden: ${datosCliente.nombre}`,
-      clienteNombre: datosCliente.nombre,
-      clienteDocumento: datosCliente.documento,
-      clienteTelefono: datosCliente.telefono,
-      clienteEmail: datosCliente.email,
-      clienteDireccion: datosCliente.direccion,
-      archivo: nombreArchivo,
-      archivoUrl: urlArchivoPublica,
-      material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
-      cantidad: cantidad,
-      // Desglose detallado
-      perimetro: (perimetro * cantidad).toFixed(2),
-      perforaciones: cantidadDisparos * cantidad,
-      costoCorte: formatoPesos(costoCorteUnitario * cantidad),
-      incluyeMaterial: incluyeMaterial,
-      areaCm2: incluyeMaterial ? (areaCm2 * cantidad).toFixed(2) : 0,
-      costoMaterial: incluyeMaterial ? formatoPesos(costoMaterialUnitario * cantidad) : 0,
-      subtotal: formatoPesos(costoTotal),
-      iva: formatoPesos(valorIvaReal),
-      total: formatoPesos(totalFinalReal),
-      tieneIva: aplicaIvaReal,
-      empresaNombre: empresa.nombre
-        })
-      });
+      // Email dummy call (needs backend)
+      // await fetch('/api/send-email', ...);
 
     } catch (err) {
-        console.error('Error completo:', err);
+      console.error('Error completo:', err);
       alert('Error guardando pedido: ' + (err.message || err.error_description || err));
       setEnviandoCorreo(false);
       return;
     }
 
-      // 4. WHATSAPP con desglose completo
-      let infoCliente = "";
-      if (datosCliente.tipo === 'natural') {
-        infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
+    let infoCliente = "";
+    if (datosCliente.tipo === 'natural') {
+      infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
     } else {
-        infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
+      infoCliente = `*EMPRESA:* ${datosCliente.nombre}\n*NIT:* ${datosCliente.documento}\n*CONTACTO:* ${datosCliente.contacto}`;
     }
 
-      let desgloseMaterial = "";
-      if (incluyeMaterial) {
-        desgloseMaterial = `
+    let desgloseMaterial = "";
+    if (incluyeMaterial) {
+      desgloseMaterial = `
 📦 *MATERIAL INCLUIDO:*
    Área: ${(areaCm2 * cantidad).toFixed(2)} cm²
    Costo: ${formatoPesos(costoMaterialUnitario * cantidad)}`;
     }
 
-      const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
+    const msg = `Hola *${empresa.nombre}*, confirmo mi *ORDEN DE CORTE*:
+📄 *Archivo:* ${nombreArchivo}
+${urlArchivoPublica ? `🔗 ${urlArchivoPublica}` : ''}
 
-      ━━━━━━━━━━━━━━━━━━━━━━━
-      📋 *RESUMEN DEL PEDIDO*
-      ━━━━━━━━━━━━━━━━━━━━━━━
+🔧 *Material:* ${materialActivo.nombre}
+📏 *Calibre:* ${materialActivo.calibre}
+🔢 *Cantidad:* ${cantidad} Unidades
 
-      📄 *Archivo:* ${nombreArchivo}
-      ${urlArchivoPublica ? `🔗 ${urlArchivoPublica}` : ''}
+✂️ *SERVICIO DE CORTE:*
+   Perímetro: ${(perimetro * cantidad).toFixed(2)}m
+   Perforaciones: ${cantidadDisparos * cantidad}
+   Costo: ${formatoPesos(costoCorteUnitario * cantidad)}
+${desgloseMaterial}
 
-      🔧 *Material:* ${materialActivo.nombre}
-      📏 *Calibre:* ${materialActivo.calibre}
-      🔢 *Cantidad:* ${cantidad} Unidades
+━━━━━━━━━━━━━━━━━━━━━━━
+👤 *DATOS DEL CLIENTE*
+━━━━━━━━━━━━━━━━━━━━━━━
+${infoCliente}
+📞 *TEL:* ${datosCliente.telefono}
+📧 *EMAIL:* ${datosCliente.email}
+📍 *DIR:* ${datosCliente.direccion}
 
-      ✂️ *SERVICIO DE CORTE:*
-      Perímetro: ${(perimetro * cantidad).toFixed(2)}m
-      Perforaciones: ${cantidadDisparos * cantidad}
-      Costo: ${formatoPesos(costoCorteUnitario * cantidad)}
-      ${desgloseMaterial}
+━━━━━━━━━━━━━━━━━━━━━━━
+💰 *RESUMEN ECONÓMICO*
+━━━━━━━━━━━━━━━━━━━━━━━
+Subtotal: ${formatoPesos(costoTotal)}
+${aplicaIvaReal ? `IVA (${config.porcentajeIva}%): ${formatoPesos(valorIvaReal)}` : ''}
+*TOTAL: ${formatoPesos(totalFinalReal)}*
+━━━━━━━━━━━━━━━━━━━━━━━
+Quedo atento a las instrucciones. ⚡`;
 
-      ━━━━━━━━━━━━━━━━━━━━━━━
-      👤 *DATOS DEL CLIENTE*
-      ━━━━━━━━━━━━━━━━━━━━━━━
-      ${infoCliente}
-      📞 *TEL:* ${datosCliente.telefono}
-      📧 *EMAIL:* ${datosCliente.email}
-      📍 *DIR:* ${datosCliente.direccion}
-
-      ━━━━━━━━━━━━━━━━━━━━━━━
-      💰 *RESUMEN ECONÓMICO*
-      ━━━━━━━━━━━━━━━━━━━━━━━
-      Subtotal: ${formatoPesos(costoTotal)}
-      ${aplicaIvaReal ? `IVA (${config.porcentajeIva}%): ${formatoPesos(valorIvaReal)}` : ''}
-      *TOTAL: ${formatoPesos(totalFinalReal)}*
-      ━━━━━━━━━━━━━━━━━━━━━━━
-
-      Quedo atento a las instrucciones. ⚡`;
-
-      window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
-      setEnviandoCorreo(false);
-      setMostrarModal(false);
+    window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    setEnviandoCorreo(false);
+    setMostrarModal(false);
   };
 
-  // Verificar si el material tiene precio configurado
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
-      return (
-      <div className="flex flex-col md:flex-row h-screen bg-slate-900 text-white">
-        {/* Panel Izquierdo */}
-        <div className="w-full md:w-[420px] bg-slate-800 flex flex-col border-r border-slate-700">
-          <div className="p-6 border-b border-slate-700 bg-slate-900">
-            <div className="flex items-center gap-4">
-              {(empresa.faviconUrl || empresa.favicon_url) ? (
-                <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
-              ) : (
-                <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">
-                  {empresa.nombre?.substring(0, 2).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1">
-                {(empresa.logoUrl || empresa.logo_url) ? (
-                  <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
-                ) : (
-                  <h1 className="font-black text-lg uppercase">{empresa.nombre}</h1>
-                )}
-                <span className="text-yellow-500 text-xs font-bold uppercase">{empresa.slogan}</span>
+  return (
+    <div className="flex flex-col md:flex-row h-screen bg-yellow-400 text-slate-900">
+      {/* Panel Izquierdo */}
+      <div className="w-full md:w-[420px] bg-white flex flex-col border-r border-slate-300 shadow-2xl z-10">
+        <div className="p-6 border-b border-slate-200 bg-white">
+          <div className="flex items-center gap-4">
+            {(empresa.faviconUrl || empresa.favicon_url) ? (
+              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+            ) : (
+              <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center font-black text-yellow-400">
+                {empresa.nombre?.substring(0, 2).toUpperCase()}
               </div>
-            </div>
-            <div className="mt-3 text-xs text-slate-500 space-y-1">
-              <div className="flex items-center gap-2"><Phone size={12} /> {empresa.telefono}</div>
-              <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
+            )}
+            <div className="flex-1">
+              {(empresa.logoUrl || empresa.logo_url) ? (
+                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
+              ) : (
+                <h1 className="font-black text-lg uppercase text-black">{empresa.nombre}</h1>
+              )}
+              <span className="text-yellow-600 text-xs font-bold uppercase">{empresa.slogan}</span>
             </div>
           </div>
-
-          <div className="p-6 flex-1 flex flex-col">
-            <div className="mb-4">
-              <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Material y Calibre</label>
-              <select
-                value={materialSeleccionado}
-                onChange={e => setMaterialSeleccionado(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 text-white font-bold"
-              >
-                {materiales.map(m => (
-                  <option key={m.id} value={m.id}>
-                    {m.nombre} - {m.calibre}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2 mb-4">
-              <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
-                <span>METRO LINEAL</span>
-                <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
-              </div>
-              <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
-                <span>PERFORACIÓN</span>
-                <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
-              </div>
-            </div>
-
-            {/* NUEVO: Toggle para incluir material */}
-            {materialTienePrecio && (
-              <div className="mb-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={incluyeMaterial}
-                    onChange={e => setIncluyeMaterial(e.target.checked)}
-                    className="w-5 h-5 bg-slate-900 border-2 border-cyan-500 rounded checked:bg-cyan-500 cursor-pointer"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 font-bold text-white">
-                      <Package size={16} className="text-cyan-400" />
-                      Incluir Material
-                    </div>
-                    <div className="text-xs text-cyan-400 mt-1">
-                      {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
-                    </div>
-                  </div>
-                </label>
-              </div>
-            )}
-
-            <label className="group relative border-2 border-dashed border-cyan-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
-              <input
-                type="file"
-                className="hidden"
-                accept=".dxf,.svg"
-                onChange={manejarArchivo}
-              />
-              {procesando ? (
-                <div className="flex flex-col items-center">
-                  <Loader2 className="animate-spin text-cyan-400 mb-2" size={32} />
-                  <span className="text-cyan-400 font-bold text-sm">PROCESANDO...</span>
-                </div>
-              ) : (
-                <>
-                  <Upload className="text-cyan-400 mb-3" size={36} />
-                  <h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3>
-                  <div className="flex gap-2 mt-2">
-                    <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
-                    <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
-                  </div>
-                </>
-              )}
-            </label>
-            {error && (
-              <div className="mt-3 bg-red-500/10 border border-red-500/20 p-3 rounded text-red-400 text-xs text-center">
-                {error}
-              </div>
-            )}
+          <div className="mt-3 text-xs text-slate-500 space-y-1 font-medium">
+            <div className="flex items-center gap-2"><Phone size={12} /> {empresa.telefono}</div>
+            <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
           </div>
         </div>
 
-        {/* Panel Derecho */}
-        <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center p-8">
-          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
-            <div className="text-center mb-8">
-              <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2">Total Estimado</h3>
-              <h2 className="text-6xl font-black text-green-400">{formatoPesos(costoTotal)}</h2>
-              {cantidad > 1 && (
-                <span className="text-sm text-slate-500">
-                  ({formatoPesos(costoUnitarioTotal)} c/u)
-                </span>
-              )}
+        <div className="p-6 flex-1 flex flex-col">
+          <div className="mb-4">
+            <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Material y Calibre</label>
+            <select
+              value={materialSeleccionado}
+              onChange={e => setMaterialSeleccionado(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-black font-bold focus:border-yellow-500 outline-none"
+            >
+              {materiales.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} - {m.calibre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <div className="bg-black text-yellow-400 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>METRO LINEAL</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
+            </div>
+            <div className="bg-black text-yellow-400 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>PERFORACIÓN</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
+            </div>
+          </div>
+
+          {materialTienePrecio && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={incluyeMaterial}
+                  onChange={e => setIncluyeMaterial(e.target.checked)}
+                  className="w-5 h-5 bg-white border-2 border-slate-300 rounded checked:bg-black cursor-pointer"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 font-bold text-black">
+                    <Package size={16} className="text-yellow-600" />
+                    Incluir Material
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1 font-bold">
+                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
+                  </div>
+                </div>
+              </label>
+            </div>
+          )}
+
+          <label className="group relative border-2 border-dashed border-slate-300 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-black hover:bg-slate-50 transition-all">
+            <input type="file" className="hidden" accept=".dxf,.svg" onChange={manejarArchivo} />
+            {procesando ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="animate-spin text-black mb-2" size={32} />
+                <span className="text-black font-bold text-sm">PROCESANDO...</span>
+              </div>
+            ) : (
+              <>
+                <Upload className="text-slate-400 group-hover:text-black mb-3 transition-colors" size={36} />
+                <h3 className="text-lg font-black uppercase text-slate-700 group-hover:text-black">ARRASTRA TU PLANO AQUÍ</h3>
+                <div className="flex gap-2 mt-2">
+                  <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded">.DXF</span>
+                  <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded">.SVG</span>
+                </div>
+              </>
+            )}
+          </label>
+          {error && (
+            <div className="mt-3 bg-red-50 border border-red-200 p-3 rounded text-red-600 text-xs text-center font-bold">
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Panel Derecho */}
+      <div className="flex-1 bg-yellow-400 flex flex-col items-center justify-center p-8">
+        <div className="bg-white border border-slate-200 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
+          <div className="text-center mb-8">
+            <h3 className="text-slate-400 text-xs uppercase tracking-widest mb-2 font-bold">Total Estimado</h3>
+            <h2 className="text-6xl font-black text-black">{formatoPesos(costoTotal)}</h2>
+            {cantidad > 1 && (
+              <span className="text-sm text-slate-500 font-bold">
+                ({formatoPesos(costoUnitarioTotal)} c/u)
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between">
+              <span className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2">
+                <FileText size={14} className="text-black" /> Archivo
+              </span>
+              <span className="text-black font-bold truncate max-w-[180px]">
+                {nombreArchivo || '---'}
+              </span>
             </div>
 
-            <div className="space-y-4 mb-6">
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between">
-                <span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2">
-                  <FileText size={14} className="text-cyan-500" /> Archivo
-                </span>
-                <span className="text-white truncate max-w-[180px]">
-                  {nombreArchivo || '---'}
-                </span>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
+                Cantidad de Piezas
+              </span>
+              <div className="flex items-center justify-between bg-white rounded-lg p-1 border border-slate-200">
+                <button
+                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
+                  className="w-10 h-10 bg-slate-100 text-black rounded-lg flex items-center justify-center hover:bg-slate-200"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="text-2xl font-black text-black">{cantidad}</span>
+                <button
+                  onClick={() => setCantidad(c => c + 1)}
+                  className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center hover:bg-slate-800"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
-
-              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
-                  Cantidad de Piezas
-                </span>
-                <div className="flex items-center justify-between bg-slate-900 rounded-lg p-1 border border-slate-800">
-                  <button
-                    onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                    className="w-10 h-10 bg-slate-800 text-slate-400 rounded-lg flex items-center justify-center hover:bg-slate-700"
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <span className="text-2xl font-black">{cantidad}</span>
-                  <button
-                    onClick={() => setCantidad(c => c + 1)}
-                    className="w-10 h-10 bg-cyan-600 text-white rounded-lg flex items-center justify-center hover:bg-cyan-500"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
-                  <div className="text-cyan-400 font-mono text-lg font-bold">
-                    {(perimetro * cantidad).toFixed(2)}m
-                  </div>
-                </div>
-                <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
-                  <div className="text-yellow-400 font-mono text-lg font-bold">
-                    {cantidadDisparos * cantidad}
-                  </div>
-                </div>
-              </div>
-
-              {/* Mostrar área si incluye material */}
-              {incluyeMaterial && areaCm2 > 0 && (
-                <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-cyan-400 text-xs font-bold uppercase flex items-center gap-2">
-                      <Package size={14} /> Material Incluido
-                    </span>
-                    <span className="text-cyan-400 font-bold">
-                      {formatoPesos(costoMaterialUnitario * cantidad)}
-                    </span>
-                  </div>
-                  <div className="text-slate-400 text-xs">
-                    Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
-                  </div>
-                </div>
-              )}
             </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={() => setMostrarModal(true)}
-                disabled={!nombreArchivo}
-                className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all"
-              >
-                SOLICITAR CORTE
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
+                <div className="text-black font-mono text-lg font-bold">
+                  {(perimetro * cantidad).toFixed(2)}m
+                </div>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
+                <div className="text-black font-mono text-lg font-bold">
+                  {cantidadDisparos * cantidad}
+                </div>
+              </div>
+            </div>
+
+            {incluyeMaterial && areaCm2 > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-yellow-800 text-xs font-bold uppercase flex items-center gap-2">
+                    <Package size={14} /> Material Incluido
+                  </span>
+                  <span className="text-black font-bold">
+                    {formatoPesos(costoMaterialUnitario * cantidad)}
+                  </span>
+                </div>
+                <div className="text-slate-600 text-xs font-bold">
+                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => setMostrarModal(true)}
+              disabled={!nombreArchivo}
+              className="w-full bg-black hover:bg-slate-800 disabled:opacity-50 text-yellow-400 py-4 rounded-xl font-black uppercase shadow-lg transform hover:scale-[1.02] transition-all"
+            >
+              SOLICITAR CORTE
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MODAL DE CONFIRMACIÓN */}
+      {mostrarModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-2xl overflow-hidden shadow-2xl">
+            <div className="flex justify-between items-center p-6 border-b border-slate-200 bg-white">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-black">
+                <Zap className="text-yellow-500" /> Confirmar Orden de Corte
+              </h3>
+              <button onClick={() => setMostrarModal(false)} className="text-slate-400 hover:text-black">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[80vh]">
+              {/* DESGLOSE ECONÓMICO */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 space-y-3">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                  <span className="text-slate-500 text-sm font-bold">Servicio de Corte</span>
+                  <span className="text-black font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+                </div>
+
+                {incluyeMaterial && (
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                    <div>
+                      <span className="text-yellow-700 text-sm font-bold flex items-center gap-2">
+                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+                      </span>
+                    </div>
+                    <span className="text-black font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-slate-500 text-xs font-bold uppercase">Subtotal</span>
+                  <span className="text-2xl font-black text-black">{formatoPesos(costoTotal)}</span>
+                </div>
+
+                {config.porcentajeIva > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                    <span className="text-slate-500 text-sm font-bold">+ IVA ({config.porcentajeIva}%)</span>
+                    <span className="text-xl font-bold text-slate-700">
+                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-3 border-t-2 border-black">
+                  <span className="text-black text-lg font-bold">TOTAL</span>
+                  <span className="text-3xl font-black text-black">
+                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
+                  </span>
+                </div>
+              </div>
+
+              {/* TABS PERSONA/EMPRESA */}
+              <div className="flex p-1 bg-slate-100 rounded-lg mb-6 border border-slate-200">
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural' ? 'bg-black text-yellow-400 shadow' : 'text-slate-500 hover:text-black'}`}
+                >
+                  Persona Natural
+                </button>
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica' ? 'bg-black text-yellow-400 shadow' : 'text-slate-500 hover:text-black'}`}
+                >
+                  Empresa / Jurídica
+                </button>
+              </div>
+
+              {/* FORMULARIO CLIENTE */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-black uppercase mb-1 block">
+                    Correo Electrónico (Obligatorio)
+                  </label>
+                  <input
+                    type="email"
+                    value={datosCliente.email}
+                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none"
+                    placeholder="ejemplo@correo.com"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
+                    </label>
+                    <input value={datosCliente.nombre} onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
+                    </label>
+                    <input value={datosCliente.documento} onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                  </div>
+                </div>
+
+                {datosCliente.tipo === 'juridica' && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Nombre del Contacto</label>
+                    <input value={datosCliente.contacto} onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" placeholder="¿Por quién preguntamos?" />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Teléfono / WhatsApp</label>
+                    <input value={datosCliente.telefono} onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Dirección de Entrega</label>
+                    <input value={datosCliente.direccion} onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-black focus:border-yellow-500 outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* FOOTER MODAL */}
+            <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-white">
+              <button onClick={() => setMostrarModal(false)} className="px-6 py-3 text-slate-500 font-bold hover:text-black">Cancelar</button>
+              <button onClick={procesarAccionModal} disabled={enviandoCorreo} className="bg-black hover:bg-slate-800 text-yellow-400 font-black px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg">
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
+                CONFIRMAR PEDIDO
               </button>
             </div>
           </div>
         </div>
-
-        {/* MODAL DE CONFIRMACIÓN */}
-        {mostrarModal && (
-          <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden shadow-2xl">
-              <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
-                <h3 className="text-xl font-bold flex items-center gap-2 text-white">
-                  <Zap className="text-yellow-400" /> Confirmar Orden de Corte
-                </h3>
-                <button
-                  onClick={() => setMostrarModal(false)}
-                  className="text-slate-500 hover:text-white"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="p-6 overflow-y-auto max-h-[80vh]">
-                {/* DESGLOSE ECONÓMICO */}
-                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                    <span className="text-slate-400 text-sm">Servicio de Corte</span>
-                    <span className="text-white font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
-                  </div>
-
-                  {incluyeMaterial && (
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                      <div>
-                        <span className="text-cyan-400 text-sm font-bold flex items-center gap-2">
-                          <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
-                        </span>
-                      </div>
-                      <span className="text-cyan-400 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-slate-400 text-xs font-bold uppercase">Subtotal</span>
-                    <span className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</span>
-                  </div>
-
-                  {config.porcentajeIva > 0 && (
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-700">
-                      <span className="text-slate-400 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                      <span className="text-xl font-bold text-cyan-400">
-                        {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-3 border-t-2 border-green-500/30">
-                    <span className="text-green-400 text-lg font-bold">TOTAL</span>
-                    <span className="text-3xl font-black text-green-400">
-                      {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
-                    </span>
-                  </div>
-                </div>
-
-                {/* TABS PERSONA/EMPRESA */}
-                <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
-                  <button
-                    onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-400 hover:text-white'
-                      }`}
-                  >
-                    Persona Natural
-                  </button>
-                  <button
-                    onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica'
-                      ? 'bg-cyan-600 text-white'
-                      : 'text-slate-400 hover:text-white'
-                      }`}
-                  >
-                    Empresa / Jurídica
-                  </button>
-                </div>
-
-                {/* FORMULARIO CLIENTE */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">
-                      Correo Electrónico (Obligatorio)
-                    </label>
-                    <input
-                      type="email"
-                      value={datosCliente.email}
-                      onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                      placeholder="ejemplo@correo.com"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                        {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
-                      </label>
-                      <input
-                        value={datosCliente.nombre}
-                        onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                        {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
-                      </label>
-                      <input
-                        value={datosCliente.documento}
-                        onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {datosCliente.tipo === 'juridica' && (
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                        Nombre del Contacto
-                      </label>
-                      <input
-                        value={datosCliente.contacto}
-                        onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                        placeholder="¿Por quién preguntamos?"
-                      />
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                        Teléfono / WhatsApp
-                      </label>
-                      <input
-                        value={datosCliente.telefono}
-                        onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
-                        Dirección de Entrega
-                      </label>
-                      <input
-                        value={datosCliente.direccion}
-                        onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* FOOTER MODAL */}
-              <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
-                <button
-                  onClick={() => setMostrarModal(false)}
-                  className="px-6 py-3 text-slate-400 font-bold hover:text-white"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={procesarAccionModal}
-                  disabled={enviandoCorreo}
-                  className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2"
-                >
-                  {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-                  CONFIRMAR PEDIDO
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      );
+      )}
+    </div>
+  );
 }
 
-      export default App;
+export default App;
