@@ -10,17 +10,6 @@ import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
 
 // ==========================================
-// ESTILOS Y TEXTURAS INDUSTRIALES
-// ==========================================
-// Definimos clases base para las texturas solicitadas para reutilizarlas
-const TEXTURE_DOTS = "bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:20px_20px]";
-const TEXTURE_STRIPES = "bg-[linear-gradient(45deg,rgba(0,0,0,0.2)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2)_75%,transparent_75%,transparent)] [background-size:10px_10px]";
-const PANEL_STYLE = "bg-zinc-900 border-t border-zinc-700 border-b border-zinc-950 border-x border-zinc-800 shadow-xl";
-const INPUT_STYLE = "w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-sm p-3 text-zinc-100 outline-none transition-colors placeholder-zinc-600";
-const BUTTON_PRIMARY = "w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-900 font-black py-4 rounded-sm transition-all flex items-center justify-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/10";
-const LABEL_STYLE = "text-xs font-bold text-amber-500 uppercase tracking-widest mb-1 block";
-
-// ==========================================
 // CONFIGURACIÓN INICIAL (DEFAULTS)
 // ==========================================
 const MATERIALES_INICIALES = [
@@ -89,8 +78,8 @@ function AppContent() {
   // Loading
   if (appMode === 'loading' || (loadingData && appMode !== 'landing')) {
     return (
-      <div className="h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="animate-spin text-amber-500" size={48} />
+      <div className="h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="animate-spin text-cyan-400" size={48} />
       </div>
     );
   }
@@ -114,11 +103,11 @@ function AppContent() {
   if (appMode === 'public') {
     if (!empresa.nombre) {
       return (
-        <div className={`h-screen bg-zinc-950 ${TEXTURE_DOTS} flex items-center justify-center text-white`}>
-          <div className="text-center p-8 bg-zinc-900 border border-amber-500/20 rounded-lg shadow-2xl">
-            <AlertTriangle className="mx-auto mb-4 text-amber-500" size={48} />
-            <h1 className="text-xl font-black uppercase tracking-wider mb-2">Taller no encontrado</h1>
-            <p className="text-zinc-400">El slug "{tallerSlug}" no existe.</p>
+        <div className="h-screen bg-slate-950 flex items-center justify-center text-white">
+          <div className="text-center">
+            <AlertTriangle className="mx-auto mb-4 text-yellow-400" size={48} />
+            <h1 className="text-xl font-bold">Taller no encontrado</h1>
+            <p className="text-slate-400">El slug "{tallerSlug}" no existe.</p>
           </div>
         </div>
       );
@@ -165,60 +154,52 @@ function LandingPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-zinc-950 text-white ${TEXTURE_DOTS}`}>
+    <div className="min-h-screen bg-slate-950 text-white">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        {/* Efecto de luz industrial */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(255,160,0,0.08),transparent_60%)]"></div>
-
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(6,182,212,0.15),transparent_50%)]"></div>
         <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Izquierda - Copy */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black px-4 py-2 rounded-sm uppercase tracking-widest mb-6">
-                <Zap size={16} /> Cotizador Láser Industrial
+              <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-bold px-4 py-2 rounded-full mb-6">
+                <Zap size={16} /> COTIZADOR LÁSER SAAS
               </div>
-              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight text-zinc-100">
-                Cotizaciones automáticas para tu taller de <span className="text-amber-500 border-b-4 border-amber-500/20">corte láser</span>
+              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6">
+                Cotizaciones automáticas para tu taller de <span className="text-cyan-400">corte láser</span>
               </h1>
-              <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
+              <p className="text-slate-400 text-lg mb-8">
                 Tus clientes suben su archivo DXF/SVG y obtienen un precio al instante.
                 Sin llamadas, sin esperas, sin errores de cálculo.
               </p>
-              <ul className="space-y-4 text-zinc-300 mb-8">
-                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Configura tus materiales y precios</span></li>
-                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Obtén una URL única para tus clientes</span></li>
-                <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Recibe pedidos por WhatsApp o Email</span></li>
+              <ul className="space-y-3 text-slate-300 mb-8">
+                <li className="flex items-center gap-2"><Check size={20} className="text-green-400" /> Configura tus materiales y precios</li>
+                <li className="flex items-center gap-2"><Check size={20} className="text-green-400" /> Obtén una URL única para tus clientes</li>
+                <li className="flex items-center gap-2"><Check size={20} className="text-green-400" /> Recibe pedidos por WhatsApp o Email</li>
               </ul>
             </div>
 
             {/* Derecha - Auth Form */}
-            <div className={`${PANEL_STYLE} p-8 rounded-sm relative`}>
-              {/* Tornillos decorativos */}
-              <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-              <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-              <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-
-              <h2 className="text-xl font-black mb-6 text-center text-zinc-100 uppercase tracking-wider">
-                {authMode === 'login' ? 'Acceso Taller' : 'Registrar Taller'}
+            <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl">
+              <h2 className="text-xl font-bold mb-6 text-center">
+                {authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
               </h2>
               <form onSubmit={handleAuth} className="space-y-4">
                 <div>
-                  <label className={LABEL_STYLE}>Correo</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={INPUT_STYLE} required placeholder="taller@ejemplo.com" />
+                  <label className="text-xs font-bold text-slate-500 uppercase">Correo</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
                 </div>
                 <div>
-                  <label className={LABEL_STYLE}>Contraseña</label>
-                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={INPUT_STYLE} required placeholder="••••••••" />
+                  <label className="text-xs font-bold text-slate-500 uppercase">Contraseña</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
                 </div>
-                <button disabled={loading} className={BUTTON_PRIMARY}>
+                <button disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                   {loading && <Loader2 className="animate-spin" size={18} />}
                   {authMode === 'login' ? 'ENTRAR' : 'REGISTRARME'}
                 </button>
               </form>
-              <div className="mt-6 text-center border-t border-zinc-800 pt-4">
-                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-zinc-500 hover:text-amber-500 font-bold transition-colors">
+              <div className="mt-6 text-center">
+                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-slate-400 hover:text-white">
                   {authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
                 </button>
               </div>
@@ -260,39 +241,39 @@ function OnboardingPage({ setEmpresa }) {
   };
 
   return (
-    <div className={`min-h-screen bg-zinc-950 flex items-center justify-center p-6 ${TEXTURE_DOTS}`}>
-      <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full`}>
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+      <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-lg w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-sm mx-auto flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20">
-            <Building2 className="text-zinc-900" size={32} />
+          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center mb-4">
+            <Building2 className="text-white" size={32} />
           </div>
-          <h1 className="text-2xl font-black text-white uppercase tracking-wider">¡Bienvenido!</h1>
-          <p className="text-zinc-400 mt-2">Configura los datos de tu taller para comenzar.</p>
+          <h1 className="text-2xl font-bold text-white">¡Bienvenido!</h1>
+          <p className="text-slate-400">Configura los datos de tu taller para comenzar.</p>
         </div>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className={LABEL_STYLE}>Nombre del Taller *</label>
-            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
+            <label className="text-xs font-bold text-slate-500 uppercase">Nombre del Taller *</label>
+            <input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" required />
           </div>
           <div>
-            <label className={LABEL_STYLE}>Slogan</label>
-            <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className={INPUT_STYLE} />
+            <label className="text-xs font-bold text-slate-500 uppercase">Slogan</label>
+            <input value={form.slogan} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={LABEL_STYLE}>Teléfono</label>
-              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className={INPUT_STYLE} />
+              <label className="text-xs font-bold text-slate-500 uppercase">Teléfono</label>
+              <input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
             </div>
             <div>
-              <label className={LABEL_STYLE}>Email</label>
-              <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_STYLE} />
+              <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+              <input value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
             </div>
           </div>
           <div>
-            <label className={LABEL_STYLE}>Dirección</label>
-            <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className={INPUT_STYLE} />
+            <label className="text-xs font-bold text-slate-500 uppercase">Dirección</label>
+            <input value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" />
           </div>
-          <button disabled={saving} className={BUTTON_PRIMARY}>
+          <button disabled={saving} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2">
             {saving && <Loader2 className="animate-spin" size={18} />}
             CREAR MI TALLER
           </button>
@@ -307,7 +288,7 @@ function OnboardingPage({ setEmpresa }) {
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
-  const [tab, setTab] = useState('pedidos');
+  const [tab, setTab] = useState('pedidos'); // Arrancar en 'pedidos' es más útil
   const [copied, setCopied] = useState(false);
 
   const publicUrl = `${window.location.origin}/?taller=${empresa.slug}`;
@@ -323,38 +304,38 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   };
 
   return (
-    <div className={`min-h-screen bg-zinc-900 text-zinc-100 ${TEXTURE_DOTS}`}>
+    <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
-      <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
+      <div className="bg-slate-950 border-b border-slate-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-500 rounded-sm flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <Zap size={24} className="text-zinc-900" />
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-indigo-500 rounded-xl flex items-center justify-center">
+              <Zap size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
-              <p className="text-xs text-zinc-400 font-mono">{session?.user?.email}</p>
+              <h1 className="font-bold text-lg">{empresa.nombre}</h1>
+              <p className="text-xs text-slate-400">{session?.user?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-sm text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500">
-              <ExternalLink size={16} className="text-amber-500" /> <span className="text-zinc-300 hover:text-white">Ver Cotizador</span>
+            <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+              <ExternalLink size={16} /> Ver Cotizador
             </a>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors">
-              <LogOut size={18} />
+            <button onClick={handleLogout} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+              <LogOut size={18} /> Salir
             </button>
           </div>
         </div>
       </div>
 
       {/* URL Banner */}
-      <div className="bg-zinc-900 border-b border-amber-500/10 px-6 py-3">
+      <div className="bg-cyan-500/10 border-b border-cyan-500/20 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-amber-500 font-bold uppercase text-xs tracking-widest">URL Pública:</span>
-            <code className="bg-zinc-950 border border-zinc-800 px-3 py-1 rounded-sm text-zinc-300 font-mono text-xs">{publicUrl}</code>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-slate-400">Tu URL pública:</span>
+            <code className="bg-slate-800 px-3 py-1 rounded text-cyan-400 font-mono">{publicUrl}</code>
           </div>
-          <button onClick={copyUrl} className="flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-bold uppercase tracking-wider">
+          <button onClick={copyUrl} className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-bold">
             {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
           </button>
         </div>
@@ -362,19 +343,19 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
       {/* Tabs de Navegación */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
-          {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 ${tab === t
-                  ? 'border-amber-500 text-amber-500'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
-                }`}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="flex gap-4 mb-8 border-b border-slate-800 pb-1">
+          <button onClick={() => setTab('pedidos')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'pedidos' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Pedidos Recientes
+          </button>
+          <button onClick={() => setTab('materiales')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'materiales' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Materiales
+          </button>
+          <button onClick={() => setTab('empresa')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'empresa' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Configuración
+          </button>
+          <button onClick={() => setTab('seguridad')} className={`px-4 py-2 font-bold text-sm transition-all border-b-2 ${tab === 'seguridad' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            Seguridad
+          </button>
         </div>
 
         {/* Renderizado de Componentes */}
@@ -409,6 +390,7 @@ function AdminPedidos({ empresaId }) {
     setLoading(false);
   };
 
+  // --- FUNCIONES AUXILIARES (AHORA DENTRO DEL COMPONENTE) ---
   const formatoFecha = (fecha) => {
     if (!fecha) return '';
     return new Date(fecha).toLocaleDateString('es-CO', {
@@ -421,46 +403,52 @@ function AdminPedidos({ empresaId }) {
     return '$' + Math.round(v).toLocaleString('es-CO');
   };
 
+  // --- FUNCIONES DE GESTIÓN ---
   const eliminarPedido = async (id) => {
     if (!confirm('¿Estás seguro de eliminar este pedido?')) return;
+
     const { error } = await supabase.from('pedidos').delete().eq('id', id);
+
     if (error) alert('Error al eliminar');
     else cargarPedidos();
   };
 
   const cambiarEstado = async (id, nuevoEstado) => {
+    // Actualización optimista para que no "rebote"
     setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
+
     const { error } = await supabase
       .from('pedidos')
       .update({ estado: nuevoEstado })
       .eq('id', id);
+
     if (error) {
       alert('Error guardando el cambio.');
-      cargarPedidos();
+      cargarPedidos(); // Revertir si hay error
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="font-black text-xl text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">Bandeja de Entrada</h3>
-        <button onClick={cargarPedidos} className="text-zinc-500 hover:text-amber-500 text-sm flex items-center gap-1 font-bold uppercase">
+        <h3 className="font-bold text-xl">Bandeja de Entrada</h3>
+        <button onClick={cargarPedidos} className="text-slate-400 hover:text-cyan-400 text-sm flex items-center gap-1">
           <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-zinc-500 font-mono">Cargando pedidos...</div>
+        <div className="text-center py-10 text-slate-500">Cargando pedidos...</div>
       ) : pedidos.length === 0 ? (
-        <div className={`${PANEL_STYLE} p-10 rounded-sm text-center`}>
-          <div className="inline-flex bg-zinc-950 p-4 rounded-full mb-4 text-zinc-600"><FileBox size={32} /></div>
-          <h3 className="text-white font-bold uppercase">No hay pedidos aún</h3>
-          <p className="text-zinc-500 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
+        <div className="bg-slate-800 p-10 rounded-xl text-center border border-slate-700">
+          <div className="inline-flex bg-slate-900 p-4 rounded-full mb-4 text-slate-500"><FileBox size={32} /></div>
+          <h3 className="text-white font-bold">No hay pedidos aún</h3>
+          <p className="text-slate-400 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
         </div>
       ) : (
-        <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
+        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
           <table className="w-full text-sm text-left">
-            <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
+            <thead className="bg-slate-950 text-slate-400 text-xs uppercase font-bold">
               <tr>
                 <th className="p-4">Fecha</th>
                 <th className="p-4">Cliente</th>
@@ -469,23 +457,23 @@ function AdminPedidos({ empresaId }) {
                 <th className="p-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-slate-700">
               {pedidos.map((p) => (
-                <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors">
-                  <td className="p-4 text-zinc-400 font-mono whitespace-nowrap">{formatoFecha(p.created_at)}</td>
+                <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
+                  <td className="p-4 text-slate-400 whitespace-nowrap">{formatoFecha(p.created_at)}</td>
                   <td className="p-4">
-                    <div className="font-bold text-zinc-200 uppercase">{p.cliente_nombre}</div>
-                    <div className="text-xs text-zinc-500 font-mono">{p.cliente_telefono}</div>
+                    <div className="font-bold text-white">{p.cliente_nombre}</div>
+                    <div className="text-xs text-slate-400">{p.cliente_telefono}</div>
                   </td>
                   <td className="p-4">
-                    <div className="text-white font-medium">{p.material_nombre}</div>
-                    <div className="text-xs text-zinc-400 font-mono">{p.cantidad} Unds - <span className="text-amber-500">{formatoPesos(p.valor_total)}</span></div>
+                    <div className="text-white">{p.material_nombre}</div>
+                    <div className="text-xs text-slate-500">{p.cantidad} Unds - {formatoPesos(p.valor_total)}</div>
                   </td>
                   <td className="p-4">
                     <select
                       value={p.estado || 'pendiente'}
                       onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                      className={`bg-zinc-950 border border-zinc-700 rounded-sm px-2 py-1 text-xs font-bold uppercase outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-500 border-green-900/50' : 'text-amber-500 border-amber-900/50'
+                      className={`bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-bold outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-400 border-green-900' : 'text-yellow-400 border-yellow-900'
                         }`}
                     >
                       <option value="pendiente">Pendiente</option>
@@ -494,11 +482,11 @@ function AdminPedidos({ empresaId }) {
                   </td>
                   <td className="p-4 text-right flex items-center justify-end gap-2">
                     {p.archivo_url && (
-                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
+                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-slate-700 hover:bg-cyan-600 hover:text-white text-slate-200 p-2 rounded-lg">
                         <Upload size={16} className="rotate-180" />
                       </a>
                     )}
-                    <button onClick={() => eliminarPedido(p.id)} className="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
+                    <button onClick={() => eliminarPedido(p.id)} className="bg-slate-700 hover:bg-red-500 hover:text-white text-slate-200 p-2 rounded-lg">
                       <Trash2 size={16} />
                     </button>
                   </td>
@@ -513,7 +501,7 @@ function AdminPedidos({ empresaId }) {
 }
 
 // ==========================================
-// ADMIN - MATERIALES
+// ADMIN - MATERIALES (CÓDIGO COMPLETO Y CORREGIDO)
 // ==========================================
 function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   const [form, setForm] = useState({
@@ -571,53 +559,53 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   return (
     <div className="space-y-6">
       {/* Formulario */}
-      <div className={`${PANEL_STYLE} p-6 rounded-sm`}>
-        <h3 className="font-black text-white uppercase tracking-wider mb-4 border-l-4 border-amber-500 pl-3">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
+      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+        <h3 className="font-bold mb-4">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
         <form onSubmit={handleSave}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="md:col-span-2">
-              <label className={LABEL_STYLE}>Nombre Material</label>
-              <input placeholder="Ej: Acero HR" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} required />
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Nombre Material</label>
+              <input placeholder="Ej: Acero HR" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" required />
             </div>
             <div>
-              <label className={LABEL_STYLE}>Calibre / Espesor</label>
-              <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className={INPUT_STYLE} />
+              <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Calibre / Espesor</label>
+              <input placeholder="Ej: 18 o 3mm" value={form.calibre} onChange={e => setForm({ ...form, calibre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-zinc-950/50 p-4 rounded-sm border border-zinc-800 space-y-3">
-              <h4 className="text-sm font-bold text-zinc-300 uppercase flex items-center gap-2"><Zap size={14} className="text-amber-500" /> Servicio de Corte</h4>
+            <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700 space-y-3">
+              <h4 className="text-sm font-bold text-white">Servicio de Corte</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>Costo / Metro</label>
-                  <input type="number" placeholder="$" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className={INPUT_STYLE} required />
+                  <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Costo / Metro</label>
+                  <input type="number" placeholder="$" value={form.precioMetro} onChange={e => setForm({ ...form, precioMetro: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" required />
                 </div>
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>Costo / Perforación</label>
-                  <input type="number" placeholder="$" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className={INPUT_STYLE} />
+                  <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Costo / Perforación</label>
+                  <input type="number" placeholder="$" value={form.precioDisparo} onChange={e => setForm({ ...form, precioDisparo: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" />
                 </div>
               </div>
             </div>
-            <div className="bg-zinc-950/50 p-4 rounded-sm border border-amber-500/10 space-y-3">
-              <h4 className="text-sm font-bold text-amber-500 uppercase flex items-center gap-2"><Package size={14} /> Suministro (Opcional)</h4>
+            <div className="bg-slate-900/50 p-4 rounded-lg border border-cyan-700/50 space-y-3">
+              <h4 className="text-sm font-bold text-cyan-400">Suministro de Material (Opcional)</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className={LABEL_STYLE}>Precio Venta</label>
-                  <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className={INPUT_STYLE} />
+                  <label className="text-xs font-bold text-cyan-500 uppercase block mb-1">Precio Venta</label>
+                  <input type="number" placeholder="$" value={form.precioMaterial} onChange={e => setForm({ ...form, precioMaterial: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white" />
                 </div>
                 <div className="w-1/3">
-                  <label className={LABEL_STYLE}>Unidad</label>
-                  <select value={form.unidadCobro} onChange={e => setForm({ ...form, unidadCobro: e.target.value })} className={INPUT_STYLE}>
+                  <label className="text-xs font-bold text-cyan-500 uppercase block mb-1">Unidad</label>
+                  <select value={form.unidadCobro} onChange={e => setForm({ ...form, unidadCobro: e.target.value })} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white">
                     <option value="cm2">cm²</option>
                     <option value="m2">m²</option>
-                    <option value="unidad">Und</option>
+                    <option value="unidad">Unidad</option>
                   </select>
                 </div>
               </div>
             </div>
           </div>
           <div className="flex justify-end mt-6">
-            <button type="button" onClick={handleSave} disabled={saving} className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black py-3 px-8 rounded-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-colors">
+            <button type="button" onClick={handleSave} disabled={saving} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2">
               {saving ? <Loader2 className="animate-spin" size={18} /> : editingId ? 'GUARDAR CAMBIOS' : 'AGREGAR MATERIAL'}
             </button>
           </div>
@@ -625,9 +613,9 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
       </div>
 
       {/* --- TABLA DE LA LISTA DE MATERIALES --- */}
-      <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
+          <thead className="bg-slate-950 text-slate-400 text-xs uppercase">
             <tr>
               <th className="p-4 text-left">Material</th>
               <th className="p-4 text-left">Servicio Corte</th>
@@ -635,29 +623,29 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
               <th className="p-4 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-slate-700">
             {materiales.map(m => (
-              <tr key={m.id} className="hover:bg-zinc-800/50">
+              <tr key={m.id} className="hover:bg-slate-700/50">
                 <td className="p-4">
-                  <div className="font-bold text-zinc-200 uppercase">{m.nombre}</div>
-                  <div className="text-xs text-zinc-500 font-mono">{m.calibre}</div>
+                  <div className="font-bold text-white">{m.nombre}</div>
+                  <div className="text-xs text-slate-400">{m.calibre}</div>
                 </td>
                 <td className="p-4">
-                  <div className="text-zinc-300 font-mono font-bold">${(m.precio_metro)?.toLocaleString()} /m</div>
-                  <div className="text-xs text-zinc-500 font-mono">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
+                  <div className="text-green-400 font-mono">${(m.precio_metro)?.toLocaleString()} /m</div>
+                  <div className="text-xs text-slate-500">+ ${(m.precio_disparo)?.toLocaleString()} perf.</div>
                 </td>
                 <td className="p-4">
                   {(m.precio_material) > 0 ? (
-                    <span className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded-sm text-xs font-bold border border-amber-500/20 font-mono">
+                    <span className="bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded text-xs font-bold border border-cyan-900">
                       ${(m.precio_material)?.toLocaleString()} / {m.unidad_cobro}
                     </span>
                   ) : (
-                    <span className="text-zinc-600 text-xs italic">No vende</span>
+                    <span className="text-slate-600 text-xs">No vende</span>
                   )}
                 </td>
                 <td className="p-4 text-right">
-                  <button onClick={() => handleEdit(m)} className="p-2 text-zinc-400 hover:text-amber-500"><Edit size={16} /></button>
-                  <button onClick={() => handleDelete(m.id)} className="p-2 text-zinc-400 hover:text-red-500"><Trash2 size={16} /></button>
+                  <button onClick={() => handleEdit(m)} className="p-2"><Edit size={16} /></button>
+                  <button onClick={() => handleDelete(m.id)} className="p-2"><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}
@@ -683,6 +671,7 @@ function AdminEmpresa({ empresa, setEmpresa }) {
     const fileExt = file.name.split('.').pop().toLowerCase();
     const fileName = `${session.user.id}/${fieldName}_${Date.now()}.${fileExt}`;
 
+    // Subir a Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from('empresas-assets')
       .upload(fileName, file, { upsert: true });
@@ -693,7 +682,9 @@ function AdminEmpresa({ empresa, setEmpresa }) {
       return;
     }
 
+    // Obtener URL pública
     const { data } = supabase.storage.from('empresas-assets').getPublicUrl(fileName);
+
     setForm({ ...form, [fieldName]: data.publicUrl });
     setUploading(false);
   };
@@ -720,37 +711,35 @@ function AdminEmpresa({ empresa, setEmpresa }) {
   };
 
   return (
-    <div className={`${PANEL_STYLE} p-6 rounded-sm max-w-2xl`}>
-      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
-        <Building2 size={20} className="text-amber-500" /> Datos de la Empresa
-      </h3>
+    <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-2xl">
+      <h3 className="font-bold mb-6 flex items-center gap-2"><Building2 size={20} className="text-cyan-400" /> Datos de la Empresa</h3>
 
       {/* Imágenes */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <label className={LABEL_STYLE}>Logo</label>
-          <div className="bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-center">
+          <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Logo</label>
+          <div className="bg-slate-900 border border-slate-600 rounded-lg p-4 text-center">
             {(form.logoUrl || form.logo_url) ? (
               <img src={form.logoUrl || form.logo_url} alt="Logo" className="h-16 mx-auto object-contain mb-2" />
             ) : (
-              <div className="h-16 flex items-center justify-center text-zinc-600 mb-2 italic text-xs">Sin logo</div>
+              <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin logo</div>
             )}
-            <label className="cursor-pointer bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 text-xs font-bold px-4 py-2 rounded-sm inline-flex items-center gap-2 border border-zinc-700 transition-colors uppercase">
-              <Upload size={14} /> {uploading ? '...' : 'Subir Logo'}
+            <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Logo'}
               <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'logoUrl')} />
             </label>
           </div>
         </div>
         <div>
-          <label className={LABEL_STYLE}>Favicon (Ícono)</label>
-          <div className="bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-center">
+          <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Favicon (Ícono)</label>
+          <div className="bg-slate-900 border border-slate-600 rounded-lg p-4 text-center">
             {(form.faviconUrl || form.favicon_url) ? (
               <img src={form.faviconUrl || form.favicon_url} alt="Favicon" className="h-16 mx-auto object-contain mb-2" />
             ) : (
-              <div className="h-16 flex items-center justify-center text-zinc-600 mb-2 italic text-xs">Sin ícono</div>
+              <div className="h-16 flex items-center justify-center text-slate-500 mb-2">Sin ícono</div>
             )}
-            <label className="cursor-pointer bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-300 text-xs font-bold px-4 py-2 rounded-sm inline-flex items-center gap-2 border border-zinc-700 transition-colors uppercase">
-              <Upload size={14} /> {uploading ? '...' : 'Subir Ícono'}
+            <label className="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-2">
+              <Upload size={14} /> {uploading ? 'Subiendo...' : 'Subir Ícono'}
               <input type="file" className="hidden" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e.target.files[0], 'faviconUrl')} />
             </label>
           </div>
@@ -760,31 +749,31 @@ function AdminEmpresa({ empresa, setEmpresa }) {
       {/* Datos */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={LABEL_STYLE}>Nombre</label>
-          <input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className={INPUT_STYLE} />
+          <label className="text-xs font-bold text-slate-500 uppercase">Nombre</label>
+          <input value={form.nombre || ''} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
         <div>
-          <label className={LABEL_STYLE}>Slogan</label>
-          <input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className={INPUT_STYLE} />
+          <label className="text-xs font-bold text-slate-500 uppercase">Slogan</label>
+          <input value={form.slogan || ''} onChange={e => setForm({ ...form, slogan: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
         <div>
-          <label className={LABEL_STYLE}>Teléfono</label>
-          <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className={INPUT_STYLE} />
+          <label className="text-xs font-bold text-slate-500 uppercase">Teléfono</label>
+          <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
         <div>
-          <label className={LABEL_STYLE}>Email</label>
-          <input value={form.email || form.email_contacto || ''} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_STYLE} />
+          <label className="text-xs font-bold text-slate-500 uppercase">Email</label>
+          <input value={form.email || form.email_contacto || ''} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
         <div className="col-span-2">
-          <label className={LABEL_STYLE}>Dirección</label>
-          <input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className={INPUT_STYLE} />
+          <label className="text-xs font-bold text-slate-500 uppercase">Dirección</label>
+          <input value={form.direccion || ''} onChange={e => setForm({ ...form, direccion: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
         <div>
-          <label className={LABEL_STYLE}>IVA (%)</label>
-          <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className={INPUT_STYLE} />
+          <label className="text-xs font-bold text-slate-500 uppercase">IVA (%)</label>
+          <input type="number" value={form.porcentajeIva || form.porcentaje_iva || 19} onChange={e => setForm({ ...form, porcentajeIva: e.target.value })} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" />
         </div>
       </div>
-      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-700 text-zinc-900 font-black px-6 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/10">
+      <button onClick={handleSave} disabled={saving || uploading} className="mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2">
         {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} GUARDAR CAMBIOS
       </button>
     </div>
@@ -834,33 +823,31 @@ function AdminSeguridad() {
   };
 
   return (
-    <div className={`${PANEL_STYLE} p-6 rounded-sm max-w-md`}>
-      <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
-        <Lock size={20} className="text-amber-500" /> Cambiar Contraseña
-      </h3>
+    <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-md">
+      <h3 className="font-bold mb-6 flex items-center gap-2"><Lock size={20} className="text-cyan-400" /> Cambiar Contraseña</h3>
 
       <div className="space-y-4">
-        <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-sm mb-4">
-          <p className="text-amber-500 text-sm font-bold flex items-center gap-2"><Lock size={14} /> SEGURIDAD</p>
-          <p className="text-zinc-400 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
+        <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-lg mb-4">
+          <p className="text-yellow-400 text-sm font-bold">🔐 Seguridad</p>
+          <p className="text-slate-400 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
         </div>
 
         <div>
-          <label className={LABEL_STYLE}>Contraseña Actual</label>
-          <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className={INPUT_STYLE} placeholder="Tu contraseña actual" />
+          <label className="text-xs font-bold text-slate-500 uppercase">Contraseña Actual</label>
+          <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Tu contraseña actual" />
         </div>
 
-        <div className="border-t border-zinc-800 pt-4">
-          <label className={LABEL_STYLE}>Nueva Contraseña</label>
-          <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className={INPUT_STYLE} placeholder="Mínimo 6 caracteres" />
+        <div className="border-t border-slate-700 pt-4">
+          <label className="text-xs font-bold text-slate-500 uppercase">Nueva Contraseña</label>
+          <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Mínimo 6 caracteres" />
         </div>
 
         <div>
-          <label className={LABEL_STYLE}>Confirmar Nueva Contraseña</label>
-          <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className={INPUT_STYLE} placeholder="Repite la nueva contraseña" />
+          <label className="text-xs font-bold text-slate-500 uppercase">Confirmar Nueva Contraseña</label>
+          <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white" placeholder="Repite la nueva contraseña" />
         </div>
 
-        <button onClick={handleChangePassword} disabled={loading} className={BUTTON_PRIMARY}>
+        <button onClick={handleChangePassword} disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2">
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
         </button>
       </div>
@@ -1285,15 +1272,15 @@ Quedo atento a las instrucciones. ⚡`;
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-zinc-900 text-white">
-      {/* Panel Izquierdo - CONTROLES */}
-      <div className={`w-full md:w-[420px] bg-zinc-900 flex flex-col border-r border-zinc-950 ${TEXTURE_DOTS}`}>
-        <div className={`p-6 border-b border-zinc-950 bg-zinc-900 shadow-xl z-10`}>
+    <div className="flex flex-col md:flex-row h-screen bg-slate-900 text-white">
+      {/* Panel Izquierdo */}
+      <div className="w-full md:w-[420px] bg-slate-800 flex flex-col border-r border-slate-700">
+        <div className="p-6 border-b border-slate-700 bg-slate-900">
           <div className="flex items-center gap-4">
             {(empresa.faviconUrl || empresa.favicon_url) ? (
-              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-sm object-cover border border-zinc-700" />
+              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
             ) : (
-              <div className="w-12 h-12 bg-amber-500 rounded-sm flex items-center justify-center font-black text-zinc-900 shadow-lg shadow-amber-500/20">
+              <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center font-black text-slate-900">
                 {empresa.nombre?.substring(0, 2).toUpperCase()}
               </div>
             )}
@@ -1301,24 +1288,24 @@ Quedo atento a las instrucciones. ⚡`;
               {(empresa.logoUrl || empresa.logo_url) ? (
                 <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
               ) : (
-                <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
+                <h1 className="font-black text-lg uppercase">{empresa.nombre}</h1>
               )}
-              <span className="text-amber-500 text-xs font-bold uppercase tracking-widest">{empresa.slogan}</span>
+              <span className="text-yellow-500 text-xs font-bold uppercase">{empresa.slogan}</span>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1 font-mono">
-            <div className="flex items-center gap-2"><Phone size={12} className="text-amber-500" /> {empresa.telefono}</div>
-            <div className="flex items-center gap-2"><MapPin size={12} className="text-amber-500" /> {empresa.direccion}</div>
+          <div className="mt-3 text-xs text-slate-500 space-y-1">
+            <div className="flex items-center gap-2"><Phone size={12} /> {empresa.telefono}</div>
+            <div className="flex items-center gap-2"><MapPin size={12} /> {empresa.direccion}</div>
           </div>
         </div>
 
-        <div className="p-6 flex-1 flex flex-col overflow-y-auto">
-          <div className="mb-6">
-            <label className={LABEL_STYLE}>Material y Calibre</label>
+        <div className="p-6 flex-1 flex flex-col">
+          <div className="mb-4">
+            <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Material y Calibre</label>
             <select
               value={materialSeleccionado}
               onChange={e => setMaterialSeleccionado(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-zinc-100 font-bold outline-none focus:border-amber-500 transition-colors"
+              className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 text-white font-bold"
             >
               {materiales.map(m => (
                 <option key={m.id} value={m.id}>
@@ -1328,33 +1315,33 @@ Quedo atento a las instrucciones. ⚡`;
             </select>
           </div>
 
-          <div className="space-y-3 mb-6">
-            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
-              <span className="uppercase tracking-wide">Metro Lineal</span>
-              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioMetro)}</span>
+          <div className="space-y-2 mb-4">
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>METRO LINEAL</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioMetro)}</span>
             </div>
-            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
-              <span className="uppercase tracking-wide">Perforación</span>
-              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioDisparo)}</span>
+            <div className="bg-yellow-400 text-slate-900 p-3 px-4 flex justify-between items-center rounded font-black text-sm">
+              <span>PERFORACIÓN</span>
+              <span className="font-mono">{formatoPesos(materialActivo.precioDisparo)}</span>
             </div>
           </div>
 
-          {/* Toggle para incluir material */}
+          {/* NUEVO: Toggle para incluir material */}
           {materialTienePrecio && (
-            <div className={`mb-6 bg-amber-500/5 border border-amber-500/10 rounded-sm p-4 ${TEXTURE_STRIPES}`}>
-              <label className="flex items-center gap-3 cursor-pointer group">
+            <div className="mb-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={incluyeMaterial}
                   onChange={e => setIncluyeMaterial(e.target.checked)}
-                  className="w-5 h-5 bg-zinc-950 border-2 border-zinc-600 rounded-sm checked:bg-amber-500 checked:border-amber-500 cursor-pointer appearance-none transition-all relative checked:after:content-['✓'] checked:after:text-zinc-900 checked:after:absolute checked:after:left-[2px] checked:after:text-sm checked:after:font-bold"
+                  className="w-5 h-5 bg-slate-900 border-2 border-cyan-500 rounded checked:bg-cyan-500 cursor-pointer"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">
-                    <Package size={16} className="text-amber-500" />
+                  <div className="flex items-center gap-2 font-bold text-white">
+                    <Package size={16} className="text-cyan-400" />
                     Incluir Material
                   </div>
-                  <div className="text-xs text-amber-500/80 mt-1 font-mono pl-6">
+                  <div className="text-xs text-cyan-400 mt-1">
                     {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
                   </div>
                 </div>
@@ -1362,7 +1349,7 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
           )}
 
-          <label className="group relative border-2 border-dashed border-zinc-700 rounded-sm flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-zinc-800/50 transition-all">
+          <label className="group relative border-2 border-dashed border-cyan-500/50 rounded-2xl flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400 hover:bg-slate-700/30 transition-all">
             <input
               type="file"
               className="hidden"
@@ -1371,75 +1358,66 @@ Quedo atento a las instrucciones. ⚡`;
             />
             {procesando ? (
               <div className="flex flex-col items-center">
-                <Loader2 className="animate-spin text-amber-500 mb-2" size={32} />
-                <span className="text-amber-500 font-black text-sm uppercase tracking-widest">Calculando...</span>
+                <Loader2 className="animate-spin text-cyan-400 mb-2" size={32} />
+                <span className="text-cyan-400 font-bold text-sm">PROCESANDO...</span>
               </div>
             ) : (
               <>
-                <Upload className="text-zinc-500 group-hover:text-amber-500 transition-colors mb-3" size={36} />
-                <h3 className="text-lg font-black uppercase tracking-wider text-zinc-300 group-hover:text-white">Subir Plano</h3>
+                <Upload className="text-cyan-400 mb-3" size={36} />
+                <h3 className="text-lg font-black uppercase">ARRASTRA TU PLANO AQUÍ</h3>
                 <div className="flex gap-2 mt-2">
-                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.DXF</span>
-                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.SVG</span>
+                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.DXF</span>
+                  <span className="bg-slate-900 text-slate-400 text-xs font-bold px-2 py-1 rounded">.SVG</span>
                 </div>
               </>
             )}
           </label>
           {error && (
-            <div className="mt-3 bg-red-900/20 border-l-4 border-red-500 p-3 rounded-sm text-red-400 text-xs text-center font-bold uppercase">
+            <div className="mt-3 bg-red-500/10 border border-red-500/20 p-3 rounded text-red-400 text-xs text-center">
               {error}
             </div>
           )}
         </div>
       </div>
 
-      {/* Panel Derecho - RESULTADOS */}
-      <div className={`flex-1 bg-zinc-950 flex flex-col items-center justify-center p-8 relative overflow-hidden`}>
-        {/* Fondo decorativo industrial */}
-        <div className="absolute inset-0 opacity-5 bg-[linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"></div>
-
-        <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative`}>
-          {/* Remaches decorativos esquinas */}
-          <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-          <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-          <div className="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-
-          <div className="text-center mb-8 pb-8 border-b border-zinc-800 border-dashed">
-            <h3 className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Total Estimado</h3>
-            <h2 className="text-6xl font-black text-amber-500 drop-shadow-lg tracking-tight">{formatoPesos(costoTotal)}</h2>
+      {/* Panel Derecho */}
+      <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center p-8">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-lg w-full shadow-2xl">
+          <div className="text-center mb-8">
+            <h3 className="text-slate-500 text-xs uppercase tracking-widest mb-2">Total Estimado</h3>
+            <h2 className="text-6xl font-black text-green-400">{formatoPesos(costoTotal)}</h2>
             {cantidad > 1 && (
-              <span className="text-sm text-zinc-500 font-mono mt-2 block">
+              <span className="text-sm text-slate-500">
                 ({formatoPesos(costoUnitarioTotal)} c/u)
               </span>
             )}
           </div>
 
-          <div className="space-y-4 mb-8">
-            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800 flex justify-between items-center">
-              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
-                <FileText size={14} className="text-amber-500" /> Archivo
+          <div className="space-y-4 mb-6">
+            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between">
+              <span className="text-slate-400 text-xs font-bold uppercase flex items-center gap-2">
+                <FileText size={14} className="text-cyan-500" /> Archivo
               </span>
-              <span className="text-zinc-200 truncate max-w-[180px] font-mono text-sm">
+              <span className="text-white truncate max-w-[180px]">
                 {nombreArchivo || '---'}
               </span>
             </div>
 
-            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide block mb-2">
+            <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+              <span className="text-slate-500 text-xs font-bold uppercase block mb-2">
                 Cantidad de Piezas
               </span>
-              <div className="flex items-center justify-between bg-zinc-900 rounded-sm p-1 border border-zinc-800">
+              <div className="flex items-center justify-between bg-slate-900 rounded-lg p-1 border border-slate-800">
                 <button
                   onClick={() => setCantidad(c => Math.max(1, c - 1))}
-                  className="w-10 h-10 bg-zinc-800 text-zinc-400 rounded-sm flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-colors"
+                  className="w-10 h-10 bg-slate-800 text-slate-400 rounded-lg flex items-center justify-center hover:bg-slate-700"
                 >
                   <Minus size={16} />
                 </button>
-                <span className="text-2xl font-black text-white">{cantidad}</span>
+                <span className="text-2xl font-black">{cantidad}</span>
                 <button
                   onClick={() => setCantidad(c => c + 1)}
-                  className="w-10 h-10 bg-amber-500 text-zinc-900 rounded-sm flex items-center justify-center hover:bg-amber-400 transition-colors"
+                  className="w-10 h-10 bg-cyan-600 text-white rounded-lg flex items-center justify-center hover:bg-cyan-500"
                 >
                   <Plus size={16} />
                 </button>
@@ -1447,15 +1425,15 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Corte Total</span>
-                <div className="text-white font-mono text-lg font-bold mt-1">
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500 text-xs font-bold uppercase">Corte Total</span>
+                <div className="text-cyan-400 font-mono text-lg font-bold">
                   {(perimetro * cantidad).toFixed(2)}m
                 </div>
               </div>
-              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Perforaciones</span>
-                <div className="text-amber-500 font-mono text-lg font-bold mt-1">
+              <div className="bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500 text-xs font-bold uppercase">Perforaciones</span>
+                <div className="text-yellow-400 font-mono text-lg font-bold">
                   {cantidadDisparos * cantidad}
                 </div>
               </div>
@@ -1463,16 +1441,16 @@ Quedo atento a las instrucciones. ⚡`;
 
             {/* Mostrar área si incluye material */}
             {incluyeMaterial && areaCm2 > 0 && (
-              <div className={`bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm ${TEXTURE_STRIPES}`}>
+              <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-amber-500 text-xs font-bold uppercase flex items-center gap-2">
+                  <span className="text-cyan-400 text-xs font-bold uppercase flex items-center gap-2">
                     <Package size={14} /> Material Incluido
                   </span>
-                  <span className="text-amber-500 font-bold font-mono">
+                  <span className="text-cyan-400 font-bold">
                     {formatoPesos(costoMaterialUnitario * cantidad)}
                   </span>
                 </div>
-                <div className="text-zinc-400 text-xs font-mono pl-6">
+                <div className="text-slate-400 text-xs">
                   Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
                 </div>
               </div>
@@ -1483,7 +1461,7 @@ Quedo atento a las instrucciones. ⚡`;
             <button
               onClick={() => setMostrarModal(true)}
               disabled={!nombreArchivo}
-              className={BUTTON_PRIMARY}
+              className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 py-4 rounded-xl font-black uppercase shadow-lg shadow-yellow-400/20 transform hover:scale-[1.02] transition-all"
             >
               SOLICITAR CORTE
             </button>
@@ -1493,15 +1471,15 @@ Quedo atento a las instrucciones. ⚡`;
 
       {/* MODAL DE CONFIRMACIÓN */}
       {mostrarModal && (
-        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
-            <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
-              <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
-                <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl overflow-hidden shadow-2xl">
+            <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-white">
+                <Zap className="text-yellow-400" /> Confirmar Orden de Corte
               </h3>
               <button
                 onClick={() => setMostrarModal(false)}
-                className="text-zinc-500 hover:text-white transition-colors"
+                className="text-slate-500 hover:text-white"
               >
                 <X size={24} />
               </button>
@@ -1509,64 +1487,61 @@ Quedo atento a las instrucciones. ⚡`;
 
             <div className="p-6 overflow-y-auto max-h-[80vh]">
               {/* DESGLOSE ECONÓMICO */}
-              <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
-                {/* Etiqueta lateral */}
-                <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
-
-                <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
-                  <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
+                <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+                  <span className="text-slate-400 text-sm">Servicio de Corte</span>
+                  <span className="text-white font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
                 </div>
 
                 {incluyeMaterial && (
-                  <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-700">
                     <div>
-                      <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                      <span className="text-cyan-400 text-sm font-bold flex items-center gap-2">
                         <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
                       </span>
                     </div>
-                    <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                    <span className="text-cyan-400 font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
-                  <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
+                  <span className="text-slate-400 text-xs font-bold uppercase">Subtotal</span>
+                  <span className="text-2xl font-black text-white">{formatoPesos(costoTotal)}</span>
                 </div>
 
                 {config.porcentajeIva > 0 && (
-                  <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
-                    <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                    <span className="text-lg font-bold text-zinc-400">
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-700">
+                    <span className="text-slate-400 text-sm">+ IVA ({config.porcentajeIva}%)</span>
+                    <span className="text-xl font-bold text-cyan-400">
                       {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
-                  <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
-                  <span className="text-3xl font-black text-amber-500 tracking-tight">
+                <div className="flex justify-between items-center pt-3 border-t-2 border-green-500/30">
+                  <span className="text-green-400 text-lg font-bold">TOTAL</span>
+                  <span className="text-3xl font-black text-green-400">
                     {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
                   </span>
                 </div>
               </div>
 
               {/* TABS PERSONA/EMPRESA */}
-              <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
+              <div className="flex p-1 bg-slate-800 rounded-lg mb-6">
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
-                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'natural'
+                    ? 'bg-cyan-600 text-white'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   Persona Natural
                 </button>
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
-                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                  className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${datosCliente.tipo === 'juridica'
+                    ? 'bg-cyan-600 text-white'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   Empresa / Jurídica
@@ -1576,50 +1551,50 @@ Quedo atento a las instrucciones. ⚡`;
               {/* FORMULARIO CLIENTE */}
               <div className="space-y-4">
                 <div>
-                  <label className={LABEL_STYLE}>
+                  <label className="text-xs font-bold text-cyan-400 uppercase mb-1 block">
                     Correo Electrónico (Obligatorio)
                   </label>
                   <input
                     type="email"
                     value={datosCliente.email}
                     onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className={INPUT_STYLE}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={LABEL_STYLE}>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
                     </label>
                     <input
                       value={datosCliente.nombre}
                       onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                      className={INPUT_STYLE}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
                     />
                   </div>
                   <div>
-                    <label className={LABEL_STYLE}>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
                     </label>
                     <input
                       value={datosCliente.documento}
                       onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                      className={INPUT_STYLE}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
                     />
                   </div>
                 </div>
 
                 {datosCliente.tipo === 'juridica' && (
                   <div>
-                    <label className={LABEL_STYLE}>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       Nombre del Contacto
                     </label>
                     <input
                       value={datosCliente.contacto}
                       onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                      className={INPUT_STYLE}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
                       placeholder="¿Por quién preguntamos?"
                     />
                   </div>
@@ -1627,23 +1602,23 @@ Quedo atento a las instrucciones. ⚡`;
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className={LABEL_STYLE}>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       Teléfono / WhatsApp
                     </label>
                     <input
                       value={datosCliente.telefono}
                       onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                      className={INPUT_STYLE}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
                     />
                   </div>
                   <div>
-                    <label className={LABEL_STYLE}>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
                       Dirección de Entrega
                     </label>
                     <input
                       value={datosCliente.direccion}
                       onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                      className={INPUT_STYLE}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
                     />
                   </div>
                 </div>
@@ -1651,19 +1626,19 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
 
             {/* FOOTER MODAL */}
-            <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
+            <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900">
               <button
                 onClick={() => setMostrarModal(false)}
-                className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
+                className="px-6 py-3 text-slate-400 font-bold hover:text-white"
               >
                 Cancelar
               </button>
               <button
                 onClick={procesarAccionModal}
                 disabled={enviandoCorreo}
-                className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
+                className="bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black px-8 py-3 rounded-xl flex items-center gap-2"
               >
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
                 CONFIRMAR PEDIDO
               </button>
             </div>
