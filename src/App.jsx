@@ -1408,11 +1408,9 @@ Quedo atento a las instrucciones. ⚡`;
           <div className="text-center mb-8 pb-8 border-b border-zinc-800 border-dashed">
             <h3 className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Total Estimado</h3>
             <h2 className="text-6xl font-black text-amber-500 drop-shadow-lg tracking-tight">{formatoPesos(costoTotal)}</h2>
-            {cantidad > 1 && (
-              <span className="text-sm text-zinc-500 font-mono mt-2 block">
-                ({formatoPesos(costoUnitarioTotal)} c/u)
-              </span>
-            )}
+            <span className={`text-sm text-zinc-500 font-mono mt-2 block ${cantidad > 1 ? 'visible' : 'invisible'}`}>
+              ({formatoPesos(costoUnitarioTotal)} c/u)
+            </span>
           </div>
 
           <div className="space-y-4 mb-8">
