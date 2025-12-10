@@ -1394,7 +1394,7 @@ Quedo atento a las instrucciones. ⚡`;
       </div>
 
       {/* Panel Derecho - RESULTADOS */}
-      <div className={`flex-1 bg-yellow-200 flex flex-col items-center justify-center p-8 relative overflow-hidden`}>
+      <div className={`flex-1 bg-yellow-100 flex flex-col items-center justify-center p-8 relative overflow-hidden`}>
         {/* Fondo decorativo industrial */}
         <div className="absolute inset-0 opacity-5 bg-[linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"></div>
 
