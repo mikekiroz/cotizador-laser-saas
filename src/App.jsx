@@ -328,7 +328,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            {/* FAVICON/ÍCONO */}
             {(empresa.faviconUrl || empresa.favicon_url) ? (
               <img
                 src={empresa.faviconUrl || empresa.favicon_url}
@@ -342,7 +341,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
             )}
 
             <div>
-              {/* LOGO */}
               {(empresa.logoUrl || empresa.logo_url) ? (
                 <img
                   src={empresa.logoUrl || empresa.logo_url}
@@ -357,54 +355,71 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
               <p className="text-xs text-zinc-400 font-mono">{session?.user?.email}</p>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-sm text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500">
-            <ExternalLink size={16} className="text-amber-500" /> <span className="text-zinc-300 hover:text-white">Ver Cotizador</span>
-          </a>
-          <button onClick={handleLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors">
-            <LogOut size={18} />
-          </button>
+
+          <div>
+            {/* LOGO */}
+            {(empresa.logoUrl || empresa.logo_url) ? (
+              <img
+                src={empresa.logoUrl || empresa.logo_url}
+                alt={empresa.nombre}
+                className="h-8 object-contain"
+              />
+            ) : (
+              <h1 className="font-black text-lg uppercase tracking-wider text-white">
+                {empresa.nombre}
+              </h1>
+            )}
+            <p className="text-xs text-zinc-400 font-mono">{session?.user?.email}</p>
+          </div>
         </div>
       </div>
-    </div>
-
-      {/* URL Banner */ }
-  <div className="bg-zinc-900 border-b border-amber-500/10 px-6 py-3">
-    <div className="max-w-6xl mx-auto flex items-center justify-between">
-      <div className="flex items-center gap-3 text-sm">
-        <span className="text-amber-500 font-bold uppercase text-xs tracking-widest">URL Pública:</span>
-        <code className="bg-zinc-950 border border-zinc-800 px-3 py-1 rounded-sm text-zinc-300 font-mono text-xs">{publicUrl}</code>
-      </div>
-      <button onClick={copyUrl} className="flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-bold uppercase tracking-wider">
-        {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
-      </button>
-    </div>
-  </div>
-
-  {/* Tabs de Navegación */ }
-  <div className="max-w-6xl mx-auto px-6 py-8">
-    <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
-      {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
-        <button
-          key={t}
-          onClick={() => setTab(t)}
-          className={`px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 ${tab === t
-            ? 'border-amber-500 text-amber-500'
-            : 'border-transparent text-zinc-500 hover:text-zinc-300'
-            }`}
-        >
-          {t}
+      <div className="flex items-center gap-4">
+        <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-sm text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500">
+          <ExternalLink size={16} className="text-amber-500" /> <span className="text-zinc-300 hover:text-white">Ver Cotizador</span>
+        </a>
+        <button onClick={handleLogout} className="flex items-center gap-2 text-zinc-500 hover:text-red-500 transition-colors">
+          <LogOut size={18} />
         </button>
-      ))}
+      </div>
     </div>
+    </div >
 
-    {/* Renderizado de Componentes */}
-    {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
-    {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
-    {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
-    {tab === 'seguridad' && <AdminSeguridad />}
-  </div>
+    {/* URL Banner */ }
+    < div className = "bg-zinc-900 border-b border-amber-500/10 px-6 py-3" >
+      <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-amber-500 font-bold uppercase text-xs tracking-widest">URL Pública:</span>
+          <code className="bg-zinc-950 border border-zinc-800 px-3 py-1 rounded-sm text-zinc-300 font-mono text-xs">{publicUrl}</code>
+        </div>
+        <button onClick={copyUrl} className="flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-bold uppercase tracking-wider">
+          {copied ? <><Check size={16} /> Copiado</> : <><Copy size={16} /> Copiar</>}
+        </button>
+      </div>
+  </div >
+
+    {/* Tabs de Navegación */ }
+    < div className = "max-w-6xl mx-auto px-6 py-8" >
+      <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
+        {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 ${tab === t
+              ? 'border-amber-500 text-amber-500'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+  {/* Renderizado de Componentes */ }
+  { tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} /> }
+  { tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} /> }
+  { tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} /> }
+  { tab === 'seguridad' && <AdminSeguridad /> }
+  </div >
     </div >
   );
 }
