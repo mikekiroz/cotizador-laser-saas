@@ -385,8 +385,8 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${tab === t.id
-                  ? 'border-amber-500 text-amber-500'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                ? 'border-amber-500 text-amber-500'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
                 }`}
             >
               <t.icon size={16} /> {t.label}
@@ -1699,7 +1699,7 @@ Quedo atento a las instrucciones. ⚡`;
   );
 }
 // ==========================================
-// ADMIN - DASHBOARD PRO (CON RECHARTS)
+// ADMIN - DASHBOARD PRO (CON RECHARTS Y DESCARGA)
 // ==========================================
 function AdminDashboard({ empresaId }) {
   const [stats, setStats] = useState({
@@ -1731,23 +1731,16 @@ function AdminDashboard({ empresaId }) {
       const totalPedidos = pedidos.length;
       const promedio = totalPedidos > 0 ? totalVentas / totalPedidos : 0;
 
-      // B. Preparar Datos para Gráfica (Agrupar por Mes)
+      // B. Preparar Datos para Gráfica
       const datosGrafica = [];
       const hoy = new Date();
-      // Generar últimos 6 meses
       for (let i = 5; i >= 0; i--) {
         const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
         const mesNombre = d.toLocaleString('es-CO', { month: 'short' });
         const anio = d.getFullYear();
-        datosGrafica.push({
-          name: `${mesNombre} ${anio}`,
-          mes: mesNombre,
-          total: 0,
-          pedidos: 0
-        });
+        datosGrafica.push({ name: `${mesNombre} ${anio}`, mes: mesNombre, total: 0, pedidos: 0 });
       }
 
-      // Llenamos con los datos reales
       pedidos.forEach(p => {
         const fecha = new Date(p.created_at);
         const mesNombre = fecha.toLocaleString('es-CO', { month: 'short' });
@@ -1781,6 +1774,28 @@ function AdminDashboard({ empresaId }) {
     setLoading(false);
   };
 
+  // --- FUNCIÓN PARA DESCARGAR EL REPORTE ---
+  const descargarReporte = () => {
+    if (!stats.ventasPorMes.length) return;
+
+    // 1. Crear contenido CSV
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Mes,Pedidos,Ventas Totales\n"; // Cabeceras
+
+    stats.ventasPorMes.forEach(row => {
+      csvContent += `${row.name},${row.pedidos},${row.total}\n`;
+    });
+
+    // 2. Crear enlace temporal y descargar
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `reporte_ventas_${empresaId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -1808,42 +1823,33 @@ function AdminDashboard({ empresaId }) {
 
       {/* 1. TARJETAS DE KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card Ventas */}
         <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-sm relative overflow-hidden shadow-lg">
           <div className="flex justify-between items-start z-10 relative">
             <div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Ingresos Totales</p>
               <h3 className="text-3xl font-black text-white tracking-tight">{formatoPesos(stats.ventasTotal)}</h3>
             </div>
-            <div className="bg-amber-500/10 p-2 rounded-sm border border-amber-500/20">
-              <DollarSign size={20} className="text-amber-500" />
-            </div>
+            <div className="bg-amber-500/10 p-2 rounded-sm border border-amber-500/20"><DollarSign size={20} className="text-amber-500" /></div>
           </div>
         </div>
 
-        {/* Card Pedidos */}
         <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-sm relative overflow-hidden shadow-lg">
           <div className="flex justify-between items-start z-10 relative">
             <div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Pedidos Totales</p>
               <h3 className="text-3xl font-black text-white tracking-tight">{stats.pedidosTotal}</h3>
             </div>
-            <div className="bg-blue-500/10 p-2 rounded-sm border border-blue-500/20">
-              <FileBox size={20} className="text-blue-500" />
-            </div>
+            <div className="bg-blue-500/10 p-2 rounded-sm border border-blue-500/20"><FileBox size={20} className="text-blue-500" /></div>
           </div>
         </div>
 
-        {/* Card Ticket */}
         <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-sm relative overflow-hidden shadow-lg">
           <div className="flex justify-between items-start z-10 relative">
             <div>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Ticket Promedio</p>
               <h3 className="text-3xl font-black text-white tracking-tight">{formatoPesos(stats.ticketPromedio)}</h3>
             </div>
-            <div className="bg-emerald-500/10 p-2 rounded-sm border border-emerald-500/20">
-              <Zap size={20} className="text-emerald-500" />
-            </div>
+            <div className="bg-emerald-500/10 p-2 rounded-sm border border-emerald-500/20"><Zap size={20} className="text-emerald-500" /></div>
           </div>
         </div>
       </div>
@@ -1872,13 +1878,13 @@ function AdminDashboard({ empresaId }) {
           </div>
         </div>
 
-        {/* 3. TOP MATERIALES */}
-        <div className={`${PANEL_STYLE} p-6 rounded-sm flex flex-col`}>
+        {/* 3. TOP MATERIALES Y BOTÓN DE DESCARGA */}
+        <div className={`${PANEL_STYLE} p-6 rounded-sm flex flex-col h-full`}>
           <h3 className="font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2">
             <Package size={18} className="text-amber-500" /> Lo más vendido
           </h3>
 
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-3 mb-6">
             {stats.topMateriales.length > 0 ? (
               stats.topMateriales.map((m, i) => (
                 <div key={i} className="group flex items-center justify-between p-3 bg-zinc-950 border border-zinc-800 rounded-sm hover:border-amber-500/50 hover:bg-zinc-900 transition-all">
@@ -1899,6 +1905,16 @@ function AdminDashboard({ empresaId }) {
                 <span className="text-xs uppercase">Sin datos aún</span>
               </div>
             )}
+          </div>
+
+          {/* EL BOTÓN AHORA ESTÁ AQUÍ EXPLÍCITAMENTE */}
+          <div className="mt-auto pt-4 border-t border-zinc-800">
+            <button
+              onClick={descargarReporte}
+              className="w-full bg-zinc-800 hover:bg-zinc-700 hover:text-white text-zinc-400 font-bold py-3 text-[10px] uppercase tracking-widest rounded-sm border border-zinc-700 flex items-center justify-center gap-2 transition-all"
+            >
+              <FileText size={14} /> Descargar Reporte
+            </button>
           </div>
         </div>
 
