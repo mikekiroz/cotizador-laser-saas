@@ -486,24 +486,21 @@ function AdminPedidos({ empresaId }) {
 
   return (
     <>
-      {/* ESTILOS DE BARRA DE DESPLAZAMIENTO MEJORADOS */}
+      {/* ESTILOS DE BARRA DE DESPLAZAMIENTO HÍBRIDA */}
       <style>{`
-        /* Ancho de la barra (un poco más gruesa para agarrarla bien) */
         .custom-scrollbar::-webkit-scrollbar {
-          height: 12px; 
+          height: 12px; /* Horizontal: Gruesa para arrastrar */
+          width: 5px;   /* Vertical: Finita para no estorbar tarjetas */
         }
-        /* El riel (fondo) oscuro */
         .custom-scrollbar::-webkit-scrollbar-track {
           background: #09090b; 
           border-radius: 4px;
         }
-        /* La barra en sí (Gris visible) */
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #52525b; 
           border-radius: 6px;
-          border: 3px solid #09090b; /* Borde para que parezca flotando */
+          border: 2px solid #09090b;
         }
-        /* Al pasar el mouse se pone ÁMBAR */
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #f59e0b; 
         }
