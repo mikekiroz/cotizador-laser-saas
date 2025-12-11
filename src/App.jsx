@@ -293,11 +293,11 @@ function OnboardingPage({ setEmpresa }) {
 }
 
 // ==========================================
-// VISTA ADMIN
+// VISTA ADMIN - COMPLETA Y CORREGIDA
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
-  const [tab, setTab] = useState('pedidos');
+  const [tab, setTab] = useState('dashboard'); // Empezamos en el Dashboard
   const [copied, setCopied] = useState(false);
 
   const publicUrl = `${window.location.origin}/?taller=${empresa.slug}`;
@@ -314,22 +314,21 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
   return (
     <div className={`min-h-screen bg-zinc-900 text-zinc-100 ${TEXTURE_DOTS}`}>
-      {/* Header NUEVO con soporte para LOGO */}
+
+      {/* 1. HEADER (CON TU LOGO) */}
       <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
         <div className="max-w-6xl mx-auto flex justify-between items-center">
 
-          {/* Logo o Icono de la Empresa (LADO IZQUIERDO) */}
+          {/* Logo o Icono de la Empresa */}
           <div className="flex items-center gap-4">
             <div className="shrink-0">
               {(empresa.faviconUrl || empresa.favicon_url) ? (
-                // SI HAY LOGO: Se muestra transparente y limpio
                 <img
                   src={empresa.faviconUrl || empresa.favicon_url}
                   alt="Icono"
                   className="w-10 h-10 object-contain"
                 />
               ) : (
-                // SI NO HAY: Se muestra cuadro con iniciales o rayo
                 <div className="w-10 h-10 bg-amber-500 rounded-sm flex items-center justify-center shadow-lg shadow-amber-500/20">
                   {empresa.nombre ? (
                     <span className="font-black text-zinc-900 text-sm">{empresa.nombre.substring(0, 2).toUpperCase()}</span>
@@ -349,7 +348,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
             </div>
           </div>
 
-          {/* Botones Derecha (Ver Cotizador / Salir) */}
+          {/* Botones Derecha */}
           <div className="flex items-center gap-4">
             <a href={publicUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-sm text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500">
               <ExternalLink size={16} className="text-amber-500" /> <span className="text-zinc-300 hover:text-white">Ver Cotizador</span>
@@ -360,6 +359,8 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           </div>
         </div>
       </div>
+
+      {/* 2. BARRA DE URL PÚBLICA */}
       <div className="bg-zinc-900 border-b border-amber-500/10 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm">
@@ -371,11 +372,15 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           </button>
         </div>
       </div>
-      {/* Tabs de Navegación NUEVOS */}
+
+      {/* 3. TABS Y CONTENIDO */}
       <div className="max-w-6xl mx-auto px-6 py-8">
+
+        {/* Menú de Pestañas */}
         <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1 overflow-x-auto">
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, // <--- AQUÍ ESTÁ LA NUEVA
+            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+            { id: 'clientes', label: 'Clientes', icon: Users },
             { id: 'pedidos', label: 'Pedidos', icon: FileBox },
             { id: 'materiales', label: 'Materiales', icon: Package },
             { id: 'empresa', label: 'Empresa', icon: Building2 },
@@ -385,8 +390,8 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${tab === t.id
-                ? 'border-amber-500 text-amber-500'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  ? 'border-amber-500 text-amber-500'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
                 }`}
             >
               <t.icon size={16} /> {t.label}
@@ -394,12 +399,14 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           ))}
         </div>
 
-        {/* Renderizado de Componentes */}
+        {/* Renderizado de Pantallas */}
         {tab === 'dashboard' && <AdminDashboard empresaId={session.user.id} />}
+        {tab === 'clientes' && <AdminClientes empresaId={session.user.id} />}
         {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
         {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
         {tab === 'seguridad' && <AdminSeguridad />}
+
       </div>
     </div>
   );
@@ -1918,6 +1925,182 @@ function AdminDashboard({ empresaId }) {
           </div>
         </div>
 
+      </div>
+    </div>
+  );
+}
+// ==========================================
+// ADMIN - DIRECTORIO DE CLIENTES (CRM)
+// ==========================================
+function AdminClientes({ empresaId }) {
+  const [clientes, setClientes] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    cargarClientes();
+  }, []);
+
+  const cargarClientes = async () => {
+    setLoading(true);
+    // 1. Traemos TODOS los pedidos
+    const { data: pedidos } = await supabase
+      .from('pedidos')
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .order('created_at', { ascending: false });
+
+    if (pedidos) {
+      // 2. Agrupamos por Documento (Cédula/NIT)
+      const clientesMap = {};
+
+      pedidos.forEach(p => {
+        // Usamos el documento como ID único. Si no tiene, usamos el email.
+        const idUnico = p.cliente_documento || p.cliente_email;
+
+        if (!idUnico) return; // Si no hay dato, saltamos
+
+        if (!clientesMap[idUnico]) {
+          // Si es la primera vez que vemos a este cliente, lo creamos
+          clientesMap[idUnico] = {
+            id: idUnico,
+            nombre: p.cliente_nombre,
+            documento: p.cliente_documento || '---',
+            email: p.cliente_email,
+            telefono: p.cliente_telefono,
+            direccion: p.cliente_direccion,
+            totalGastado: 0,
+            cantidadPedidos: 0,
+            ultimaCompra: p.created_at, // Como vienen ordenados desc, la primera es la última
+            tipo: p.cliente_documento?.length > 10 ? 'Empresa' : 'Persona' // Lógica simple para adivinar
+          };
+        }
+
+        // Sumamos sus compras
+        clientesMap[idUnico].totalGastado += (p.valor_total || 0);
+        clientesMap[idUnico].cantidadPedidos += 1;
+      });
+
+      // Convertimos el objeto a array para poder listarlo
+      const listaClientes = Object.values(clientesMap).sort((a, b) => b.totalGastado - a.totalGastado); // Ordenar por quien gasta más (VIPs primero)
+      setClientes(listaClientes);
+    }
+    setLoading(false);
+  };
+
+  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
+  const formatoFecha = (f) => new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // Filtrado de búsqueda
+  const clientesFiltrados = clientes.filter(c =>
+    c.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    c.documento.includes(busqueda) ||
+    c.email.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const contactarWhatsapp = (tel, nombre) => {
+    const msg = `Hola ${nombre}, te saludamos de ${sessionStorage.getItem('empresa_nombre') || 'el Taller'}...`;
+    window.open(`https://wa.me/57${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  // Función para exportar a Excel
+  const descargarClientes = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Nombre,Documento,Telefono,Email,Total Comprado,Pedidos,Ultima Compra\n";
+    clientesFiltrados.forEach(c => {
+      csvContent += `${c.nombre},${c.documento},${c.telefono},${c.email},${c.totalGastado},${c.cantidadPedidos},${c.ultimaCompra}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "base_datos_clientes.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+      {/* BARRA SUPERIOR */}
+      <div className={`${PANEL_STYLE} p-4 rounded-sm flex flex-col md:flex-row gap-4 justify-between items-center`}>
+        <div className="flex items-center gap-2">
+          <div className="bg-amber-500/10 p-2 rounded-sm border border-amber-500/20">
+            <Users size={20} className="text-amber-500" />
+          </div>
+          <div>
+            <h3 className="text-white font-black uppercase tracking-wider">Directorio de Clientes</h3>
+            <p className="text-xs text-zinc-500">{clientes.length} clientes registrados</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2 w-full md:w-auto">
+          <input
+            placeholder="Buscar por nombre, cédula o correo..."
+            className="bg-zinc-950 border border-zinc-700 text-zinc-200 text-sm px-4 py-2 rounded-sm outline-none focus:border-amber-500 w-full md:w-64"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+          />
+          <button onClick={descargarClientes} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 rounded-sm border border-zinc-700">
+            <FileText size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* TABLA DE CLIENTES */}
+      <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
+              <tr>
+                <th className="p-4">Cliente</th>
+                <th className="p-4">Contacto</th>
+                <th className="p-4">Historial</th>
+                <th className="p-4">Última Compra</th>
+                <th className="p-4 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800">
+              {loading ? (
+                <tr><td colSpan="5" className="p-8 text-center text-zinc-500"><Loader2 className="animate-spin inline mr-2" /> Cargando directorio...</td></tr>
+              ) : clientesFiltrados.length === 0 ? (
+                <tr><td colSpan="5" className="p-8 text-center text-zinc-500">No se encontraron clientes.</td></tr>
+              ) : (
+                clientesFiltrados.map((c) => (
+                  <tr key={c.id} className="hover:bg-zinc-800/50 transition-colors group">
+                    <td className="p-4">
+                      <div className="font-bold text-zinc-200 uppercase">{c.nombre}</div>
+                      <div className="text-xs text-zinc-500 font-mono flex items-center gap-2">
+                        {c.documento}
+                        {c.totalGastado > 1000000 && <span className="bg-amber-500/20 text-amber-500 px-1 rounded text-[9px] border border-amber-500/30">VIP</span>}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-zinc-400 text-xs flex items-center gap-1"><Phone size={12} /> {c.telefono}</div>
+                      <div className="text-zinc-500 text-xs flex items-center gap-1"><Mail size={12} /> {c.email}</div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-white font-black font-mono">{formatoPesos(c.totalGastado)}</div>
+                      <div className="text-xs text-zinc-500">{c.cantidadPedidos} pedidos</div>
+                    </td>
+                    <td className="p-4 text-zinc-400 text-xs">
+                      {formatoFecha(c.ultimaCompra)}
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => contactarWhatsapp(c.telefono, c.nombre)}
+                        className="text-zinc-500 hover:text-green-500 transition-colors p-2"
+                        title="Contactar por WhatsApp"
+                      >
+                        <MessageCircle size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
