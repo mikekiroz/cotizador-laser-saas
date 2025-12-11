@@ -413,7 +413,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 }
 
 // ==========================================
-// ADMIN - KANBAN DE PEDIDOS (PRODUCCIÓN)
+// ADMIN - KANBAN CON SCROLL VISIBLE Y ELEGANTE
 // ==========================================
 function AdminPedidos({ empresaId }) {
   const [pedidos, setPedidos] = useState([]);
@@ -437,32 +437,25 @@ function AdminPedidos({ empresaId }) {
     setLoading(false);
   };
 
-  // Actualizar estado en BD y UI
   const moverPedido = async (id, nuevoEstado) => {
-    // 1. Actualización Optimista (Inmediata en pantalla)
     setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
-
-    // 2. Actualización en Base de Datos
     const { error } = await supabase
       .from('pedidos')
       .update({ estado: nuevoEstado })
       .eq('id', id);
-
     if (error) {
       alert('Error al mover el pedido');
-      cargarPedidos(); // Revertir si falla
+      cargarPedidos();
     }
   };
 
-  // Manejadores de Drag & Drop
   const onDragStart = (e, pedido) => {
     setDraggedPedido(pedido);
     e.dataTransfer.effectAllowed = 'move';
-    // Truco para ocultar la imagen fantasma si quisieras, o dejarla por defecto
   };
 
   const onDragOver = (e) => {
-    e.preventDefault(); // Necesario para permitir el drop
+    e.preventDefault();
   };
 
   const onDrop = (e, estadoDestino) => {
@@ -482,7 +475,6 @@ function AdminPedidos({ empresaId }) {
   const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
   const formatoFecha = (f) => new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
 
-  // Definición de las Columnas
   const COLUMNAS = [
     { id: 'pendiente', titulo: 'Por Hacer', icon: Clock, color: 'text-zinc-400', border: 'border-zinc-700' },
     { id: 'proceso', titulo: 'En Producción', icon: Scissors, color: 'text-blue-500', border: 'border-blue-500/50' },
@@ -493,86 +485,104 @@ function AdminPedidos({ empresaId }) {
   if (loading) return <div className="p-10 text-center text-zinc-500"><Loader2 className="animate-spin inline mr-2" /> Cargando tablero...</div>;
 
   return (
-    <div className="h-[calc(100vh-200px)] overflow-x-auto pb-4">
-      <div className="flex gap-4 min-w-[1000px] h-full">
+    <>
+      {/* ESTILOS DE BARRA DE DESPLAZAMIENTO MEJORADOS */}
+      <style>{`
+        /* Ancho de la barra (un poco más gruesa para agarrarla bien) */
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 12px; 
+        }
+        /* El riel (fondo) oscuro */
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #09090b; 
+          border-radius: 4px;
+        }
+        /* La barra en sí (Gris visible) */
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #52525b; 
+          border-radius: 6px;
+          border: 3px solid #09090b; /* Borde para que parezca flotando */
+        }
+        /* Al pasar el mouse se pone ÁMBAR */
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #f59e0b; 
+        }
+      `}</style>
 
-        {COLUMNAS.map((col) => {
-          // Filtramos los pedidos de esta columna
-          // Nota: Si el estado en BD es null o distinto, lo mandamos a 'pendiente' por defecto
-          const pedidosColumna = pedidos.filter(p =>
-            (p.estado === col.id) ||
-            (col.id === 'pendiente' && !['proceso', 'realizado', 'entregado'].includes(p.estado))
-          );
+      <div className="h-[calc(100vh-200px)] overflow-x-auto pb-2 custom-scrollbar">
+        <div className="flex gap-4 h-full min-w-full w-max px-1">
 
-          return (
-            <div
-              key={col.id}
-              onDragOver={onDragOver}
-              onDrop={(e) => onDrop(e, col.id)}
-              className={`flex-1 flex flex-col bg-zinc-950/50 rounded-sm border ${col.border} border-t-4 min-w-[280px] transition-colors ${draggedPedido ? 'bg-zinc-900/80' : ''}`}
-            >
-              {/* Encabezado Columna */}
-              <div className="p-3 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
-                <div className={`flex items-center gap-2 font-black uppercase text-xs tracking-wider ${col.color}`}>
-                  <col.icon size={16} /> {col.titulo}
+          {COLUMNAS.map((col) => {
+            const pedidosColumna = pedidos.filter(p =>
+              (p.estado === col.id) ||
+              (col.id === 'pendiente' && !['proceso', 'realizado', 'entregado'].includes(p.estado))
+            );
+
+            return (
+              <div
+                key={col.id}
+                onDragOver={onDragOver}
+                onDrop={(e) => onDrop(e, col.id)}
+                className={`flex-1 flex flex-col bg-zinc-950/50 rounded-sm border ${col.border} border-t-4 min-w-[280px] w-[300px] transition-colors ${draggedPedido ? 'bg-zinc-900/80' : ''}`}
+              >
+                <div className="p-3 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+                  <div className={`flex items-center gap-2 font-black uppercase text-xs tracking-wider ${col.color}`}>
+                    <col.icon size={16} /> {col.titulo}
+                  </div>
+                  <span className="bg-zinc-800 text-zinc-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                    {pedidosColumna.length}
+                  </span>
                 </div>
-                <span className="bg-zinc-800 text-zinc-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                  {pedidosColumna.length}
-                </span>
-              </div>
 
-              {/* Área de Tarjetas */}
-              <div className="flex-1 p-3 space-y-3 overflow-y-auto">
-                {pedidosColumna.map((p) => (
-                  <div
-                    key={p.id}
-                    draggable
-                    onDragStart={(e) => onDragStart(e, p)}
-                    className="bg-zinc-900 border border-zinc-800 p-3 rounded-sm shadow-sm cursor-grab active:cursor-grabbing hover:border-amber-500/50 hover:shadow-lg transition-all group relative"
-                  >
-                    {/* Header Tarjeta */}
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <GripVertical size={14} className="text-zinc-600" />
-                        <span className="font-bold text-zinc-200 text-sm uppercase">{p.cliente_nombre}</span>
+                <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
+                  {pedidosColumna.map((p) => (
+                    <div
+                      key={p.id}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, p)}
+                      className="bg-zinc-900 border border-zinc-800 p-3 rounded-sm shadow-sm cursor-grab active:cursor-grabbing hover:border-amber-500/50 hover:shadow-lg transition-all group relative select-none"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <GripVertical size={14} className="text-zinc-600 opacity-50 group-hover:opacity-100" />
+                          <span className="font-bold text-zinc-200 text-sm uppercase">{p.cliente_nombre}</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-zinc-500">{formatoFecha(p.created_at)}</span>
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-500">{formatoFecha(p.created_at)}</span>
-                    </div>
 
-                    {/* Cuerpo Tarjeta */}
-                    <div className="text-xs text-zinc-400 space-y-1 mb-3 pl-5 border-l border-zinc-800">
-                      <p className="truncate font-medium text-white">{p.material_nombre}</p>
-                      <div className="flex justify-between">
-                        <span>{p.cantidad} uds</span>
-                        <span className="text-amber-500 font-bold">{formatoPesos(p.valor_total)}</span>
+                      <div className="text-xs text-zinc-400 space-y-1 mb-3 pl-5 border-l border-zinc-800">
+                        <p className="truncate font-medium text-white">{p.material_nombre}</p>
+                        <div className="flex justify-between">
+                          <span>{p.cantidad} uds</span>
+                          <span className="text-amber-500 font-bold">{formatoPesos(p.valor_total)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pl-1">
+                        {p.archivo_url ? (
+                          <a href={p.archivo_url} target="_blank" rel="noreferrer" className="text-[10px] flex items-center gap-1 text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 transition-colors">
+                            <FileText size={10} /> Ver Plano
+                          </a>
+                        ) : <span />}
+
+                        <button onClick={() => eliminarPedido(p.id)} className="text-zinc-600 hover:text-red-500 transition-colors p-1">
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-
-                    {/* Footer Tarjeta (Acciones) */}
-                    <div className="flex justify-between items-center pl-1">
-                      {p.archivo_url ? (
-                        <a href={p.archivo_url} target="_blank" rel="noreferrer" className="text-[10px] flex items-center gap-1 text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">
-                          <FileText size={10} /> Ver Plano
-                        </a>
-                      ) : <span />}
-
-                      <button onClick={() => eliminarPedido(p.id)} className="text-zinc-600 hover:text-red-500 transition-colors">
-                        <Trash2 size={14} />
-                      </button>
+                  ))}
+                  {pedidosColumna.length === 0 && (
+                    <div className="text-center py-10 opacity-10 text-zinc-500 text-xs uppercase font-bold border-2 border-dashed border-zinc-800 rounded-sm">
+                      Vacío
                     </div>
-                  </div>
-                ))}
-                {pedidosColumna.length === 0 && (
-                  <div className="text-center py-8 opacity-20 text-zinc-500 text-xs uppercase font-bold border-2 border-dashed border-zinc-800 rounded-sm">
-                    Vacío
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
