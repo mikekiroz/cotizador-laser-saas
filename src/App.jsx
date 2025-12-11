@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ==========================================
 // URL DE LA IMAGEN DE FONDO (CÁMBIALA AQUÍ)
@@ -370,21 +371,31 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           </button>
         </div>
       </div>
+      {/* Tabs de Navegación NUEVOS */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
-          {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
+        <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1 overflow-x-auto">
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, // <--- AQUÍ ESTÁ LA NUEVA
+            { id: 'pedidos', label: 'Pedidos', icon: FileBox },
+            { id: 'materiales', label: 'Materiales', icon: Package },
+            { id: 'empresa', label: 'Empresa', icon: Building2 },
+            { id: 'seguridad', label: 'Seguridad', icon: Lock },
+          ].map((t) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 ${tab === t
-                ? 'border-amber-500 text-amber-500'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${tab === t.id
+                  ? 'border-amber-500 text-amber-500'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
                 }`}
             >
-              {t}
+              <t.icon size={16} /> {t.label}
             </button>
           ))}
         </div>
+
+        {/* Renderizado de Componentes */}
+        {tab === 'dashboard' && <AdminDashboard empresaId={session.user.id} />}
         {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
         {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
@@ -1687,5 +1698,212 @@ Quedo atento a las instrucciones. ⚡`;
     </div>
   );
 }
+// ==========================================
+// ADMIN - DASHBOARD PRO (CON RECHARTS)
+// ==========================================
+function AdminDashboard({ empresaId }) {
+  const [stats, setStats] = useState({
+    ventasTotal: 0,
+    pedidosTotal: 0,
+    ticketPromedio: 0,
+    ventasPorMes: [],
+    topMateriales: []
+  });
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    calcularEstadisticas();
+  }, []);
+
+  const calcularEstadisticas = async () => {
+    setLoading(true);
+
+    // 1. Traer pedidos de la BD
+    const { data: pedidos } = await supabase
+      .from('pedidos')
+      .select('*')
+      .eq('empresa_id', empresaId)
+      .order('created_at', { ascending: true });
+
+    if (pedidos) {
+      // A. Cálculos Generales
+      const totalVentas = pedidos.reduce((acc, p) => acc + (p.valor_total || 0), 0);
+      const totalPedidos = pedidos.length;
+      const promedio = totalPedidos > 0 ? totalVentas / totalPedidos : 0;
+
+      // B. Preparar Datos para Gráfica (Agrupar por Mes)
+      const datosGrafica = [];
+      const hoy = new Date();
+      // Generar últimos 6 meses
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        const mesNombre = d.toLocaleString('es-CO', { month: 'short' });
+        const anio = d.getFullYear();
+        datosGrafica.push({
+          name: `${mesNombre} ${anio}`,
+          mes: mesNombre,
+          total: 0,
+          pedidos: 0
+        });
+      }
+
+      // Llenamos con los datos reales
+      pedidos.forEach(p => {
+        const fecha = new Date(p.created_at);
+        const mesNombre = fecha.toLocaleString('es-CO', { month: 'short' });
+        const mesEncontrado = datosGrafica.find(d => d.mes === mesNombre);
+        if (mesEncontrado) {
+          mesEncontrado.total += p.valor_total;
+          mesEncontrado.pedidos += 1;
+        }
+      });
+
+      // C. Top Materiales
+      const matConteo = {};
+      pedidos.forEach(p => {
+        const nombreBase = p.material_nombre?.split(' - ')[0] || 'Otro';
+        matConteo[nombreBase] = (matConteo[nombreBase] || 0) + 1;
+      });
+
+      const topMats = Object.entries(matConteo)
+        .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+        .sort((a, b) => b.cantidad - a.cantidad)
+        .slice(0, 5);
+
+      setStats({
+        ventasTotal: totalVentas,
+        pedidosTotal: totalPedidos,
+        ticketPromedio: promedio,
+        ventasPorMes: datosGrafica,
+        topMateriales: topMats
+      });
+    }
+    setLoading(false);
+  };
+
+  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-zinc-950 border border-zinc-700 p-3 rounded-sm shadow-xl">
+          <p className="text-zinc-400 text-xs font-bold uppercase mb-1">{label}</p>
+          <p className="text-amber-500 font-bold font-mono text-sm">{formatoPesos(payload[0].value)}</p>
+          <p className="text-zinc-500 text-xs">{payload[0].payload.pedidos} pedidos</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  if (loading) return (
+    <div className="h-64 flex flex-col items-center justify-center text-zinc-500 animate-pulse">
+      <Loader2 className="animate-spin mb-2 text-amber-500" />
+      <span className="text-xs uppercase tracking-widest">Analizando datos...</span>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+      {/* 1. TARJETAS DE KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Card Ventas */}
+        <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-sm relative overflow-hidden shadow-lg">
+          <div className="flex justify-between items-start z-10 relative">
+            <div>
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Ingresos Totales</p>
+              <h3 className="text-3xl font-black text-white tracking-tight">{formatoPesos(stats.ventasTotal)}</h3>
+            </div>
+            <div className="bg-amber-500/10 p-2 rounded-sm border border-amber-500/20">
+              <DollarSign size={20} className="text-amber-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Card Pedidos */}
+        <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-sm relative overflow-hidden shadow-lg">
+          <div className="flex justify-between items-start z-10 relative">
+            <div>
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Pedidos Totales</p>
+              <h3 className="text-3xl font-black text-white tracking-tight">{stats.pedidosTotal}</h3>
+            </div>
+            <div className="bg-blue-500/10 p-2 rounded-sm border border-blue-500/20">
+              <FileBox size={20} className="text-blue-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Card Ticket */}
+        <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-sm relative overflow-hidden shadow-lg">
+          <div className="flex justify-between items-start z-10 relative">
+            <div>
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Ticket Promedio</p>
+              <h3 className="text-3xl font-black text-white tracking-tight">{formatoPesos(stats.ticketPromedio)}</h3>
+            </div>
+            <div className="bg-emerald-500/10 p-2 rounded-sm border border-emerald-500/20">
+              <Zap size={20} className="text-emerald-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* 2. GRÁFICA DE VENTAS */}
+        <div className={`${PANEL_STYLE} p-6 rounded-sm lg:col-span-2 flex flex-col`}>
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <LayoutDashboard size={18} className="text-amber-500" /> Rendimiento de Ventas
+            </h3>
+            <span className="text-xs text-zinc-500 font-mono bg-zinc-950 px-2 py-1 rounded border border-zinc-800">Últimos 6 meses</span>
+          </div>
+
+          <div className="h-72 w-full text-xs font-mono">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.ventasPorMes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                <XAxis dataKey="name" stroke="#71717a" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 10 }} dy={10} />
+                <YAxis stroke="#71717a" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 10 }} tickFormatter={(value) => `$${value / 1000}k`} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 191, 0, 0.05)' }} />
+                <Bar dataKey="total" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={40} animationDuration={1500} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* 3. TOP MATERIALES */}
+        <div className={`${PANEL_STYLE} p-6 rounded-sm flex flex-col`}>
+          <h3 className="font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+            <Package size={18} className="text-amber-500" /> Lo más vendido
+          </h3>
+
+          <div className="flex-1 space-y-3">
+            {stats.topMateriales.length > 0 ? (
+              stats.topMateriales.map((m, i) => (
+                <div key={i} className="group flex items-center justify-between p-3 bg-zinc-950 border border-zinc-800 rounded-sm hover:border-amber-500/50 hover:bg-zinc-900 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-sm flex items-center justify-center font-black text-[10px] border ${i === 0 ? 'bg-amber-500 text-zinc-900 border-amber-500' : 'bg-zinc-900 text-zinc-500 border-zinc-700'}`}>
+                      {i + 1}
+                    </div>
+                    <span className="font-bold text-zinc-300 uppercase text-xs tracking-wide group-hover:text-white transition-colors">{m.nombre}</span>
+                  </div>
+                  <div className="text-zinc-400 font-mono text-xs font-bold bg-zinc-800 px-2 py-1 rounded-sm">
+                    {m.cantidad} <span className="text-[10px] font-normal text-zinc-600">uds</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-zinc-600 space-y-2 opacity-50">
+                <Package size={32} />
+                <span className="text-xs uppercase">Sin datos aún</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
 export default App;
