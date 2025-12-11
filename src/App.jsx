@@ -1225,27 +1225,62 @@ Quedo atento a las instrucciones. ⚡`;
     <div className="flex flex-col md:flex-row h-screen bg-zinc-900 text-white">
       {/* Panel Izquierdo - CONTROLES */}
       <div className={`w-full md:w-[420px] bg-zinc-900 flex flex-col border-r border-zinc-950 ${TEXTURE_DOTS}`}>
+        {/* PEGA ESTO REEMPLAZANDO LAS LÍNEAS 1228 A 1250 */}
         <div className={`p-6 border-b border-zinc-950 bg-zinc-900 shadow-xl z-10`}>
-          <div className="flex items-center gap-4">
-            {(empresa.faviconUrl || empresa.favicon_url) ? (
-              <img src={empresa.faviconUrl || empresa.favicon_url} alt="" className="w-12 h-12 rounded-sm object-cover border border-zinc-700" />
-            ) : (
-              <div className="w-12 h-12 bg-amber-500 rounded-sm flex items-center justify-center font-black text-zinc-900 shadow-lg shadow-amber-500/20">
-                {empresa.nombre?.substring(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1">
-              {(empresa.logoUrl || empresa.logo_url) ? (
-                <img src={empresa.logoUrl || empresa.logo_url} alt={empresa.nombre} className="h-10 object-contain" />
+          <div className="flex items-center gap-5">
+
+            {/* ÍCONO CUADRADO (IZQUIERDA) */}
+            <div className="shrink-0">
+              {(empresa.faviconUrl || empresa.favicon_url) ? (
+                <img
+                  src={empresa.faviconUrl || empresa.favicon_url}
+                  alt=""
+                  className="w-14 h-14 rounded-md object-cover border border-zinc-700 bg-zinc-950 shadow-md"
+                />
               ) : (
-                <h1 className="font-black text-lg uppercase tracking-wider text-white">{empresa.nombre}</h1>
+                <div className="w-14 h-14 bg-amber-500 rounded-md flex items-center justify-center font-black text-zinc-900 shadow-lg shadow-amber-500/20 text-xl">
+                  {empresa.nombre?.substring(0, 2).toUpperCase()}
+                </div>
               )}
-              <span className="text-amber-500 text-xs font-bold uppercase tracking-widest">{empresa.slogan}</span>
+            </div>
+
+            {/* LOGO Y SLOGAN (DERECHA) */}
+            <div className="flex-1 flex flex-col justify-center">
+              {(empresa.logoUrl || empresa.logo_url) ? (
+                <img
+                  src={empresa.logoUrl || empresa.logo_url}
+                  alt={empresa.nombre}
+                  className="h-12 w-auto object-contain object-left mb-1"
+                />
+              ) : (
+                <h1 className="font-black text-xl uppercase tracking-wider text-white leading-none mb-1">
+                  {empresa.nombre}
+                </h1>
+              )}
+
+              {/* Slogan */}
+              {empresa.slogan && (
+                <span className="text-amber-500 text-[10px] font-bold uppercase tracking-[0.2em] leading-tight block">
+                  {empresa.slogan}
+                </span>
+              )}
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1 font-mono">
-            <div className="flex items-center gap-2"><Phone size={12} className="text-amber-500" /> {empresa.telefono}</div>
-            <div className="flex items-center gap-2"><MapPin size={12} className="text-amber-500" /> {empresa.direccion}</div>
+
+          {/* INFORMACIÓN DE CONTACTO (ABAJO) */}
+          <div className="mt-5 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1.5 font-mono">
+            {(empresa.telefono) && (
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-800 p-1 rounded-sm"><Phone size={10} className="text-amber-500" /></div>
+                <span>{empresa.telefono}</span>
+              </div>
+            )}
+            {(empresa.direccion) && (
+              <div className="flex items-center gap-3">
+                <div className="bg-zinc-800 p-1 rounded-sm"><MapPin size={10} className="text-amber-500" /></div>
+                <span className="truncate">{empresa.direccion}</span>
+              </div>
+            )}
           </div>
         </div>
 
