@@ -10,9 +10,14 @@ import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
 
 // ==========================================
+// URL DE LA IMAGEN DE FONDO (CÁMBIALA AQUÍ)
+// ==========================================
+// Puedes poner aquí la url de tu imagen. He puesto una de ejemplo industrial.
+const BACKGROUND_IMAGE_URL = "https://res.cloudinary.com/dapd6legd/image/upload/v1765418832/laser-2819142_1920_w66xwk.jpg";
+
+// ==========================================
 // ESTILOS Y TEXTURAS INDUSTRIALES
 // ==========================================
-// Definimos clases base para las texturas solicitadas para reutilizarlas
 const TEXTURE_DOTS = "bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:20px_20px]";
 const TEXTURE_STRIPES = "bg-[linear-gradient(45deg,rgba(0,0,0,0.2)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2)_75%,transparent_75%,transparent)] [background-size:10px_10px]";
 const PANEL_STYLE = "bg-zinc-900 border-t border-zinc-700 border-b border-zinc-950 border-x border-zinc-800 shadow-xl";
@@ -42,7 +47,6 @@ function AppContent() {
   const [loadingData, setLoadingData] = useState(true);
   const [tallerSlug, setTallerSlug] = useState(null);
 
-  // Detectar modo de la app basado en URL y sesión
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('taller');
@@ -62,7 +66,6 @@ function AppContent() {
     }
   }, [session, authLoading]);
 
-  // Cargar datos del taller para vista pública
   const cargarTallerPublico = async (slug) => {
     setLoadingData(true);
     const { data: emp } = await supabase.from('empresas').select('*').eq('slug', slug).single();
@@ -74,7 +77,6 @@ function AppContent() {
     setLoadingData(false);
   };
 
-  // Cargar datos del admin logueado
   const cargarDatosAdmin = async () => {
     setLoadingData(true);
     const { data: emp } = await supabase.from('empresas').select('*').eq('id', session.user.id).single();
@@ -86,7 +88,6 @@ function AppContent() {
     setLoadingData(false);
   };
 
-  // Loading
   if (appMode === 'loading' || (loadingData && appMode !== 'landing')) {
     return (
       <div className="h-screen bg-zinc-950 flex items-center justify-center">
@@ -95,22 +96,18 @@ function AppContent() {
     );
   }
 
-  // Landing (no logueado)
   if (appMode === 'landing') {
     return <LandingPage />;
   }
 
-  // Admin (logueado) - sin empresa configurada = Onboarding
   if (appMode === 'admin' && !empresa.nombre) {
     return <OnboardingPage setEmpresa={setEmpresa} />;
   }
 
-  // Admin (logueado) - con empresa
   if (appMode === 'admin') {
     return <VistaAdmin empresa={empresa} setEmpresa={setEmpresa} materiales={materiales} setMateriales={setMateriales} recargar={cargarDatosAdmin} />;
   }
 
-  // Público (con ?taller=slug)
   if (appMode === 'public') {
     if (!empresa.nombre) {
       return (
@@ -141,7 +138,7 @@ function App() {
 // LANDING PAGE
 // ==========================================
 function LandingPage() {
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [authMode, setAuthMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -166,14 +163,10 @@ function LandingPage() {
 
   return (
     <div className={`min-h-screen bg-zinc-950 text-white ${TEXTURE_DOTS}`}>
-      {/* Hero */}
       <div className="relative overflow-hidden">
-        {/* Efecto de luz industrial */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(255,160,0,0.08),transparent_60%)]"></div>
-
         <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Izquierda - Copy */}
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black px-4 py-2 rounded-sm uppercase tracking-widest mb-6">
                 <Zap size={16} /> Cotizador Láser Industrial
@@ -191,15 +184,11 @@ function LandingPage() {
                 <li className="flex items-center gap-3"><div className="bg-amber-500/20 p-1 rounded-sm"><Check size={16} className="text-amber-500" /></div> <span className="font-medium">Recibe pedidos por WhatsApp o Email</span></li>
               </ul>
             </div>
-
-            {/* Derecha - Auth Form */}
             <div className={`${PANEL_STYLE} p-8 rounded-sm relative`}>
-              {/* Tornillos decorativos */}
               <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
               <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
               <div className="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
               <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-zinc-700 opacity-50"></div>
-
               <h2 className="text-xl font-black mb-6 text-center text-zinc-100 uppercase tracking-wider">
                 {authMode === 'login' ? 'Acceso Taller' : 'Registrar Taller'}
               </h2>
@@ -231,7 +220,7 @@ function LandingPage() {
 }
 
 // ==========================================
-// ONBOARDING - Primera configuración
+// ONBOARDING
 // ==========================================
 function OnboardingPage({ setEmpresa }) {
   const { session } = useAuth();
@@ -303,7 +292,7 @@ function OnboardingPage({ setEmpresa }) {
 }
 
 // ==========================================
-// VISTA ADMIN - CON PESTAÑA PEDIDOS
+// VISTA ADMIN
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
@@ -324,7 +313,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
   return (
     <div className={`min-h-screen bg-zinc-900 text-zinc-100 ${TEXTURE_DOTS}`}>
-      {/* Header */}
       <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -346,8 +334,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           </div>
         </div>
       </div>
-
-      {/* URL Banner */}
       <div className="bg-zinc-900 border-b border-amber-500/10 px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm">
@@ -359,8 +345,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           </button>
         </div>
       </div>
-
-      {/* Tabs de Navegación */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex gap-4 mb-8 border-b border-zinc-800 pb-1">
           {['pedidos', 'materiales', 'empresa', 'seguridad'].map((t) => (
@@ -376,8 +360,6 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
             </button>
           ))}
         </div>
-
-        {/* Renderizado de Componentes */}
         {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
         {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
@@ -512,9 +494,6 @@ function AdminPedidos({ empresaId }) {
   );
 }
 
-// ==========================================
-// ADMIN - MATERIALES
-// ==========================================
 function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
   const [form, setForm] = useState({
     nombre: '', calibre: '', precioMetro: '', precioDisparo: '', precioMaterial: '', unidadCobro: 'cm2'
@@ -570,7 +549,6 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
 
   return (
     <div className="space-y-6">
-      {/* Formulario */}
       <div className={`${PANEL_STYLE} p-6 rounded-sm`}>
         <h3 className="font-black text-white uppercase tracking-wider mb-4 border-l-4 border-amber-500 pl-3">{editingId ? 'Editar Material' : 'Nuevo Material'}</h3>
         <form onSubmit={handleSave}>
@@ -624,7 +602,6 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
         </form>
       </div>
 
-      {/* --- TABLA DE LA LISTA DE MATERIALES --- */}
       <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
         <table className="w-full text-sm">
           <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
@@ -667,9 +644,7 @@ function AdminMateriales({ empresaId, materiales, setMateriales, recargar }) {
     </div>
   );
 }
-// ==========================================
-// ADMIN - EMPRESA
-// ==========================================
+
 function AdminEmpresa({ empresa, setEmpresa }) {
   const { session } = useAuth();
   const [saving, setSaving] = useState(false);
@@ -724,8 +699,6 @@ function AdminEmpresa({ empresa, setEmpresa }) {
       <h3 className="font-black mb-6 flex items-center gap-2 text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">
         <Building2 size={20} className="text-amber-500" /> Datos de la Empresa
       </h3>
-
-      {/* Imágenes */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label className={LABEL_STYLE}>Logo</label>
@@ -756,8 +729,6 @@ function AdminEmpresa({ empresa, setEmpresa }) {
           </div>
         </div>
       </div>
-
-      {/* Datos */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={LABEL_STYLE}>Nombre</label>
@@ -791,9 +762,6 @@ function AdminEmpresa({ empresa, setEmpresa }) {
   );
 }
 
-// ==========================================
-// ADMIN - SEGURIDAD
-// ==========================================
 function AdminSeguridad() {
   const { session } = useAuth();
   const [currentPass, setCurrentPass] = useState('');
@@ -802,14 +770,12 @@ function AdminSeguridad() {
   const [loading, setLoading] = useState(false);
 
   const handleChangePassword = async () => {
-    // Validaciones
     if (!currentPass) { alert('Ingresa tu contraseña actual'); return; }
     if (!newPass || newPass.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
     if (newPass !== confirmPass) { alert('Las contraseñas no coinciden'); return; }
 
     setLoading(true);
 
-    // Paso 1: Verificar contraseña actual
     const { error: verifyError } = await supabase.auth.signInWithPassword({
       email: session.user.email,
       password: currentPass
@@ -821,7 +787,6 @@ function AdminSeguridad() {
       return;
     }
 
-    // Paso 2: Actualizar contraseña
     const { error: updateError } = await supabase.auth.updateUser({ password: newPass });
 
     if (updateError) {
@@ -844,22 +809,18 @@ function AdminSeguridad() {
           <p className="text-amber-500 text-sm font-bold flex items-center gap-2"><Lock size={14} /> SEGURIDAD</p>
           <p className="text-zinc-400 text-xs mt-1">Debes ingresar tu contraseña actual para poder cambiarla.</p>
         </div>
-
         <div>
           <label className={LABEL_STYLE}>Contraseña Actual</label>
           <input type="password" value={currentPass} onChange={e => setCurrentPass(e.target.value)} className={INPUT_STYLE} placeholder="Tu contraseña actual" />
         </div>
-
         <div className="border-t border-zinc-800 pt-4">
           <label className={LABEL_STYLE}>Nueva Contraseña</label>
           <input type="password" value={newPass} onChange={e => setNewPass(e.target.value)} className={INPUT_STYLE} placeholder="Mínimo 6 caracteres" />
         </div>
-
         <div>
           <label className={LABEL_STYLE}>Confirmar Nueva Contraseña</label>
           <input type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} className={INPUT_STYLE} placeholder="Repite la nueva contraseña" />
         </div>
-
         <button onClick={handleChangePassword} disabled={loading} className={BUTTON_PRIMARY}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />} ACTUALIZAR CONTRASEÑA
         </button>
@@ -868,15 +829,13 @@ function AdminSeguridad() {
   );
 }
 
-
-
 // ==========================================
-// VISTA CLIENTE (PÚBLICA) - CON MATERIAL OPCIONAL
+// VISTA CLIENTE (PÚBLICA)
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
   const [perimetro, setPerimetro] = useState(0);
-  const [areaCm2, setAreaCm2] = useState(0); // NUEVO: Área del bounding box
+  const [areaCm2, setAreaCm2] = useState(0);
   const [cantidadDisparos, setCantidadDisparos] = useState(0);
   const [nombreArchivo, setNombreArchivo] = useState(null);
   const [archivoBlob, setArchivoBlob] = useState(null);
@@ -885,14 +844,12 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [enviandoCorreo, setEnviandoCorreo] = useState(false);
   const [cantidad, setCantidad] = useState(1);
-  const [incluyeMaterial, setIncluyeMaterial] = useState(false); // NUEVO: Toggle material
+  const [incluyeMaterial, setIncluyeMaterial] = useState(false);
 
-  // Estado del Cliente
   const [datosCliente, setDatosCliente] = useState({
     tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
   });
 
-  // --- PERSISTENCIA ---
   useEffect(() => {
     const guardado = localStorage.getItem('maikitto_datos');
     if (guardado) { try { setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
@@ -915,7 +872,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
   };
 
-  // --- FUNCIÓN PARA CALCULAR BOUNDING BOX ---
   const calcularBoundingBox = (entities) => {
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
@@ -936,21 +892,18 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
         actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
       } else if (e.type === 'ARC') {
-        // Aproximación simple para arcos
         actualizarLimites(e.center.x - e.radius, e.center.y - e.radius);
         actualizarLimites(e.center.x + e.radius, e.center.y + e.radius);
       }
     });
 
-    // Retornar área en cm² (asumiendo que las unidades del DXF son mm)
     const anchoMm = maxX - minX;
     const altoMm = maxY - minY;
-    const areaCm2 = (anchoMm / 10) * (altoMm / 10); // mm² a cm²
+    const areaCm2 = (anchoMm / 10) * (altoMm / 10);
 
     return areaCm2;
   };
 
-  // --- LÓGICA DE CÁLCULO DXF ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
@@ -982,16 +935,13 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         if (valid) conteoFiguras++;
       });
 
-      // Calcular área del bounding box
       const area = calcularBoundingBox(dxf.entities);
-
       finalizarCalculo(longitudTotal / 1000, conteoFiguras, area);
     } catch (err) {
       reportarError('DXF inválido: ' + err.message);
     }
   };
 
-  // --- LÓGICA DE CÁLCULO SVG ---
   const procesarSVG = (textoSVG) => {
     try {
       const parser = new DOMParser();
@@ -1013,7 +963,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       ['path', 'rect', 'circle', 'line', 'polyline', 'polygon'].forEach(sel => {
         doc.querySelectorAll(sel).forEach(el => {
           let len = 0;
-
           if (el.tagName === 'circle') {
             const r = parseFloat(el.getAttribute('r'));
             const cx = parseFloat(el.getAttribute('cx'));
@@ -1042,7 +991,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
           if (len === 0 && typeof el.getTotalLength === 'function') {
             try {
               len = el.getTotalLength();
-              // Para path, obtener bbox
               if (el.tagName === 'path') {
                 const bbox = el.getBBox();
                 actualizarLimites(bbox.x, bbox.y);
@@ -1058,11 +1006,9 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         });
       });
 
-      // Calcular área en cm² (asumiendo unidades en px, 1px ≈ 0.264583 mm)
       const anchoMm = (maxX - minX) * 0.264583;
       const altoMm = (maxY - minY) * 0.264583;
       const areaCm2 = (anchoMm / 10) * (altoMm / 10);
-
       finalizarCalculo(longitudTotal / 1000, conteoFiguras, areaCm2);
     } catch (err) {
       reportarError('SVG inválido: ' + err.message);
@@ -1106,12 +1052,10 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     reader.readAsText(file);
   };
 
-  // --- CÁLCULOS DE PRECIO ---
   const costoMetroUnitario = perimetro * materialActivo.precioMetro;
   const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
   const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
 
-  // Calcular costo de material según unidad
   let costoMaterialUnitario = 0;
   if (incluyeMaterial && materialActivo.precioMaterial > 0) {
     if (materialActivo.unidadCobro === 'cm2') {
@@ -1143,7 +1087,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     let urlArchivoPublica = "";
 
     try {
-      // 1. SUBIR ARCHIVO
       if (archivoBlob) {
         const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
         const { error: uploadError } = await supabase.storage
@@ -1159,7 +1102,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         urlArchivoPublica = urlData.publicUrl;
       }
 
-      // 2. GUARDAR EN BD (con nuevos campos)
       const { error: dbError } = await supabase.from('pedidos').insert({
         empresa_id: empresa.id,
         cliente_nombre: datosCliente.nombre,
@@ -1174,7 +1116,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         valor_total: totalFinalReal,
         tipo: 'corte',
         estado: 'pendiente',
-        // NUEVOS CAMPOS
         perimetro_metros: perimetro * cantidad,
         area_cm2: areaCm2 * cantidad,
         num_perforaciones: cantidadDisparos * cantidad,
@@ -1185,7 +1126,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
 
       if (dbError) throw dbError;
 
-      // 3. ENVIAR EMAIL
       await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1201,7 +1141,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
           archivoUrl: urlArchivoPublica,
           material: `${materialActivo.nombre} - ${materialActivo.calibre}`,
           cantidad: cantidad,
-          // Desglose detallado
           perimetro: (perimetro * cantidad).toFixed(2),
           perforaciones: cantidadDisparos * cantidad,
           costoCorte: formatoPesos(costoCorteUnitario * cantidad),
@@ -1223,7 +1162,6 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       return;
     }
 
-    // 4. WHATSAPP con desglose completo
     let infoCliente = "";
     if (datosCliente.tipo === 'natural') {
       infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
@@ -1281,7 +1219,6 @@ Quedo atento a las instrucciones. ⚡`;
     setMostrarModal(false);
   };
 
-  // Verificar si el material tiene precio configurado
   const materialTienePrecio = materialActivo.precioMaterial > 0;
 
   return (
@@ -1339,7 +1276,6 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
           </div>
 
-          {/* Toggle para incluir material */}
           {materialTienePrecio && (
             <div className={`mb-6 bg-amber-500/5 border border-amber-500/10 rounded-sm p-4 ${TEXTURE_STRIPES}`}>
               <label className="flex items-center gap-3 cursor-pointer group">
@@ -1393,13 +1329,36 @@ Quedo atento a las instrucciones. ⚡`;
         </div>
       </div>
 
-      {/* Panel Derecho - RESULTADOS */}
-      <div className={`flex-1 bg-yellow-100 flex flex-col items-center justify-center p-8 relative overflow-hidden`}>
-        {/* Fondo decorativo industrial */}
-        <div className="absolute inset-0 opacity-5 bg-[linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:40px_40px]"></div>
+      {/* ========================================================== */}
+      {/* PANEL DERECHO - RESULTADOS CON FONDO DE IMAGEN DIFUMINADA */}
+      {/* ========================================================== */}
+      <div className="flex-1 relative flex flex-col items-center justify-center p-8 overflow-hidden bg-zinc-900">
 
-        <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative`}>
-          {/* Remaches decorativos esquinas */}
+        {/* --- INICIO ZONA DE LA IMAGEN DE FONDO --- */}
+        <div className="absolute inset-0 z-0 select-none pointer-events-none">
+          {/* Capa 1: La imagen en sí */}
+          <img
+            src={BACKGROUND_IMAGE_URL}
+            alt="Fondo Industrial"
+            className="w-full h-full object-cover opacity-60 grayscale-[20%]"
+          />
+
+          {/* Capa 2: Tinte Ámbar sutil (marca de agua de color) */}
+          <div className="absolute inset-0 bg-amber-600/20 mix-blend-overlay"></div>
+
+          {/* Capa 3: Gradiente desde abajo hacia arriba (Fundido negro) */}
+          {/* Esto hace que el fondo se funda con el negro para que el texto resalte */}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
+
+          {/* Capa 4: Viñeta (oscurecer bordes) */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(9,9,11,0.8)_100%)]"></div>
+
+          {/* Capa 5: Textura punteada sutil encima */}
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:30px_30px]"></div>
+        </div>
+        {/* --- FIN ZONA DE LA IMAGEN DE FONDO --- */}
+
+        <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative backdrop-blur-sm bg-zinc-900/90`}>
           <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
           <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
           <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
@@ -1461,7 +1420,6 @@ Quedo atento a las instrucciones. ⚡`;
               </div>
             </div>
 
-            {/* Mostrar área si incluye material */}
             {incluyeMaterial && areaCm2 > 0 && (
               <div className={`bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm ${TEXTURE_STRIPES}`}>
                 <div className="flex items-center justify-between mb-2">
@@ -1508,16 +1466,12 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
 
             <div className="p-6 overflow-y-auto max-h-[80vh]">
-              {/* DESGLOSE ECONÓMICO */}
               <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
-                {/* Etiqueta lateral */}
                 <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
-
                 <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                   <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
                   <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
                 </div>
-
                 {incluyeMaterial && (
                   <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
                     <div>
@@ -1528,12 +1482,10 @@ Quedo atento a las instrucciones. ⚡`;
                     <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
                   </div>
                 )}
-
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
                   <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
                 </div>
-
                 {config.porcentajeIva > 0 && (
                   <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
                     <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
@@ -1542,7 +1494,6 @@ Quedo atento a las instrucciones. ⚡`;
                     </span>
                   </div>
                 )}
-
                 <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
                   <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
                   <span className="text-3xl font-black text-amber-500 tracking-tight">
@@ -1550,8 +1501,6 @@ Quedo atento a las instrucciones. ⚡`;
                   </span>
                 </div>
               </div>
-
-              {/* TABS PERSONA/EMPRESA */}
               <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
                 <button
                   onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
@@ -1572,8 +1521,6 @@ Quedo atento a las instrucciones. ⚡`;
                   Empresa / Jurídica
                 </button>
               </div>
-
-              {/* FORMULARIO CLIENTE */}
               <div className="space-y-4">
                 <div>
                   <label className={LABEL_STYLE}>
@@ -1587,7 +1534,6 @@ Quedo atento a las instrucciones. ⚡`;
                     placeholder="ejemplo@correo.com"
                   />
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={LABEL_STYLE}>
@@ -1610,7 +1556,6 @@ Quedo atento a las instrucciones. ⚡`;
                     />
                   </div>
                 </div>
-
                 {datosCliente.tipo === 'juridica' && (
                   <div>
                     <label className={LABEL_STYLE}>
@@ -1624,7 +1569,6 @@ Quedo atento a las instrucciones. ⚡`;
                     />
                   </div>
                 )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={LABEL_STYLE}>
@@ -1649,8 +1593,6 @@ Quedo atento a las instrucciones. ⚡`;
                 </div>
               </div>
             </div>
-
-            {/* FOOTER MODAL */}
             <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
               <button
                 onClick={() => setMostrarModal(false)}
