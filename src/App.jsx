@@ -830,7 +830,7 @@ function AdminSeguridad() {
 }
 
 // ==========================================
-// VISTA CLIENTE (PÚBLICA)
+// VISTA CLIENTE (PÚBLICA) - FINAL CORREGIDA
 // ==========================================
 function VistaCliente({ materials: materiales, empresa, config }) {
   const [materialSeleccionado, setMaterialSeleccionado] = useState(materiales[0]?.id || '');
@@ -846,10 +846,12 @@ function VistaCliente({ materials: materiales, empresa, config }) {
   const [cantidad, setCantidad] = useState(1);
   const [incluyeMaterial, setIncluyeMaterial] = useState(false);
 
+  // Estado del Cliente
   const [datosCliente, setDatosCliente] = useState({
     tipo: 'natural', nombre: '', documento: '', contacto: '', telefono: '', direccion: '', email: ''
   });
 
+  // --- PERSISTENCIA ---
   useEffect(() => {
     const guardado = localStorage.getItem('maikitto_datos');
     if (guardado) { try { setDatosCliente(JSON.parse(guardado)); } catch (e) { } }
@@ -872,6 +874,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     unidadCobro: rawMaterial.unidadCobro || rawMaterial.unidad_cobro || 'cm2'
   };
 
+  // --- FUNCIÓN PARA CALCULAR BOUNDING BOX ---
   const calcularBoundingBox = (entities) => {
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
@@ -904,6 +907,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     return areaCm2;
   };
 
+  // --- LÓGICA DE CÁLCULO DXF ---
   const procesarDXF = (textoDXF) => {
     try {
       const parser = new DxfParser();
@@ -942,6 +946,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     }
   };
 
+  // --- LÓGICA DE CÁLCULO SVG ---
   const procesarSVG = (textoSVG) => {
     try {
       const parser = new DOMParser();
@@ -1052,10 +1057,12 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     reader.readAsText(file);
   };
 
+  // --- CÁLCULOS DE PRECIO ---
   const costoMetroUnitario = perimetro * materialActivo.precioMetro;
   const costoDisparoUnitario = cantidadDisparos * materialActivo.precioDisparo;
   const costoCorteUnitario = costoMetroUnitario + costoDisparoUnitario;
 
+  // Calcular costo de material según unidad
   let costoMaterialUnitario = 0;
   if (incluyeMaterial && materialActivo.precioMaterial > 0) {
     if (materialActivo.unidadCobro === 'cm2') {
@@ -1087,6 +1094,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
     let urlArchivoPublica = "";
 
     try {
+      // 1. SUBIR ARCHIVO
       if (archivoBlob) {
         const rutaArchivo = `${empresa.id}/${Date.now()}_${nombreArchivo.replace(/\s+/g, '_')}`;
         const { error: uploadError } = await supabase.storage
@@ -1102,6 +1110,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
         urlArchivoPublica = urlData.publicUrl;
       }
 
+      // 2. GUARDAR EN BD
       const { error: dbError } = await supabase.from('pedidos').insert({
         empresa_id: empresa.id,
         cliente_nombre: datosCliente.nombre,
@@ -1126,6 +1135,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
 
       if (dbError) throw dbError;
 
+      // 3. ENVIAR EMAIL
       await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1162,6 +1172,7 @@ function VistaCliente({ materials: materiales, empresa, config }) {
       return;
     }
 
+    // 4. WHATSAPP
     let infoCliente = "";
     if (datosCliente.tipo === 'natural') {
       infoCliente = `*CLIENTE:* ${datosCliente.nombre}\n*CC:* ${datosCliente.documento}`;
@@ -1225,9 +1236,10 @@ Quedo atento a las instrucciones. ⚡`;
     <div className="flex flex-col md:flex-row h-screen bg-zinc-900 text-white">
       {/* Panel Izquierdo - CONTROLES */}
       <div className={`w-full md:w-[420px] bg-zinc-900 flex flex-col border-r border-zinc-950 ${TEXTURE_DOTS}`}>
+
+        {/* === HEADER CORREGIDO SIN FONDO NI RECUADRO === */}
         <div className={`p-6 border-b border-zinc-950 bg-zinc-900 shadow-xl z-10`}>
           <div className="flex items-center gap-5">
-
             {/* ÍCONO CUADRADO (IZQUIERDA) */}
             <div className="shrink-0">
               {(empresa.faviconUrl || empresa.favicon_url) ? (
@@ -1238,7 +1250,7 @@ Quedo atento a las instrucciones. ⚡`;
                   className="w-14 h-14 object-contain"
                 />
               ) : (
-                // Este es el cuadro de "reserva" por si NO hay imagen (ese sí mantiene el fondo de color)
+                // Placeholder
                 <div className="w-14 h-14 bg-amber-500 rounded-md flex items-center justify-center font-black text-zinc-900 shadow-lg shadow-amber-500/20 text-xl">
                   {empresa.nombre?.substring(0, 2).toUpperCase()}
                 </div>
@@ -1268,7 +1280,7 @@ Quedo atento a las instrucciones. ⚡`;
             </div>
           </div>
 
-          {/* INFORMACIÓN DE CONTACTO (ABAJO) */}
+          {/* INFORMACIÓN DE CONTACTO (SOLO UNA VEZ AQUÍ) */}
           <div className="mt-5 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1.5 font-mono">
             {(empresa.telefono) && (
               <div className="flex items-center gap-3">
@@ -1285,389 +1297,369 @@ Quedo atento a las instrucciones. ⚡`;
           </div>
         </div>
 
-        {/* INFORMACIÓN DE CONTACTO (ABAJO) */}
-        <div className="mt-5 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1.5 font-mono">
-          {(empresa.telefono) && (
-            <div className="flex items-center gap-3">
-              <div className="bg-zinc-800 p-1 rounded-sm"><Phone size={10} className="text-amber-500" /></div>
-              <span>{empresa.telefono}</span>
-            </div>
-          )}
-          {(empresa.direccion) && (
-            <div className="flex items-center gap-3">
-              <div className="bg-zinc-800 p-1 rounded-sm"><MapPin size={10} className="text-amber-500" /></div>
-              <span className="truncate">{empresa.direccion}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="p-6 flex-1 flex flex-col overflow-y-auto">
-        <div className="mb-6">
-          <label className={LABEL_STYLE}>Material y Calibre</label>
-          <select
-            value={materialSeleccionado}
-            onChange={e => setMaterialSeleccionado(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-zinc-100 font-bold outline-none focus:border-amber-500 transition-colors"
-          >
-            {materiales.map(m => (
-              <option key={m.id} value={m.id}>
-                {m.nombre} - {m.calibre}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-3 mb-6">
-          <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
-            <span className="uppercase tracking-wide">Metro Lineal</span>
-            <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioMetro)}</span>
-          </div>
-          <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
-            <span className="uppercase tracking-wide">Perforación</span>
-            <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioDisparo)}</span>
-          </div>
-        </div>
-
-        {materialTienePrecio && (
-          <div className={`mb-6 bg-amber-500/5 border border-amber-500/10 rounded-sm p-4 ${TEXTURE_STRIPES}`}>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={incluyeMaterial}
-                onChange={e => setIncluyeMaterial(e.target.checked)}
-                className="w-5 h-5 bg-zinc-950 border-2 border-zinc-600 rounded-sm checked:bg-amber-500 checked:border-amber-500 cursor-pointer appearance-none transition-all relative checked:after:content-['✓'] checked:after:text-zinc-900 checked:after:absolute checked:after:left-[2px] checked:after:text-sm checked:after:font-bold"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">
-                  <Package size={16} className="text-amber-500" />
-                  Incluir Material
-                </div>
-                <div className="text-xs text-amber-500/80 mt-1 font-mono pl-6">
-                  {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
-                </div>
-              </div>
-            </label>
-          </div>
-        )}
-
-        <label className="group relative border-2 border-dashed border-zinc-700 rounded-sm flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-zinc-800/50 transition-all">
-          <input
-            type="file"
-            className="hidden"
-            accept=".dxf,.svg"
-            onChange={manejarArchivo}
-          />
-          {procesando ? (
-            <div className="flex flex-col items-center">
-              <Loader2 className="animate-spin text-amber-500 mb-2" size={32} />
-              <span className="text-amber-500 font-black text-sm uppercase tracking-widest">Calculando...</span>
-            </div>
-          ) : (
-            <>
-              <Upload className="text-zinc-500 group-hover:text-amber-500 transition-colors mb-3" size={36} />
-              <h3 className="text-lg font-black uppercase tracking-wider text-zinc-300 group-hover:text-white">Subir Plano</h3>
-              <div className="flex gap-2 mt-2">
-                <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.DXF</span>
-                <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.SVG</span>
-              </div>
-            </>
-          )}
-        </label>
-        {error && (
-          <div className="mt-3 bg-red-900/20 border-l-4 border-red-500 p-3 rounded-sm text-red-400 text-xs text-center font-bold uppercase">
-            {error}
-          </div>
-        )}
-      </div>
-    </div>
-
-      {/* ========================================================== */ }
-  {/* PANEL DERECHO - RESULTADOS CON FONDO DE IMAGEN DIFUMINADA */ }
-  {/* ========================================================== */ }
-  <div className="flex-1 relative flex flex-col items-center justify-center p-8 overflow-hidden bg-zinc-900">
-
-    {/* --- INICIO ZONA DE LA IMAGEN DE FONDO --- */}
-    <div className="absolute inset-0 z-0 select-none pointer-events-none">
-      {/* Capa 1: La imagen en sí */}
-      <img
-        src={BACKGROUND_IMAGE_URL}
-        alt="Fondo Industrial"
-        className="w-full h-full object-cover opacity-60 grayscale-[20%]"
-      />
-
-      {/* Capa 2: Tinte Ámbar sutil (marca de agua de color) */}
-      <div className="absolute inset-0 bg-amber-600/20 mix-blend-overlay"></div>
-
-      {/* Capa 3: Gradiente desde abajo hacia arriba (Fundido negro) */}
-      {/* Esto hace que el fondo se funda con el negro para que el texto resalte */}
-      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
-
-      {/* Capa 4: Viñeta (oscurecer bordes) */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(9,9,11,0.8)_100%)]"></div>
-
-      {/* Capa 5: Textura punteada sutil encima */}
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:30px_30px]"></div>
-    </div>
-    {/* --- FIN ZONA DE LA IMAGEN DE FONDO --- */}
-
-    <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative backdrop-blur-sm bg-zinc-900/90`}>
-      <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-      <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-      <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-      <div className="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
-
-      <div className="text-center mb-8 pb-8 border-b border-zinc-800 border-dashed">
-        <h3 className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Total Estimado</h3>
-        <h2 className="text-6xl font-black text-amber-500 drop-shadow-lg tracking-tight">{formatoPesos(costoTotal)}</h2>
-        {costoTotal > 0 && (
-          <span className="text-sm text-zinc-500 font-mono mt-2 block">
-            ({formatoPesos(costoUnitarioTotal)} c/u)
-          </span>
-        )}
-      </div>
-
-      <div className="space-y-4 mb-8">
-        <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800 flex justify-between items-center">
-          <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
-            <FileText size={14} className="text-amber-500" /> Archivo
-          </span>
-          <span className="text-zinc-200 truncate max-w-[180px] font-mono text-sm">
-            {nombreArchivo || '---'}
-          </span>
-        </div>
-
-        <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-          <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide block mb-2">
-            Cantidad de Piezas
-          </span>
-          <div className="flex items-center justify-between bg-zinc-900 rounded-sm p-1 border border-zinc-800">
-            <button
-              onClick={() => setCantidad(c => Math.max(1, c - 1))}
-              className="w-10 h-10 bg-zinc-800 text-zinc-400 rounded-sm flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-colors"
+        {/* RESTO DEL CONTENIDO IZQUIERDO */}
+        <div className="p-6 flex-1 flex flex-col overflow-y-auto">
+          <div className="mb-6">
+            <label className={LABEL_STYLE}>Material y Calibre</label>
+            <select
+              value={materialSeleccionado}
+              onChange={e => setMaterialSeleccionado(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-700 rounded-sm p-4 text-zinc-100 font-bold outline-none focus:border-amber-500 transition-colors"
             >
-              <Minus size={16} />
-            </button>
-            <span className="text-2xl font-black text-white">{cantidad}</span>
-            <button
-              onClick={() => setCantidad(c => c + 1)}
-              className="w-10 h-10 bg-amber-500 text-zinc-900 rounded-sm flex items-center justify-center hover:bg-amber-400 transition-colors"
-            >
-              <Plus size={16} />
-            </button>
+              {materiales.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre} - {m.calibre}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-            <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Corte Total</span>
-            <div className="text-white font-mono text-lg font-bold mt-1">
-              {(perimetro * cantidad).toFixed(2)}m
+          <div className="space-y-3 mb-6">
+            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
+              <span className="uppercase tracking-wide">Metro Lineal</span>
+              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioMetro)}</span>
+            </div>
+            <div className="bg-zinc-800 border-l-4 border-amber-500 text-zinc-300 p-3 px-4 flex justify-between items-center rounded-sm font-bold text-sm shadow-md">
+              <span className="uppercase tracking-wide">Perforación</span>
+              <span className="font-mono text-amber-500">{formatoPesos(materialActivo.precioDisparo)}</span>
             </div>
           </div>
-          <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
-            <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Perforaciones</span>
-            <div className="text-amber-500 font-mono text-lg font-bold mt-1">
-              {cantidadDisparos * cantidad}
-            </div>
-          </div>
-        </div>
 
-        {incluyeMaterial && areaCm2 > 0 && (
-          <div className={`bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm ${TEXTURE_STRIPES}`}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-amber-500 text-xs font-bold uppercase flex items-center gap-2">
-                <Package size={14} /> Material Incluido
-              </span>
-              <span className="text-amber-500 font-bold font-mono">
-                {formatoPesos(costoMaterialUnitario * cantidad)}
-              </span>
-            </div>
-            <div className="text-zinc-400 text-xs font-mono pl-6">
-              Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex gap-4">
-        <button
-          onClick={() => setMostrarModal(true)}
-          disabled={!nombreArchivo}
-          className={BUTTON_PRIMARY}
-        >
-          SOLICITAR CORTE
-        </button>
-      </div>
-    </div>
-  </div>
-
-  {/* MODAL DE CONFIRMACIÓN */ }
-  {
-    mostrarModal && (
-      <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
-          <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
-            <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
-              <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
-            </h3>
-            <button
-              onClick={() => setMostrarModal(false)}
-              className="text-zinc-500 hover:text-white transition-colors"
-            >
-              <X size={24} />
-            </button>
-          </div>
-
-          <div className="p-6 overflow-y-auto max-h-[80vh]">
-            <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
-              <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
-              <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
-                <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
-              </div>
-              {incluyeMaterial && (
-                <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                  <div>
-                    <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
-                      <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
-                    </span>
+          {materialTienePrecio && (
+            <div className={`mb-6 bg-amber-500/5 border border-amber-500/10 rounded-sm p-4 ${TEXTURE_STRIPES}`}>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={incluyeMaterial}
+                  onChange={e => setIncluyeMaterial(e.target.checked)}
+                  className="w-5 h-5 bg-zinc-950 border-2 border-zinc-600 rounded-sm checked:bg-amber-500 checked:border-amber-500 cursor-pointer appearance-none transition-all relative checked:after:content-['✓'] checked:after:text-zinc-900 checked:after:absolute checked:after:left-[2px] checked:after:text-sm checked:after:font-bold"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 font-black text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors">
+                    <Package size={16} className="text-amber-500" />
+                    Incluir Material
                   </div>
-                  <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                  <div className="text-xs text-amber-500/80 mt-1 font-mono pl-6">
+                    {formatoPesos(materialActivo.precioMaterial)} / {materialActivo.unidadCobro}
+                  </div>
                 </div>
-              )}
-              <div className="flex justify-between items-center pt-2">
-                <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
-                <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
+              </label>
+            </div>
+          )}
+
+          <label className="group relative border-2 border-dashed border-zinc-700 rounded-sm flex-1 min-h-[180px] flex flex-col items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-zinc-800/50 transition-all">
+            <input
+              type="file"
+              className="hidden"
+              accept=".dxf,.svg"
+              onChange={manejarArchivo}
+            />
+            {procesando ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="animate-spin text-amber-500 mb-2" size={32} />
+                <span className="text-amber-500 font-black text-sm uppercase tracking-widest">Calculando...</span>
               </div>
-              {config.porcentajeIva > 0 && (
-                <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
-                  <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                  <span className="text-lg font-bold text-zinc-400">
-                    {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
+            ) : (
+              <>
+                <Upload className="text-zinc-500 group-hover:text-amber-500 transition-colors mb-3" size={36} />
+                <h3 className="text-lg font-black uppercase tracking-wider text-zinc-300 group-hover:text-white">Subir Plano</h3>
+                <div className="flex gap-2 mt-2">
+                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.DXF</span>
+                  <span className="bg-zinc-950 text-zinc-500 text-xs font-bold px-2 py-1 rounded-sm border border-zinc-800">.SVG</span>
+                </div>
+              </>
+            )}
+          </label>
+          {error && (
+            <div className="mt-3 bg-red-900/20 border-l-4 border-red-500 p-3 rounded-sm text-red-400 text-xs text-center font-bold uppercase">
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================== */}
+      {/* PANEL DERECHO - RESULTADOS CON FONDO DE IMAGEN DIFUMINADA */}
+      {/* ========================================================== */}
+      <div className="flex-1 relative flex flex-col items-center justify-center p-8 overflow-hidden bg-zinc-900">
+
+        {/* --- ZONA DE LA IMAGEN DE FONDO --- */}
+        <div className="absolute inset-0 z-0 select-none pointer-events-none">
+          {/* Capa 1: La imagen en sí */}
+          <img
+            src={BACKGROUND_IMAGE_URL}
+            alt="Fondo Industrial"
+            className="w-full h-full object-cover opacity-60 grayscale-[20%]"
+          />
+
+          {/* Capa 2: Tinte Ámbar sutil */}
+          <div className="absolute inset-0 bg-amber-600/20 mix-blend-overlay"></div>
+
+          {/* Capa 3: Gradiente para fundir con el negro */}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
+
+          {/* Capa 4: Viñeta */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(9,9,11,0.8)_100%)]"></div>
+
+          {/* Capa 5: Textura punteada */}
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:30px_30px]"></div>
+        </div>
+
+        <div className={`${PANEL_STYLE} p-8 rounded-sm max-w-lg w-full z-10 relative backdrop-blur-sm bg-zinc-900/90`}>
+          <div className="absolute top-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+          <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+          <div className="absolute bottom-3 right-3 w-1.5 h-1.5 rounded-full bg-zinc-600 shadow-inner"></div>
+
+          <div className="text-center mb-8 pb-8 border-b border-zinc-800 border-dashed">
+            <h3 className="text-amber-500 text-xs font-black uppercase tracking-[0.2em] mb-2">Total Estimado</h3>
+            <h2 className="text-6xl font-black text-amber-500 drop-shadow-lg tracking-tight">{formatoPesos(costoTotal)}</h2>
+            {costoTotal > 0 && (
+              <span className="text-sm text-zinc-500 font-mono mt-2 block">
+                ({formatoPesos(costoUnitarioTotal)} c/u)
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-4 mb-8">
+            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800 flex justify-between items-center">
+              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
+                <FileText size={14} className="text-amber-500" /> Archivo
+              </span>
+              <span className="text-zinc-200 truncate max-w-[180px] font-mono text-sm">
+                {nombreArchivo || '---'}
+              </span>
+            </div>
+
+            <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
+              <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide block mb-2">
+                Cantidad de Piezas
+              </span>
+              <div className="flex items-center justify-between bg-zinc-900 rounded-sm p-1 border border-zinc-800">
+                <button
+                  onClick={() => setCantidad(c => Math.max(1, c - 1))}
+                  className="w-10 h-10 bg-zinc-800 text-zinc-400 rounded-sm flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-colors"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="text-2xl font-black text-white">{cantidad}</span>
+                <button
+                  onClick={() => setCantidad(c => c + 1)}
+                  className="w-10 h-10 bg-amber-500 text-zinc-900 rounded-sm flex items-center justify-center hover:bg-amber-400 transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
+                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Corte Total</span>
+                <div className="text-white font-mono text-lg font-bold mt-1">
+                  {(perimetro * cantidad).toFixed(2)}m
+                </div>
+              </div>
+              <div className="bg-zinc-950/80 p-4 rounded-sm border border-zinc-800">
+                <span className="text-zinc-500 text-xs font-bold uppercase tracking-wide">Perforaciones</span>
+                <div className="text-amber-500 font-mono text-lg font-bold mt-1">
+                  {cantidadDisparos * cantidad}
+                </div>
+              </div>
+            </div>
+
+            {incluyeMaterial && areaCm2 > 0 && (
+              <div className={`bg-amber-500/10 border border-amber-500/30 p-4 rounded-sm ${TEXTURE_STRIPES}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-amber-500 text-xs font-bold uppercase flex items-center gap-2">
+                    <Package size={14} /> Material Incluido
+                  </span>
+                  <span className="text-amber-500 font-bold font-mono">
+                    {formatoPesos(costoMaterialUnitario * cantidad)}
                   </span>
                 </div>
-              )}
-              <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
-                <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
-                <span className="text-3xl font-black text-amber-500 tracking-tight">
-                  {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
-                </span>
-              </div>
-            </div>
-            <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
-              <button
-                onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
-                  ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                  : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
-              >
-                Persona Natural
-              </button>
-              <button
-                onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
-                  ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                  : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
-              >
-                Empresa / Jurídica
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className={LABEL_STYLE}>
-                  Correo Electrónico (Obligatorio)
-                </label>
-                <input
-                  type="email"
-                  value={datosCliente.email}
-                  onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                  className={INPUT_STYLE}
-                  placeholder="ejemplo@correo.com"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={LABEL_STYLE}>
-                    {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
-                  </label>
-                  <input
-                    value={datosCliente.nombre}
-                    onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                    className={INPUT_STYLE}
-                  />
-                </div>
-                <div>
-                  <label className={LABEL_STYLE}>
-                    {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
-                  </label>
-                  <input
-                    value={datosCliente.documento}
-                    onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                    className={INPUT_STYLE}
-                  />
+                <div className="text-zinc-400 text-xs font-mono pl-6">
+                  Área: {(areaCm2 * cantidad).toFixed(2)} {materialActivo.unidadCobro === 'm2' ? 'm²' : 'cm²'}
                 </div>
               </div>
-              {datosCliente.tipo === 'juridica' && (
-                <div>
-                  <label className={LABEL_STYLE}>
-                    Nombre del Contacto
-                  </label>
-                  <input
-                    value={datosCliente.contacto}
-                    onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                    className={INPUT_STYLE}
-                    placeholder="¿Por quién preguntamos?"
-                  />
-                </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={LABEL_STYLE}>
-                    Teléfono / WhatsApp
-                  </label>
-                  <input
-                    value={datosCliente.telefono}
-                    onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                    className={INPUT_STYLE}
-                  />
-                </div>
-                <div>
-                  <label className={LABEL_STYLE}>
-                    Dirección de Entrega
-                  </label>
-                  <input
-                    value={datosCliente.direccion}
-                    onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                    className={INPUT_STYLE}
-                  />
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-          <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
+
+          <div className="flex gap-4">
             <button
-              onClick={() => setMostrarModal(false)}
-              className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
+              onClick={() => setMostrarModal(true)}
+              disabled={!nombreArchivo}
+              className={BUTTON_PRIMARY}
             >
-              Cancelar
-            </button>
-            <button
-              onClick={procesarAccionModal}
-              disabled={enviandoCorreo}
-              className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
-            >
-              {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
-              CONFIRMAR PEDIDO
+              SOLICITAR CORTE
             </button>
           </div>
         </div>
       </div>
-    )
-  }
-    </div >
+
+      {/* MODAL DE CONFIRMACIÓN */}
+      {mostrarModal && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
+            <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
+              <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
+                <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
+              </h3>
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="text-zinc-500 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[80vh]">
+              <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
+                <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
+                <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
+                  <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+                </div>
+                {incluyeMaterial && (
+                  <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                    <div>
+                      <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+                      </span>
+                    </div>
+                    <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
+                  <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
+                </div>
+                {config.porcentajeIva > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
+                    <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
+                    <span className="text-lg font-bold text-zinc-400">
+                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
+                  <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
+                  <span className="text-3xl font-black text-amber-500 tracking-tight">
+                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
+                  </span>
+                </div>
+              </div>
+              <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
+                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  Persona Natural
+                </button>
+                <button
+                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
+                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
+                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  Empresa / Jurídica
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className={LABEL_STYLE}>
+                    Correo Electrónico (Obligatorio)
+                  </label>
+                  <input
+                    type="email"
+                    value={datosCliente.email}
+                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
+                    className={INPUT_STYLE}
+                    placeholder="ejemplo@correo.com"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
+                    </label>
+                    <input
+                      value={datosCliente.nombre}
+                      onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
+                    </label>
+                    <input
+                      value={datosCliente.documento}
+                      onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                </div>
+                {datosCliente.tipo === 'juridica' && (
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Nombre del Contacto
+                    </label>
+                    <input
+                      value={datosCliente.contacto}
+                      onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
+                      className={INPUT_STYLE}
+                      placeholder="¿Por quién preguntamos?"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Teléfono / WhatsApp
+                    </label>
+                    <input
+                      value={datosCliente.telefono}
+                      onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Dirección de Entrega
+                    </label>
+                    <input
+                      value={datosCliente.direccion}
+                      onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
+                      className={INPUT_STYLE}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
+              <button
+                onClick={() => setMostrarModal(false)}
+                className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={procesarAccionModal}
+                disabled={enviandoCorreo}
+                className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
+              >
+                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
+                CONFIRMAR PEDIDO
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
