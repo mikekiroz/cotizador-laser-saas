@@ -4,7 +4,7 @@ import {
   Upload, Calculator, DollarSign, Settings, FileBox, Zap,
   Trash2, Plus, Users, LayoutDashboard, Building2, User,
   Phone, MapPin, FileText, X, AlertTriangle, Printer,
-  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package, MessageCircle, History, Eye
+  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package, MessageCircle, History, Eye, Scissors, Clock, CheckCircle, PackageCheck, GripVertical
 } from 'lucide-react';
 import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
@@ -412,9 +412,13 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   );
 }
 
+// ==========================================
+// ADMIN - KANBAN DE PEDIDOS (PRODUCCIÓN)
+// ==========================================
 function AdminPedidos({ empresaId }) {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [draggedPedido, setDraggedPedido] = useState(null);
 
   useEffect(() => {
     cargarPedidos();
@@ -430,109 +434,144 @@ function AdminPedidos({ empresaId }) {
 
     if (error) console.error("Error cargando pedidos:", error);
     else setPedidos(data || []);
-
     setLoading(false);
   };
 
-  const formatoFecha = (fecha) => {
-    if (!fecha) return '';
-    return new Date(fecha).toLocaleDateString('es-CO', {
-      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-    });
+  // Actualizar estado en BD y UI
+  const moverPedido = async (id, nuevoEstado) => {
+    // 1. Actualización Optimista (Inmediata en pantalla)
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
+
+    // 2. Actualización en Base de Datos
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+
+    if (error) {
+      alert('Error al mover el pedido');
+      cargarPedidos(); // Revertir si falla
+    }
   };
 
-  const formatoPesos = (v) => {
-    if (v === null || v === undefined) return '$0';
-    return '$' + Math.round(v).toLocaleString('es-CO');
+  // Manejadores de Drag & Drop
+  const onDragStart = (e, pedido) => {
+    setDraggedPedido(pedido);
+    e.dataTransfer.effectAllowed = 'move';
+    // Truco para ocultar la imagen fantasma si quisieras, o dejarla por defecto
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault(); // Necesario para permitir el drop
+  };
+
+  const onDrop = (e, estadoDestino) => {
+    e.preventDefault();
+    if (draggedPedido && draggedPedido.estado !== estadoDestino) {
+      moverPedido(draggedPedido.id, estadoDestino);
+    }
+    setDraggedPedido(null);
   };
 
   const eliminarPedido = async (id) => {
     if (!confirm('¿Estás seguro de eliminar este pedido?')) return;
     const { error } = await supabase.from('pedidos').delete().eq('id', id);
-    if (error) alert('Error al eliminar');
-    else cargarPedidos();
+    if (!error) cargarPedidos();
   };
 
-  const cambiarEstado = async (id, nuevoEstado) => {
-    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p));
-    const { error } = await supabase
-      .from('pedidos')
-      .update({ estado: nuevoEstado })
-      .eq('id', id);
-    if (error) {
-      alert('Error guardando el cambio.');
-      cargarPedidos();
-    }
-  };
+  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
+  const formatoFecha = (f) => new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+
+  // Definición de las Columnas
+  const COLUMNAS = [
+    { id: 'pendiente', titulo: 'Por Hacer', icon: Clock, color: 'text-zinc-400', border: 'border-zinc-700' },
+    { id: 'proceso', titulo: 'En Producción', icon: Scissors, color: 'text-blue-500', border: 'border-blue-500/50' },
+    { id: 'realizado', titulo: 'Terminado', icon: CheckCircle, color: 'text-amber-500', border: 'border-amber-500/50' },
+    { id: 'entregado', titulo: 'Entregado', icon: PackageCheck, color: 'text-green-500', border: 'border-green-500/50' },
+  ];
+
+  if (loading) return <div className="p-10 text-center text-zinc-500"><Loader2 className="animate-spin inline mr-2" /> Cargando tablero...</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="font-black text-xl text-white uppercase tracking-wider border-l-4 border-amber-500 pl-3">Bandeja de Entrada</h3>
-        <button onClick={cargarPedidos} className="text-zinc-500 hover:text-amber-500 text-sm flex items-center gap-1 font-bold uppercase">
-          <Loader2 size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
-        </button>
-      </div>
+    <div className="h-[calc(100vh-200px)] overflow-x-auto pb-4">
+      <div className="flex gap-4 min-w-[1000px] h-full">
 
-      {loading ? (
-        <div className="text-center py-10 text-zinc-500 font-mono">Cargando pedidos...</div>
-      ) : pedidos.length === 0 ? (
-        <div className={`${PANEL_STYLE} p-10 rounded-sm text-center`}>
-          <div className="inline-flex bg-zinc-950 p-4 rounded-full mb-4 text-zinc-600"><FileBox size={32} /></div>
-          <h3 className="text-white font-bold uppercase">No hay pedidos aún</h3>
-          <p className="text-zinc-500 text-sm mt-2">Comparte tu URL pública para recibir cotizaciones.</p>
-        </div>
-      ) : (
-        <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
-          <table className="w-full text-sm text-left">
-            <thead className="bg-zinc-950 text-amber-500 text-xs uppercase font-black tracking-wider border-b border-zinc-800">
-              <tr>
-                <th className="p-4">Fecha</th>
-                <th className="p-4">Cliente</th>
-                <th className="p-4">Detalles</th>
-                <th className="p-4">Estado</th>
-                <th className="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800">
-              {pedidos.map((p) => (
-                <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors">
-                  <td className="p-4 text-zinc-400 font-mono whitespace-nowrap">{formatoFecha(p.created_at)}</td>
-                  <td className="p-4">
-                    <div className="font-bold text-zinc-200 uppercase">{p.cliente_nombre}</div>
-                    <div className="text-xs text-zinc-500 font-mono">{p.cliente_telefono}</div>
-                  </td>
-                  <td className="p-4">
-                    <div className="text-white font-medium">{p.material_nombre}</div>
-                    <div className="text-xs text-zinc-400 font-mono">{p.cantidad} Unds - <span className="text-amber-500">{formatoPesos(p.valor_total)}</span></div>
-                  </td>
-                  <td className="p-4">
-                    <select
-                      value={p.estado || 'pendiente'}
-                      onChange={(e) => cambiarEstado(p.id, e.target.value)}
-                      className={`bg-zinc-950 border border-zinc-700 rounded-sm px-2 py-1 text-xs font-bold uppercase outline-none cursor-pointer ${p.estado === 'realizado' ? 'text-green-500 border-green-900/50' : 'text-amber-500 border-amber-900/50'
-                        }`}
-                    >
-                      <option value="pendiente">Pendiente</option>
-                      <option value="realizado">Realizado</option>
-                    </select>
-                  </td>
-                  <td className="p-4 text-right flex items-center justify-end gap-2">
-                    {p.archivo_url && (
-                      <a href={p.archivo_url} target="_blank" rel="noreferrer" className="bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
-                        <Upload size={16} className="rotate-180" />
-                      </a>
-                    )}
-                    <button onClick={() => eliminarPedido(p.id)} className="bg-zinc-800 hover:bg-red-600 hover:text-white text-zinc-400 p-2 rounded-sm transition-colors border border-zinc-700">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {COLUMNAS.map((col) => {
+          // Filtramos los pedidos de esta columna
+          // Nota: Si el estado en BD es null o distinto, lo mandamos a 'pendiente' por defecto
+          const pedidosColumna = pedidos.filter(p =>
+            (p.estado === col.id) ||
+            (col.id === 'pendiente' && !['proceso', 'realizado', 'entregado'].includes(p.estado))
+          );
+
+          return (
+            <div
+              key={col.id}
+              onDragOver={onDragOver}
+              onDrop={(e) => onDrop(e, col.id)}
+              className={`flex-1 flex flex-col bg-zinc-950/50 rounded-sm border ${col.border} border-t-4 min-w-[280px] transition-colors ${draggedPedido ? 'bg-zinc-900/80' : ''}`}
+            >
+              {/* Encabezado Columna */}
+              <div className="p-3 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+                <div className={`flex items-center gap-2 font-black uppercase text-xs tracking-wider ${col.color}`}>
+                  <col.icon size={16} /> {col.titulo}
+                </div>
+                <span className="bg-zinc-800 text-zinc-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  {pedidosColumna.length}
+                </span>
+              </div>
+
+              {/* Área de Tarjetas */}
+              <div className="flex-1 p-3 space-y-3 overflow-y-auto">
+                {pedidosColumna.map((p) => (
+                  <div
+                    key={p.id}
+                    draggable
+                    onDragStart={(e) => onDragStart(e, p)}
+                    className="bg-zinc-900 border border-zinc-800 p-3 rounded-sm shadow-sm cursor-grab active:cursor-grabbing hover:border-amber-500/50 hover:shadow-lg transition-all group relative"
+                  >
+                    {/* Header Tarjeta */}
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <GripVertical size={14} className="text-zinc-600" />
+                        <span className="font-bold text-zinc-200 text-sm uppercase">{p.cliente_nombre}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500">{formatoFecha(p.created_at)}</span>
+                    </div>
+
+                    {/* Cuerpo Tarjeta */}
+                    <div className="text-xs text-zinc-400 space-y-1 mb-3 pl-5 border-l border-zinc-800">
+                      <p className="truncate font-medium text-white">{p.material_nombre}</p>
+                      <div className="flex justify-between">
+                        <span>{p.cantidad} uds</span>
+                        <span className="text-amber-500 font-bold">{formatoPesos(p.valor_total)}</span>
+                      </div>
+                    </div>
+
+                    {/* Footer Tarjeta (Acciones) */}
+                    <div className="flex justify-between items-center pl-1">
+                      {p.archivo_url ? (
+                        <a href={p.archivo_url} target="_blank" rel="noreferrer" className="text-[10px] flex items-center gap-1 text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">
+                          <FileText size={10} /> Ver Plano
+                        </a>
+                      ) : <span />}
+
+                      <button onClick={() => eliminarPedido(p.id)} className="text-zinc-600 hover:text-red-500 transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {pedidosColumna.length === 0 && (
+                  <div className="text-center py-8 opacity-20 text-zinc-500 text-xs uppercase font-bold border-2 border-dashed border-zinc-800 rounded-sm">
+                    Vacío
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
