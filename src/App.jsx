@@ -4,7 +4,7 @@ import {
   Upload, Calculator, DollarSign, Settings, FileBox, Zap,
   Trash2, Plus, Users, LayoutDashboard, Building2, User,
   Phone, MapPin, FileText, X, AlertTriangle, Printer,
-  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package
+  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package, MessageCircle
 } from 'lucide-react';
 import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
@@ -390,8 +390,8 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 font-bold text-sm uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${tab === t.id
-                  ? 'border-amber-500 text-amber-500'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                ? 'border-amber-500 text-amber-500'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
                 }`}
             >
               <t.icon size={16} /> {t.label}
