@@ -4,7 +4,7 @@ import {
   Upload, Calculator, DollarSign, Settings, FileBox, Zap,
   Trash2, Plus, Users, LayoutDashboard, Building2, User,
   Phone, MapPin, FileText, X, AlertTriangle, Printer,
-  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package, MessageCircle
+  MousePointerClick, Mail, Send, Lock, Save, Edit, Minus, LogOut, Loader2, ExternalLink, Copy, Check, Package, MessageCircle, History, Eye
 } from 'lucide-react';
 import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
@@ -1930,12 +1930,16 @@ function AdminDashboard({ empresaId }) {
   );
 }
 // ==========================================
-// ADMIN - DIRECTORIO DE CLIENTES (CRM)
+// ADMIN - DIRECTORIO DE CLIENTES (CRM) CON HISTORIAL
 // ==========================================
 function AdminClientes({ empresaId, empresa }) {
   const [clientes, setClientes] = useState([]);
+  const [todosLosPedidos, setTodosLosPedidos] = useState([]); // Guardamos todo el historial
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Estado para el Modal de Detalles
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
   useEffect(() => {
     cargarClientes();
@@ -1943,7 +1947,6 @@ function AdminClientes({ empresaId, empresa }) {
 
   const cargarClientes = async () => {
     setLoading(true);
-    // 1. Traemos TODOS los pedidos
     const { data: pedidos } = await supabase
       .from('pedidos')
       .select('*')
@@ -1951,52 +1954,44 @@ function AdminClientes({ empresaId, empresa }) {
       .order('created_at', { ascending: false });
 
     if (pedidos) {
-      // 2. Agrupamos por Documento (Cédula/NIT)
+      setTodosLosPedidos(pedidos); // Guardamos la raw data
+
+      // Agrupamos por Documento
       const clientesMap = {};
-
       pedidos.forEach(p => {
-        // Usamos el documento como ID único. Si no tiene, usamos el email.
         const idUnico = p.cliente_documento || p.cliente_email;
-
-        if (!idUnico) return; // Si no hay dato, saltamos
+        if (!idUnico) return;
 
         if (!clientesMap[idUnico]) {
-          // Si es la primera vez que vemos a este cliente, lo creamos
           clientesMap[idUnico] = {
             id: idUnico,
             nombre: p.cliente_nombre,
             documento: p.cliente_documento || '---',
             email: p.cliente_email,
             telefono: p.cliente_telefono,
-            direccion: p.cliente_direccion,
             totalGastado: 0,
             cantidadPedidos: 0,
-            ultimaCompra: p.created_at, // Como vienen ordenados desc, la primera es la última
-            tipo: p.cliente_documento?.length > 10 ? 'Empresa' : 'Persona' // Lógica simple para adivinar
+            ultimaCompra: p.created_at,
           };
         }
-
-        // Sumamos sus compras
         clientesMap[idUnico].totalGastado += (p.valor_total || 0);
         clientesMap[idUnico].cantidadPedidos += 1;
       });
 
-      // Convertimos el objeto a array para poder listarlo
-      const listaClientes = Object.values(clientesMap).sort((a, b) => b.totalGastado - a.totalGastado); // Ordenar por quien gasta más (VIPs primero)
-      setClientes(listaClientes);
+      setClientes(Object.values(clientesMap).sort((a, b) => b.totalGastado - a.totalGastado));
     }
     setLoading(false);
   };
 
-  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
-  const formatoFecha = (f) => new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-
-  // Filtrado de búsqueda
-  const clientesFiltrados = clientes.filter(c =>
-    c.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    c.documento.includes(busqueda) ||
-    c.email.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  // Función para abrir el modal con los pedidos de ese cliente
+  const verHistorial = (cliente) => {
+    // Filtramos de la lista maestra solo los pedidos de este cliente
+    const susPedidos = todosLosPedidos.filter(p =>
+      (p.cliente_documento === cliente.documento) ||
+      (p.cliente_email === cliente.email)
+    );
+    setClienteSeleccionado({ info: cliente, pedidos: susPedidos });
+  };
 
   const contactarWhatsapp = (tel, nombre) => {
     const nombreEmpresa = empresa?.nombre || 'el Taller';
@@ -2004,21 +1999,13 @@ function AdminClientes({ empresaId, empresa }) {
     window.open(`https://wa.me/57${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // Función para exportar a Excel
-  const descargarClientes = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Nombre,Documento,Telefono,Email,Total Comprado,Pedidos,Ultima Compra\n";
-    clientesFiltrados.forEach(c => {
-      csvContent += `${c.nombre},${c.documento},${c.telefono},${c.email},${c.totalGastado},${c.cantidadPedidos},${c.ultimaCompra}\n`;
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "base_datos_clientes.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const formatoPesos = (v) => '$' + Math.round(v).toLocaleString('es-CO');
+  const formatoFecha = (f) => new Date(f).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  const clientesFiltrados = clientes.filter(c =>
+    c.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    c.documento.includes(busqueda)
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -2034,21 +2021,17 @@ function AdminClientes({ empresaId, empresa }) {
             <p className="text-xs text-zinc-500">{clientes.length} clientes registrados</p>
           </div>
         </div>
-
         <div className="flex gap-2 w-full md:w-auto">
           <input
-            placeholder="Buscar por nombre, cédula o correo..."
+            placeholder="Buscar cliente..."
             className="bg-zinc-950 border border-zinc-700 text-zinc-200 text-sm px-4 py-2 rounded-sm outline-none focus:border-amber-500 w-full md:w-64"
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
           />
-          <button onClick={descargarClientes} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 rounded-sm border border-zinc-700">
-            <FileText size={20} />
-          </button>
         </div>
       </div>
 
-      {/* TABLA DE CLIENTES */}
+      {/* TABLA PRINCIPAL */}
       <div className={`${PANEL_STYLE} rounded-sm overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -2056,53 +2039,128 @@ function AdminClientes({ empresaId, empresa }) {
               <tr>
                 <th className="p-4">Cliente</th>
                 <th className="p-4">Contacto</th>
-                <th className="p-4">Historial</th>
+                <th className="p-4">Historial Total</th>
                 <th className="p-4">Última Compra</th>
-                <th className="p-4 text-right">Acción</th>
+                <th className="p-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {loading ? (
-                <tr><td colSpan="5" className="p-8 text-center text-zinc-500"><Loader2 className="animate-spin inline mr-2" /> Cargando directorio...</td></tr>
-              ) : clientesFiltrados.length === 0 ? (
-                <tr><td colSpan="5" className="p-8 text-center text-zinc-500">No se encontraron clientes.</td></tr>
-              ) : (
-                clientesFiltrados.map((c) => (
-                  <tr key={c.id} className="hover:bg-zinc-800/50 transition-colors group">
-                    <td className="p-4">
-                      <div className="font-bold text-zinc-200 uppercase">{c.nombre}</div>
-                      <div className="text-xs text-zinc-500 font-mono flex items-center gap-2">
-                        {c.documento}
-                        {c.totalGastado > 1000000 && <span className="bg-amber-500/20 text-amber-500 px-1 rounded text-[9px] border border-amber-500/30">VIP</span>}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-zinc-400 text-xs flex items-center gap-1"><Phone size={12} /> {c.telefono}</div>
-                      <div className="text-zinc-500 text-xs flex items-center gap-1"><Mail size={12} /> {c.email}</div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-white font-black font-mono">{formatoPesos(c.totalGastado)}</div>
-                      <div className="text-xs text-zinc-500">{c.cantidadPedidos} pedidos</div>
-                    </td>
-                    <td className="p-4 text-zinc-400 text-xs">
-                      {formatoFecha(c.ultimaCompra)}
-                    </td>
-                    <td className="p-4 text-right">
-                      <button
-                        onClick={() => contactarWhatsapp(c.telefono, c.nombre)}
-                        className="text-zinc-500 hover:text-green-500 transition-colors p-2"
-                        title="Contactar por WhatsApp"
-                      >
-                        <MessageCircle size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+              {clientesFiltrados.map((c) => (
+                <tr key={c.id} className="hover:bg-zinc-800/50 transition-colors group">
+                  <td className="p-4">
+                    <div className="font-bold text-zinc-200 uppercase">{c.nombre}</div>
+                    <div className="text-xs text-zinc-500 font-mono flex items-center gap-2">
+                      {c.documento}
+                      {c.totalGastado > 1000000 && <span className="bg-amber-500/20 text-amber-500 px-1 rounded text-[9px] border border-amber-500/30">VIP</span>}
+                    </div>
+                  </td>
+                  <td className="p-4 text-xs text-zinc-400">
+                    <div><Phone size={12} className="inline mr-1" /> {c.telefono}</div>
+                    <div><Mail size={12} className="inline mr-1" /> {c.email}</div>
+                  </td>
+                  <td className="p-4">
+                    <div className="text-white font-black font-mono">{formatoPesos(c.totalGastado)}</div>
+                    <div className="text-xs text-zinc-500">{c.cantidadPedidos} pedidos</div>
+                  </td>
+                  <td className="p-4 text-zinc-400 text-xs">{formatoFecha(c.ultimaCompra)}</td>
+                  <td className="p-4 text-right flex justify-end gap-2">
+                    <button
+                      onClick={() => verHistorial(c)}
+                      className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 p-2 rounded-sm border border-zinc-700 transition-colors"
+                      title="Ver Historial Detallado"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button
+                      onClick={() => contactarWhatsapp(c.telefono, c.nombre)}
+                      className="bg-zinc-800 hover:bg-green-900/50 hover:text-green-500 hover:border-green-500/50 text-zinc-300 p-2 rounded-sm border border-zinc-700 transition-colors"
+                      title="WhatsApp"
+                    >
+                      <MessageCircle size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* --- MODAL DE HISTORIAL --- */}
+      {clienteSeleccionado && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`${PANEL_STYLE} w-full max-w-4xl max-h-[80vh] flex flex-col rounded-sm shadow-2xl animate-in fade-in zoom-in duration-200`}>
+
+            {/* Header del Modal */}
+            <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
+              <div>
+                <h3 className="text-xl font-black uppercase tracking-wider text-white flex items-center gap-2">
+                  <History className="text-amber-500" /> Historial de Pedidos
+                </h3>
+                <p className="text-zinc-400 text-sm mt-1">
+                  Cliente: <span className="text-white font-bold">{clienteSeleccionado.info.nombre}</span>
+                </p>
+              </div>
+              <button onClick={() => setClienteSeleccionado(null)} className="text-zinc-500 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Tabla de Pedidos del Cliente */}
+            <div className="p-0 overflow-y-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-zinc-950 text-zinc-500 text-xs uppercase font-bold sticky top-0">
+                  <tr>
+                    <th className="p-4 border-b border-zinc-800">Fecha</th>
+                    <th className="p-4 border-b border-zinc-800">Archivo / Detalle</th>
+                    <th className="p-4 border-b border-zinc-800">Material</th>
+                    <th className="p-4 border-b border-zinc-800">Valor</th>
+                    <th className="p-4 border-b border-zinc-800 text-right">Archivo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {clienteSeleccionado.pedidos.map((p) => (
+                    <tr key={p.id} className="hover:bg-zinc-800/30">
+                      <td className="p-4 text-zinc-400 font-mono text-xs">{formatoFecha(p.created_at)}</td>
+                      <td className="p-4">
+                        <div className="text-white font-bold">{p.archivo_nombre}</div>
+                        <div className="text-xs text-zinc-500">{p.cantidad} unidades</div>
+                      </td>
+                      <td className="p-4 text-zinc-300 text-xs">{p.material_nombre}</td>
+                      <td className="p-4 text-amber-500 font-mono font-bold">{formatoPesos(p.valor_total)}</td>
+                      <td className="p-4 text-right">
+                        {p.archivo_url ? (
+                          <a
+                            href={p.archivo_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs bg-zinc-800 hover:bg-amber-500 hover:text-zinc-900 px-3 py-1 rounded-sm border border-zinc-700 transition-colors"
+                          >
+                            <ExternalLink size={12} /> Ver Plano
+                          </a>
+                        ) : (
+                          <span className="text-zinc-600 text-xs italic">Sin archivo</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer del Modal */}
+            <div className="p-4 border-t border-zinc-800 bg-zinc-900 text-right">
+              <button
+                onClick={() => setClienteSeleccionado(null)}
+                className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold uppercase tracking-wider rounded-sm"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
