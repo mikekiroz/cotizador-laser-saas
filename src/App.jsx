@@ -413,7 +413,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 }
 
 // ==========================================
-// ADMIN - KANBAN CON SCROLL VISIBLE Y ELEGANTE
+// ADMIN - KANBAN AJUSTADO (SIN SCROLL INNECESARIO)
 // ==========================================
 function AdminPedidos({ empresaId }) {
   const [pedidos, setPedidos] = useState([]);
@@ -486,28 +486,16 @@ function AdminPedidos({ empresaId }) {
 
   return (
     <>
-      {/* ESTILOS DE BARRA DE DESPLAZAMIENTO HÍBRIDA */}
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          height: 12px; /* Horizontal: Gruesa para arrastrar */
-          width: 5px;   /* Vertical: Finita para no estorbar tarjetas */
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #09090b; 
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #52525b; 
-          border-radius: 6px;
-          border: 2px solid #09090b;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #f59e0b; 
-        }
+        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #09090b; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #52525b; border-radius: 6px; border: 2px solid #09090b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
       `}</style>
 
       <div className="h-[calc(100vh-200px)] overflow-x-auto pb-2 custom-scrollbar">
-        <div className="flex gap-4 h-full min-w-full w-max px-1">
+        {/* CAMBIO 1: Quitamos 'w-max' para que no fuerce ancho extra */}
+        <div className="flex gap-4 h-full min-w-full px-1">
 
           {COLUMNAS.map((col) => {
             const pedidosColumna = pedidos.filter(p =>
@@ -520,8 +508,10 @@ function AdminPedidos({ empresaId }) {
                 key={col.id}
                 onDragOver={onDragOver}
                 onDrop={(e) => onDrop(e, col.id)}
-                className={`flex-1 flex flex-col bg-zinc-950/50 rounded-sm border ${col.border} border-t-4 min-w-[280px] w-[300px] transition-colors ${draggedPedido ? 'bg-zinc-900/80' : ''}`}
+                // CAMBIO 2: 'flex-1' para que se repartan el espacio y 'min-w-[250px]' para no colapsar en móviles
+                className={`flex-1 flex flex-col bg-zinc-950/50 rounded-sm border ${col.border} border-t-4 min-w-[250px] transition-colors ${draggedPedido ? 'bg-zinc-900/80' : ''}`}
               >
+                {/* Encabezado */}
                 <div className="p-3 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
                   <div className={`flex items-center gap-2 font-black uppercase text-xs tracking-wider ${col.color}`}>
                     <col.icon size={16} /> {col.titulo}
@@ -531,6 +521,7 @@ function AdminPedidos({ empresaId }) {
                   </span>
                 </div>
 
+                {/* Área de Tarjetas */}
                 <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                   {pedidosColumna.map((p) => (
                     <div
