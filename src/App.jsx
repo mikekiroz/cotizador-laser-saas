@@ -401,7 +401,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
         {/* Renderizado de Pantallas */}
         {tab === 'dashboard' && <AdminDashboard empresaId={session.user.id} />}
-        {tab === 'clientes' && <AdminClientes empresaId={session.user.id} />}
+        {tab === 'clientes' && <AdminClientes empresaId={session.user.id} empresa={empresa} />}
         {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
         {tab === 'empresa' && <AdminEmpresa empresa={empresa} setEmpresa={setEmpresa} />}
@@ -1932,7 +1932,7 @@ function AdminDashboard({ empresaId }) {
 // ==========================================
 // ADMIN - DIRECTORIO DE CLIENTES (CRM)
 // ==========================================
-function AdminClientes({ empresaId }) {
+function AdminClientes({ empresaId, empresa }) {
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
@@ -1999,7 +1999,8 @@ function AdminClientes({ empresaId }) {
   );
 
   const contactarWhatsapp = (tel, nombre) => {
-    const msg = `Hola ${nombre}, te saludamos de ${sessionStorage.getItem('empresa_nombre') || 'el Taller'}...`;
+    const nombreEmpresa = empresa?.nombre || 'el Taller';
+    const msg = `Hola ${nombre}, te saludamos de ${nombreEmpresa}...`;
     window.open(`https://wa.me/57${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
