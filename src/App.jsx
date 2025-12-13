@@ -174,8 +174,8 @@ function LandingPage() {
               </div>
               <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight text-zinc-100">
                 Cotizaciones automáticas para tu taller de
-                {/* El 'block' fuerza a que esto baje y ocupe todo el ancho, viéndose ordenado */}
-                <span className="block text-amber-500 mt-2 border-b-4 border-amber-500/20 w-fit">
+                {/* Mantenemos el tamaño GIGANTE. Solo ajustamos el 'leading' para que los dos renglones naranjas no choquen */}
+                <span className="block text-amber-500 mt-3 border-b-4 border-amber-500/20 w-fit leading-snug">
                   CORTE LÁSER, PLASMA y ROUTER
                 </span>
               </h1>
