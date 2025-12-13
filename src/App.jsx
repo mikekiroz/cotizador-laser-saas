@@ -170,9 +170,9 @@ function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black px-4 py-2 rounded-sm uppercase tracking-widest mb-6">
-                <Zap size={16} /> Cotizador Láser Industrial
+                <Zap size={16} /> Cotizador de Cortes CNC
               </div>
-              <h1 className="text-4xl md:text-5xl font-black leading-tight mb-6 tracking-tight text-zinc-100">
+              <h1 className="text-4xl md:text-5xl font-black leading-normal mb-6 tracking-tight text-zinc-100">
                 Cotizaciones automáticas para tu taller de <span className="text-amber-500 border-b-4 border-amber-500/20">CORTE LÁSER - PLASMA y ROUTER</span>
               </h1>
               <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
@@ -208,7 +208,10 @@ function LandingPage() {
                 </button>
               </form>
               <div className="mt-6 text-center border-t border-zinc-800 pt-4">
-                <button onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="text-sm text-zinc-500 hover:text-amber-500 font-bold transition-colors">
+                <button
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  className="text-lg text-zinc-300 hover:text-amber-500 font-bold transition-colors mt-2"
+                >
                   {authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
                 </button>
               </div>
