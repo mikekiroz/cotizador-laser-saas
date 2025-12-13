@@ -19,10 +19,7 @@ export default function Pricing() {
     const calcularPrecio = (base) => {
         let monto = base;
         if (anual) monto = monto * 0.8; // 20% descuento
-
-        // Conversión
         const final = monto * TASAS[moneda].factor;
-
         return new Intl.NumberFormat('es-CO', {
             style: 'currency',
             currency: moneda === 'COP' ? 'COP' : 'USD',
@@ -30,27 +27,35 @@ export default function Pricing() {
         }).format(final).replace('COP', '').trim();
     };
 
-    // Función para ir al registro (simulando inicio de prueba)
     const iniciarPrueba = () => {
-        navigate('/'); // O a la pantalla de registro específica si la tuviéramos separada
-        // Aquí podrías pasar un estado para que el registro sepa qué plan eligió
+        navigate('/');
     };
 
     return (
-        <section className="py-24 bg-zinc-900 border-t border-zinc-800 relative overflow-hidden">
-            {/* BOTÓN VOLVER AL INICIO */}
-            <button
-                onClick={() => navigate('/')}
-                className="absolute top-6 left-6 z-20 flex items-center gap-2 text-zinc-500 hover:text-amber-500 transition-colors font-bold text-xs uppercase tracking-widest"
-            >
-                <ArrowLeft size={16} /> Volver
-            </button>
-            {/* Fondo decorativo sutil */}
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.05),transparent_50%)]"></div>
+        <section className="py-12 md:py-24 bg-zinc-900 border-t border-zinc-800 relative overflow-hidden min-h-screen">
 
+            {/* 1. FONDO DECORATIVO (Detrás de todo) */}
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.05),transparent_50%)] pointer-events-none"></div>
+
+            {/* 2. CONTENEDOR PRINCIPAL (Centrado) */}
             <div className="max-w-6xl mx-auto px-6 relative z-10">
 
-                {/* Cabecera de la Sección */}
+                {/* --- NUEVO BOTÓN: ALINEADO Y CON ESPACIO --- */}
+                <div className="pt-4 mb-12">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="group flex items-center gap-3 px-5 py-2.5 bg-zinc-950/50 backdrop-blur-md border border-zinc-800 rounded-full hover:border-amber-500/50 hover:bg-zinc-900 transition-all duration-300 w-fit"
+                    >
+                        <div className="bg-zinc-800 group-hover:bg-amber-500 group-hover:text-zinc-900 p-1.5 rounded-full text-zinc-500 transition-colors duration-300">
+                            <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+                        </div>
+                        <span className="text-zinc-400 text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors">
+                            Volver al Inicio
+                        </span>
+                    </button>
+                </div>
+
+                {/* CABECERA DE LA SECCIÓN */}
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
                         Potencia tu taller <br />
@@ -61,7 +66,7 @@ export default function Pricing() {
                         <br />Elige el plan que mejor se adapte a tu volumen de trabajo.
                     </p>
 
-                    {/* Controles: Moneda y Ciclo */}
+                    {/* CONTROLES: Moneda y Ciclo */}
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-4 bg-zinc-950/50 p-2 rounded-xl border border-zinc-800 w-fit mx-auto">
 
                         {/* Toggle Anual */}
@@ -80,7 +85,7 @@ export default function Pricing() {
                             </button>
                         </div>
 
-                        {/* Selector Moneda (SOLO COP Y USD) */}
+                        {/* Selector Moneda */}
                         <div className="relative">
                             <Globe size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                             <select
@@ -95,10 +100,10 @@ export default function Pricing() {
                     </div>
                 </div>
 
-                {/* Grid de Tarjetas */}
+                {/* GRID DE TARJETAS */}
                 <div className="grid md:grid-cols-3 gap-8 items-start">
 
-                    {/* OPCIÓN 1: TALLER INICIAL (AHORA CON WHATSAPP Y TRIAL) */}
+                    {/* OPCIÓN 1: TALLER INICIAL */}
                     <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-8 hover:border-zinc-600 transition-all duration-300">
                         <div className="mb-4">
                             <h3 className="text-lg font-bold text-zinc-300">Taller Inicial</h3>
@@ -109,7 +114,6 @@ export default function Pricing() {
                             <span className="text-zinc-500 font-medium">/mes</span>
                         </div>
 
-                        {/* Botón de Prueba igual al PRO */}
                         <button
                             onClick={iniciarPrueba}
                             className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-lg transition-colors mb-8 border border-zinc-700"
@@ -125,7 +129,7 @@ export default function Pricing() {
                         </ul>
                     </div>
 
-                    {/* OPCIÓN 2: PRO (ILIMITADO) */}
+                    {/* OPCIÓN 2: PRO (RECOMENDADO) */}
                     <div className="bg-zinc-900 border-2 border-amber-500 rounded-2xl p-8 relative shadow-2xl shadow-amber-500/10 transform md:-translate-y-4">
                         <div className="absolute top-0 right-0 bg-amber-500 text-black text-xs font-black px-3 py-1 rounded-bl-lg rounded-tr-lg uppercase tracking-wider">
                             Recomendado
@@ -159,7 +163,7 @@ export default function Pricing() {
                         </ul>
                     </div>
 
-                    {/* OPCIÓN 3: INDUSTRIA (REALISTA) */}
+                    {/* OPCIÓN 3: INDUSTRIA */}
                     <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-8 hover:border-zinc-600 transition-all duration-300 opacity-80 hover:opacity-100">
                         <div className="mb-4">
                             <h3 className="text-lg font-bold text-zinc-300 flex items-center gap-2">
@@ -171,7 +175,6 @@ export default function Pricing() {
                             <span className="text-3xl font-black text-white">A Convenir</span>
                         </div>
 
-                        {/* Botón WhatsApp directo */}
                         <a
                             href="https://wa.me/573000000000?text=Hola,%20me%20interesa%20un%20plan%20para%20fábrica"
                             target="_blank"
@@ -191,7 +194,7 @@ export default function Pricing() {
 
                 </div>
 
-                {/* Garantía */}
+                {/* GARANTÍA */}
                 <div className="text-center mt-12 pt-8 border-t border-zinc-900">
                     <p className="text-zinc-500 text-sm">
                         Cualquiera que elijas tiene 21 días de garantía. Si no te gusta, no pagas nada.
