@@ -1,3 +1,4 @@
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import DxfParser from 'dxf-parser';
 import {
@@ -9,6 +10,9 @@ import {
 import { supabase } from './supabase';
 import { useAuth, AuthProvider } from './AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Pricing from './components/Pricing';
+
+
 
 // ==========================================
 // URL DE LA IMAGEN DE FONDO (CÁMBIALA AQUÍ)
@@ -139,6 +143,7 @@ function App() {
 // LANDING PAGE
 // ==========================================
 function LandingPage() {
+  const navigate = useNavigate();
   const [authMode, setAuthMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -212,11 +217,13 @@ function LandingPage() {
                 </button>
               </form>
               <div className="mt-6 text-center border-t border-zinc-800 pt-4">
+                <p className="text-zinc-500 text-sm mb-3">¿Aún no tienes cuenta?</p>
                 <button
-                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                  className="text-lg text-zinc-300 hover:text-amber-500 font-bold transition-colors mt-2"
+                  type="button"
+                  onClick={() => navigate('/planes')}
+                  className="text-lg text-amber-500 hover:text-amber-400 font-bold hover:underline transition-all flex items-center justify-center gap-2 mx-auto"
                 >
-                  {authMode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+                  Ver Planes y Precios <span className="text-xl">→</span>
                 </button>
               </div>
             </div>
@@ -2208,4 +2215,19 @@ function AdminClientes({ empresaId, empresa }) {
     </div>
   );
 }
-export default App;
+// ==========================================
+// SISTEMA DE RUTAS (ROUTER)
+// ==========================================
+function SistemaDeRutas() {
+  return (
+    <Routes>
+      {/* Ruta Principal (Tu App gigante con Login/Dashboard) */}
+      <Route path="/" element={<App />} />
+
+      {/* Ruta de Precios (El componente nuevo) */}
+      <Route path="/planes" element={<Pricing />} />
+    </Routes>
+  );
+}
+
+export default SistemaDeRutas;
