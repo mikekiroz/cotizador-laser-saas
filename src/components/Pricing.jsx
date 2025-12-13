@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Zap, Building2, Globe } from 'lucide-react';
+import { Check, Zap, Building2, Globe, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const TASAS = {
@@ -38,6 +38,13 @@ export default function Pricing() {
 
     return (
         <section className="py-24 bg-zinc-900 border-t border-zinc-800 relative overflow-hidden">
+            {/* BOTÓN VOLVER AL INICIO */}
+            <button
+                onClick={() => navigate('/')}
+                className="absolute top-6 left-6 z-20 flex items-center gap-2 text-zinc-500 hover:text-amber-500 transition-colors font-bold text-xs uppercase tracking-widest"
+            >
+                <ArrowLeft size={16} /> Volver
+            </button>
             {/* Fondo decorativo sutil */}
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.05),transparent_50%)]"></div>
 
