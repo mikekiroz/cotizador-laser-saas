@@ -173,7 +173,8 @@ function LandingPage() {
                 <Zap size={16} /> Cotizador de Cortes CNC
               </div>
               <h1 className="text-4xl md:text-5xl font-black leading-relaxed mb-6 tracking-tight text-zinc-100">
-                Cotizaciones automáticas para tu taller de <span className="text-amber-500 border-b-4 border-amber-500/20">CORTE LÁSER - PLASMA y ROUTER</span>
+                Cotizaciones automáticas para tu taller de: <br />
+                <span className="text-amber-500 border-b-4 border-amber-500/20">CORTE LÁSER - PLASMA y ROUTER</span>
               </h1>
               <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
                 Tus clientes suben su archivo DXF/SVG y obtienen un precio al instante.
