@@ -173,7 +173,7 @@ function AppContent() {
 
             {/* Mostramos los precios aquí mismo */}
             <div className="transform scale-95 -mt-10">
-              <Pricing />
+              <Pricing isLocked={true} />
             </div>
           </div>
         </div>
