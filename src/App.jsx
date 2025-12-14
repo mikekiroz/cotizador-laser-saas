@@ -1593,172 +1593,174 @@ Quedo atento a las instrucciones. ⚡`;
             </button>
           </div>
         </div>
+        <LegalFooter variant="simple" />
       </div>
-
       {/* MODAL DE CONFIRMACIÓN */}
-      {mostrarModal && (
-        <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
-            <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
-              <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
-                <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
-              </h3>
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="text-zinc-500 hover:text-white transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
+      {
+        mostrarModal && (
+          <div className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className={`${PANEL_STYLE} w-full max-w-2xl rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
+              <div className="flex justify-between items-center p-6 border-b border-zinc-800 bg-zinc-900">
+                <h3 className="text-xl font-black uppercase tracking-wider flex items-center gap-2 text-white">
+                  <Zap className="text-amber-500" fill="currentColor" /> Confirmar Orden
+                </h3>
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
-            <div className="p-6 overflow-y-auto max-h-[80vh]">
-              <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
-                <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
-                <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                  <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
-                  <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
-                </div>
-                {incluyeMaterial && (
+              <div className="p-6 overflow-y-auto max-h-[80vh]">
+                <div className="bg-zinc-950 p-6 rounded-sm border border-zinc-800 mb-8 space-y-3 relative">
+                  <div className="absolute -left-1 top-4 w-1 h-8 bg-amber-500"></div>
                   <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
-                    <div>
-                      <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
-                        <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+                    <span className="text-zinc-400 text-sm uppercase font-bold tracking-wide">Servicio de Corte</span>
+                    <span className="text-zinc-200 font-mono font-bold">{formatoPesos(costoCorteUnitario * cantidad)}</span>
+                  </div>
+                  {incluyeMaterial && (
+                    <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+                      <div>
+                        <span className="text-amber-500 text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                          <Package size={14} /> Material ({(areaCm2 * cantidad).toFixed(2)} cm²)
+                        </span>
+                      </div>
+                      <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
+                    <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
+                  </div>
+                  {config.porcentajeIva > 0 && (
+                    <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
+                      <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
+                      <span className="text-lg font-bold text-zinc-400">
+                        {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
                       </span>
                     </div>
-                    <span className="text-amber-500 font-mono font-bold">{formatoPesos(costoMaterialUnitario * cantidad)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-zinc-500 text-xs font-bold uppercase">Subtotal</span>
-                  <span className="text-xl font-bold text-zinc-300">{formatoPesos(costoTotal)}</span>
-                </div>
-                {config.porcentajeIva > 0 && (
-                  <div className="flex justify-between items-center pt-2 border-t border-zinc-800 border-dashed">
-                    <span className="text-zinc-500 text-sm">+ IVA ({config.porcentajeIva}%)</span>
-                    <span className="text-lg font-bold text-zinc-400">
-                      {formatoPesos(costoTotal * (config.porcentajeIva / 100))}
+                  )}
+                  <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
+                    <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
+                    <span className="text-3xl font-black text-amber-500 tracking-tight">
+                      {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
                     </span>
                   </div>
-                )}
-                <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-amber-500/20">
-                  <span className="text-amber-500 text-lg font-black uppercase tracking-widest">TOTAL</span>
-                  <span className="text-3xl font-black text-amber-500 tracking-tight">
-                    {formatoPesos(costoTotal + (config.porcentajeIva > 0 ? costoTotal * (config.porcentajeIva / 100) : 0))}
-                  </span>
+                </div>
+                <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
+                  <button
+                    onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
+                    className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
+                      ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                  >
+                    Persona Natural
+                  </button>
+                  <button
+                    onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
+                    className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
+                      ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                  >
+                    Empresa / Jurídica
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className={LABEL_STYLE}>
+                      Correo Electrónico (Obligatorio)
+                    </label>
+                    <input
+                      type="email"
+                      value={datosCliente.email}
+                      onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
+                      className={INPUT_STYLE}
+                      placeholder="ejemplo@correo.com"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={LABEL_STYLE}>
+                        {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
+                      </label>
+                      <input
+                        value={datosCliente.nombre}
+                        onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
+                        className={INPUT_STYLE}
+                      />
+                    </div>
+                    <div>
+                      <label className={LABEL_STYLE}>
+                        {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
+                      </label>
+                      <input
+                        value={datosCliente.documento}
+                        onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
+                        className={INPUT_STYLE}
+                      />
+                    </div>
+                  </div>
+                  {datosCliente.tipo === 'juridica' && (
+                    <div>
+                      <label className={LABEL_STYLE}>
+                        Nombre del Contacto
+                      </label>
+                      <input
+                        value={datosCliente.contacto}
+                        onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
+                        className={INPUT_STYLE}
+                        placeholder="¿Por quién preguntamos?"
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={LABEL_STYLE}>
+                        Teléfono / WhatsApp
+                      </label>
+                      <input
+                        value={datosCliente.telefono}
+                        onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
+                        className={INPUT_STYLE}
+                      />
+                    </div>
+                    <div>
+                      <label className={LABEL_STYLE}>
+                        Dirección de Entrega
+                      </label>
+                      <input
+                        value={datosCliente.direccion}
+                        onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
+                        className={INPUT_STYLE}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex p-1 bg-zinc-950 rounded-sm mb-6 border border-zinc-800">
+              <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
                 <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'natural' })}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'natural'
-                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
+                  onClick={() => setMostrarModal(false)}
+                  className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
                 >
-                  Persona Natural
+                  Cancelar
                 </button>
                 <button
-                  onClick={() => setDatosCliente({ ...datosCliente, tipo: 'juridica' })}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-sm transition-all ${datosCliente.tipo === 'juridica'
-                    ? 'bg-zinc-800 text-amber-500 border border-zinc-700'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
+                  onClick={procesarAccionModal}
+                  disabled={enviandoCorreo}
+                  className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
                 >
-                  Empresa / Jurídica
+                  {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
+                  CONFIRMAR PEDIDO
                 </button>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label className={LABEL_STYLE}>
-                    Correo Electrónico (Obligatorio)
-                  </label>
-                  <input
-                    type="email"
-                    value={datosCliente.email}
-                    onChange={e => setDatosCliente({ ...datosCliente, email: e.target.value })}
-                    className={INPUT_STYLE}
-                    placeholder="ejemplo@correo.com"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      {datosCliente.tipo === 'natural' ? 'Nombre Completo' : 'Razón Social'}
-                    </label>
-                    <input
-                      value={datosCliente.nombre}
-                      onChange={e => setDatosCliente({ ...datosCliente, nombre: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
-                  </div>
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      {datosCliente.tipo === 'natural' ? 'Cédula / ID' : 'NIT'}
-                    </label>
-                    <input
-                      value={datosCliente.documento}
-                      onChange={e => setDatosCliente({ ...datosCliente, documento: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
-                  </div>
-                </div>
-                {datosCliente.tipo === 'juridica' && (
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      Nombre del Contacto
-                    </label>
-                    <input
-                      value={datosCliente.contacto}
-                      onChange={e => setDatosCliente({ ...datosCliente, contacto: e.target.value })}
-                      className={INPUT_STYLE}
-                      placeholder="¿Por quién preguntamos?"
-                    />
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      Teléfono / WhatsApp
-                    </label>
-                    <input
-                      value={datosCliente.telefono}
-                      onChange={e => setDatosCliente({ ...datosCliente, telefono: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
-                  </div>
-                  <div>
-                    <label className={LABEL_STYLE}>
-                      Dirección de Entrega
-                    </label>
-                    <input
-                      value={datosCliente.direccion}
-                      onChange={e => setDatosCliente({ ...datosCliente, direccion: e.target.value })}
-                      className={INPUT_STYLE}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 border-t border-zinc-800 flex justify-end gap-3 bg-zinc-900">
-              <button
-                onClick={() => setMostrarModal(false)}
-                className="px-6 py-3 text-zinc-500 font-bold uppercase tracking-wider text-sm hover:text-white transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={procesarAccionModal}
-                disabled={enviandoCorreo}
-                className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-black px-8 py-3 rounded-sm flex items-center gap-2 uppercase tracking-wider shadow-lg shadow-amber-500/20"
-              >
-                {enviandoCorreo ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
-                CONFIRMAR PEDIDO
-              </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
 // ==========================================
