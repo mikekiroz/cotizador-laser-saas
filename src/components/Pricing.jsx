@@ -14,8 +14,8 @@ const LINKS_MP = {
 };
 
 // --- TUS DATOS BANCARIOS ---
-const DATOS_NEQUI = "300 123 4567";
-const DATOS_DAVIPLATA = "300 123 4567";
+const DATOS_NEQUI = "3334003543";
+const DATOS_DAVIPLATA = "3228060116";
 
 export default function Pricing({ isLocked = false }) {
     const [moneda, setMoneda] = useState('COP');
