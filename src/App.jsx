@@ -53,6 +53,7 @@ function AppContent() {
   const [materiales, setMateriales] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [tallerSlug, setTallerSlug] = useState(null);
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     // 1. Buscamos si hay parámetro viejo (?taller=...)
@@ -90,14 +91,36 @@ function AppContent() {
 
   const cargarDatosAdmin = async () => {
     setLoadingData(true);
+    // 1. Traemos los datos de la empresa
     const { data: emp } = await supabase.from('empresas').select('*').eq('id', session.user.id).single();
+
     if (emp) {
       setEmpresa({ ...emp, logoUrl: emp.logo_url, faviconUrl: emp.favicon_url, porcentajeIva: emp.porcentaje_iva });
+
+      // --- LÓGICA DEL CANDADO 21 DÍAS ---
+      const fechaRegistro = new Date(emp.created_at);
+      const hoy = new Date();
+      // Diferencia en milisegundos convertida a días
+      const diferenciaTiempo = hoy - fechaRegistro;
+      const diasTranscurridos = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+
+      console.log("Fecha Registro:", fechaRegistro);
+      console.log("Días transcurridos:", diasTranscurridos);
+
+      // Si pasaron más de 21 días y NO es 'pro', bloqueamos.
+      if (diasTranscurridos > 21 && emp.plan !== 'pro') {
+        setIsLocked(true);
+      } else {
+        setIsLocked(false);
+      }
+      // ----------------------------------
+
       const { data: mats } = await supabase.from('materiales').select('*').eq('empresa_id', emp.id);
       if (mats) setMateriales(mats.map(m => ({ ...m, precioMetro: m.precio_metro, precioDisparo: m.precio_disparo || 0 })));
     }
     setLoadingData(false);
   };
+
 
   if (appMode === 'loading' || (loadingData && appMode !== 'landing')) {
     return (
@@ -116,6 +139,32 @@ function AppContent() {
   }
 
   if (appMode === 'admin') {
+    // CASO 1: TIEMPO AGOTADO (BLOQUEO) 🔒
+    if (isLocked) {
+      return (
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">
+          <div className="max-w-4xl w-full bg-zinc-900 border border-red-900/50 rounded-lg overflow-hidden shadow-2xl relative">
+
+            {/* Cabecera de Aviso */}
+            <div className="bg-red-900/10 border-b border-red-900/20 p-6 text-center">
+              <h2 className="text-red-500 font-black uppercase tracking-widest text-xl flex items-center justify-center gap-2 mb-2">
+                <AlertTriangle size={24} /> Periodo de Prueba Finalizado
+              </h2>
+              <p className="text-zinc-400 text-sm">
+                Tus 21 días de prueba han terminado. Para seguir operando tu taller, por favor selecciona un plan.
+              </p>
+            </div>
+
+            {/* Mostramos los precios aquí mismo */}
+            <div className="transform scale-95 -mt-10">
+              <Pricing />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // CASO 2: TODO EN ORDEN (DASHBOARD) ✅
     return <VistaAdmin empresa={empresa} setEmpresa={setEmpresa} materiales={materiales} setMateriales={setMateriales} recargar={cargarDatosAdmin} />;
   }
 
