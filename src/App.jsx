@@ -1,3 +1,4 @@
+import SuperAdmin from './components/SuperAdmin';
 import LegalFooter from './components/LegalFooter';
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
@@ -2325,7 +2326,7 @@ function SistemaDeRutas() {
     <Routes>
       {/* Ruta Principal (Tu App gigante con Login/Dashboard) */}
       <Route path="/" element={<App />} />
-
+      <Route path="/superadmin" element={<SuperAdmin />} />
       {/* Ruta de Precios (El componente nuevo) */}
       <Route path="/planes" element={<Pricing />} />
       <Route path="/t/:slug" element={<App />} />
