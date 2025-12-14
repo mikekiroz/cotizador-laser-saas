@@ -134,7 +134,7 @@ export default function Pricing({ isLocked = false }) {
                     <div className="bg-zinc-900 border-2 border-amber-500 rounded-2xl p-8 relative shadow-2xl shadow-amber-500/10 transform md:-translate-y-4">
                         <div className="absolute top-0 right-0 bg-amber-500 text-black text-xs font-black px-3 py-1 rounded-bl-lg rounded-tr-lg uppercase tracking-wider">Recomendado</div>
                         <div className="mb-4"><h3 className="text-xl font-black text-amber-500 flex items-center gap-2"><Zap size={20} fill="currentColor" /> TALLER PRO</h3></div>
-                        <div className="mb-6 flex items-baseline gap-1"><span className="text-5xl font-black text-white">{calcularPrecio(PRECIO_PRO)}</span><span className="text-zinc-500 font-medium">{anual ? '/año' : '/mes'}</span></div>
+                        <div className="mb-6 flex items-baseline gap-1"><span className="text-4xl font-black text-white tracking-tight">{calcularPrecio(PRECIO_PRO)}</span><span className="text-zinc-500 font-medium">{anual ? '/año' : '/mes'}</span></div>
                         <button
                             onClick={() => handleAction('Plan PRO', PRECIO_PRO, LINKS_MP.PRO)}
                             className={`w-full py-4 font-black rounded-lg transition-colors mb-8 shadow-lg ${isLocked ? 'bg-green-500 hover:bg-green-400 text-black' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}
