@@ -1,5 +1,5 @@
 import LegalFooter from './components/LegalFooter';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import DxfParser from 'dxf-parser';
 import {
@@ -47,6 +47,7 @@ const EMPRESA_DEFAULT = {
 // ==========================================
 function AppContent() {
   const { session, loading: authLoading } = useAuth();
+  const { slug } = useParams();
   const [appMode, setAppMode] = useState('loading'); // 'loading', 'landing', 'admin', 'public'
   const [empresa, setEmpresa] = useState(EMPRESA_DEFAULT);
   const [materiales, setMateriales] = useState([]);
@@ -54,13 +55,17 @@ function AppContent() {
   const [tallerSlug, setTallerSlug] = useState(null);
 
   useEffect(() => {
+    // 1. Buscamos si hay parámetro viejo (?taller=...)
     const params = new URLSearchParams(window.location.search);
-    const slug = params.get('taller');
+    const querySlug = params.get('taller');
 
-    if (slug) {
-      setTallerSlug(slug);
+    // 2. DEFINIR PRIORIDAD: ¿Existe ruta limpia (slug)? Úsala. Si no, usa querySlug.
+    const activeSlug = slug || querySlug;
+
+    if (activeSlug) {
+      setTallerSlug(activeSlug);
       setAppMode('public');
-      cargarTallerPublico(slug);
+      cargarTallerPublico(activeSlug);
     } else if (authLoading) {
       setAppMode('loading');
     } else if (session) {
@@ -70,7 +75,7 @@ function AppContent() {
       setAppMode('landing');
       setLoadingData(false);
     }
-  }, [session, authLoading]);
+  }, [session, authLoading, slug]);
 
   const cargarTallerPublico = async (slug) => {
     setLoadingData(true);
@@ -319,7 +324,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
   const [tab, setTab] = useState('dashboard'); // Empezamos en el Dashboard
   const [copied, setCopied] = useState(false);
 
-  const publicUrl = `${window.location.origin}/?taller=${empresa.slug}`;
+  const publicUrl = `${window.location.origin}/t/${empresa.slug}`;
 
   const copyUrl = () => {
     navigator.clipboard.writeText(publicUrl);
@@ -2233,6 +2238,7 @@ function SistemaDeRutas() {
 
       {/* Ruta de Precios (El componente nuevo) */}
       <Route path="/planes" element={<Pricing />} />
+      <Route path="/t/:slug" element={<App />} />
     </Routes>
   );
 }
