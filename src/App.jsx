@@ -1,3 +1,4 @@
+import LegalFooter from './components/LegalFooter';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import DxfParser from 'dxf-parser';
@@ -233,6 +234,7 @@ function LandingPage() {
           </div>
         </div>
       </div>
+      <LegalFooter />
     </div>
   );
 }
