@@ -28,7 +28,8 @@ export default function Pricing() {
     };
 
     const iniciarPrueba = () => {
-        navigate('/');
+        // Enviamos 'mode: register' para que la otra página sepa qué mostrar
+        navigate('/', { state: { mode: 'register' } });
     };
 
     return (

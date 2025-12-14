@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import DxfParser from 'dxf-parser';
 import {
@@ -144,7 +144,10 @@ function App() {
 // ==========================================
 function LandingPage() {
   const navigate = useNavigate();
-  const [authMode, setAuthMode] = useState('login');
+  const location = useLocation(); // <--- Hook para leer lo que envía Pricing
+
+  // Si viene con la señal 'register', iniciamos ahí. Si no, login normal.
+  const [authMode, setAuthMode] = useState(location.state?.mode === 'register' ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
