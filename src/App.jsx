@@ -81,8 +81,24 @@ function AppContent() {
   const cargarTallerPublico = async (slug) => {
     setLoadingData(true);
     const { data: emp } = await supabase.from('empresas').select('*').eq('slug', slug).single();
+
     if (emp) {
       setEmpresa({ ...emp, logoUrl: emp.logo_url, faviconUrl: emp.favicon_url, porcentajeIva: emp.porcentaje_iva });
+
+      // --- 🔒 CANDADO PÚBLICO ---
+      const fechaRegistro = new Date(emp.created_at);
+      const hoy = new Date();
+      const diferenciaTiempo = hoy - fechaRegistro;
+      const diasTranscurridos = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+
+      // Si se venció, activamos el bloqueo TAMBIÉN aquí
+      if (diasTranscurridos > 21 && emp.plan !== 'pro') {
+        setIsLocked(true);
+      } else {
+        setIsLocked(false);
+      }
+      // --------------------------
+
       const { data: mats } = await supabase.from('materiales').select('*').eq('empresa_id', emp.id);
       if (mats) setMateriales(mats.map(m => ({ ...m, precioMetro: m.precio_metro, precioDisparo: m.precio_disparo || 0 })));
     }
@@ -169,6 +185,29 @@ function AppContent() {
   }
 
   if (appMode === 'public') {
+    // CASO 1: TALLER MOROSO (BLOQUEADO) 🚫
+    if (isLocked) {
+      return (
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
+          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-lg max-w-md shadow-2xl">
+            <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="text-amber-500" size={32} />
+            </div>
+            <h1 className="text-2xl font-black text-white uppercase tracking-wider mb-2">
+              Cotizador No Disponible
+            </h1>
+            <p className="text-zinc-400 mb-6">
+              El servicio de cotización automática para <strong>{empresa.nombre}</strong> está temporalmente suspendido o en mantenimiento.
+            </p>
+            <div className="text-xs text-zinc-600 font-mono border-t border-zinc-800 pt-4">
+              Por favor contacta directamente al taller para realizar tu pedido.
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // CASO 2: NO EXISTE EL TALLER
     if (!empresa.nombre) {
       return (
         <div className={`h-screen bg-zinc-950 ${TEXTURE_DOTS} flex items-center justify-center text-white`}>
@@ -180,6 +219,8 @@ function AppContent() {
         </div>
       );
     }
+
+    // CASO 3: TODO OK (COTIZADOR FUNCIONAL)
     return <VistaCliente materials={materiales} empresa={empresa} config={{ porcentajeIva: empresa.porcentajeIva }} />;
   }
 
