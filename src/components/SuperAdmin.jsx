@@ -148,7 +148,7 @@ export default function SuperAdmin() {
                                             )}
                                             {vence && <div className="text-xs text-zinc-600 mt-1">Vence: {vence.toLocaleDateString()}</div>}
                                         </td>
-                                        <td className="p-4 text-right flex justify-end gap-2">
+                                        <td className="p-4 text-right flex justify-end gap-4">
                                             <button
                                                 onClick={() => activarMes(emp.id, emp.subscription_end)}
                                                 className="bg-amber-500 hover:bg-amber-400 text-black px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1 shadow-lg shadow-amber-500/10"
