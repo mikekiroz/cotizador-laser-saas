@@ -108,29 +108,42 @@ function AppContent() {
 
   const cargarDatosAdmin = async () => {
     setLoadingData(true);
-    // 1. Traemos los datos de la empresa
     const { data: emp } = await supabase.from('empresas').select('*').eq('id', session.user.id).single();
 
     if (emp) {
-      setEmpresa({ ...emp, logoUrl: emp.logo_url, faviconUrl: emp.favicon_url, porcentajeIva: emp.porcentaje_iva });
+      // 1. Determinar la fecha de vencimiento real
+      // (Si SuperAdmin puso fecha, se usa esa. Si no, se usan los 21 días automáticos)
+      let fechaVencimiento;
 
-      // --- LÓGICA DEL CANDADO 21 DÍAS ---
-      const fechaRegistro = new Date(emp.created_at);
+      if (emp.subscription_end) {
+        fechaVencimiento = new Date(emp.subscription_end);
+      } else {
+        const fechaRegistro = new Date(emp.created_at);
+        fechaVencimiento = new Date(fechaRegistro);
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + 21);
+      }
+
+      // 2. Calcular cuántos días faltan para esa fecha
       const hoy = new Date();
-      // Diferencia en milisegundos convertida a días
-      const diferenciaTiempo = hoy - fechaRegistro;
-      const diasTranscurridos = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+      const diferenciaTiempo = fechaVencimiento - hoy;
+      // Esto nos da un número entero (ej: 5, 3, -1)
+      const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
-      console.log("Fecha Registro:", fechaRegistro);
-      console.log("Días transcurridos:", diasTranscurridos);
+      // 3. Guardamos los datos (incluyendo diasRestantes para el aviso amarillo)
+      setEmpresa({
+        ...emp,
+        logoUrl: emp.logo_url,
+        faviconUrl: emp.favicon_url,
+        porcentajeIva: emp.porcentaje_iva,
+        diasRestantes: diasRestantes
+      });
 
-      // Si pasaron más de 21 días y NO es 'pro', bloqueamos.
-      if (diasTranscurridos > 21 && emp.plan !== 'pro') {
+      // 4. EL CANDADO: Si ya se pasaron los días (<=0) y no pagó -> BLOQUEAR
+      if (diasRestantes <= 0 && emp.plan !== 'pro') {
         setIsLocked(true);
       } else {
         setIsLocked(false);
       }
-      // ----------------------------------
 
       const { data: mats } = await supabase.from('materiales').select('*').eq('empresa_id', emp.id);
       if (mats) setMateriales(mats.map(m => ({ ...m, precioMetro: m.precio_metro, precioDisparo: m.precio_disparo || 0 })));
@@ -429,6 +442,20 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
 
   return (
     <div className={`min-h-screen bg-zinc-900 text-zinc-100 ${TEXTURE_DOTS}`}>
+      {/* --- SEMÁFORO AMARILLO (AVISO DE VENCIMIENTO) --- */}
+      {empresa.plan !== 'pro' && empresa.diasRestantes <= 5 && empresa.diasRestantes > 0 && (
+        <div className="bg-amber-500 text-zinc-900 font-black text-center px-4 py-3 text-sm uppercase tracking-wider flex items-center justify-center gap-2 z-50 relative shadow-lg">
+          <AlertTriangle size={20} className="animate-pulse" />
+          <span>¡Atención! Tu periodo de prueba vence en <strong>{empresa.diasRestantes} días</strong>.</span>
+          <button
+            onClick={() => window.location.href = '/planes'}
+            className="underline hover:text-white ml-2 cursor-pointer font-bold bg-zinc-900/10 px-2 py-0.5 rounded"
+          >
+            RENOVAR AHORA
+          </button>
+        </div>
+      )}
+      {/* ------------------------------------------------ */}
 
       {/* 1. HEADER (CON TU LOGO) */}
       <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
