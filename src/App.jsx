@@ -2323,14 +2323,19 @@ function AdminClientes({ empresaId, empresa }) {
 // ==========================================
 function SistemaDeRutas() {
   return (
-    <Routes>
-      {/* Ruta Principal (Tu App gigante con Login/Dashboard) */}
-      <Route path="/" element={<App />} />
-      <Route path="/superadmin" element={<SuperAdmin />} />
-      {/* Ruta de Precios (El componente nuevo) */}
-      <Route path="/planes" element={<Pricing />} />
-      <Route path="/t/:slug" element={<App />} />
-    </Routes>
+    <AuthProvider> {/* <--- ¡ESTO ES LO QUE FALTABA! */}
+      <Routes>
+        <Route path="/" element={<AppContent />} /> {/* Ojo: Cambié <App /> por <AppContent /> para no duplicar el AuthProvider */}
+
+        <Route path="/planes" element={<Pricing />} />
+
+        {/* Ruta para el cliente (pública) */}
+        <Route path="/t/:slug" element={<AppContent />} />
+
+        {/* Ruta para TI (privada) */}
+        <Route path="/superadmin" element={<SuperAdmin />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 
