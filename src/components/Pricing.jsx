@@ -5,8 +5,8 @@ import { useNavigate, useLocation } from 'react-router-dom'; // <--- IMPORTANTE:
 // ... (Tus constantes de TASAS, LINKS_MP y DATOS_NEQUI déjalas igual) ...
 const TASAS = { COP: { simbolo: '$', factor: 1, nombre: 'COP' }, USD: { simbolo: 'US$', factor: 0.00025, nombre: 'USD' } };
 const LINKS_MP = { INICIAL: "LINK_50K", PRO: "LINK_90K" }; // Pon tus links reales
-const DATOS_NEQUI = "300 123 4567";
-const DATOS_DAVIPLATA = "300 123 4567";
+const DATOS_NEQUI = "333 400 3543";
+const DATOS_DAVIPLATA = "322 806 0116";
 
 export default function Pricing({ isLocked = false }) {
     const [moneda, setMoneda] = useState('COP');
