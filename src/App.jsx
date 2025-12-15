@@ -1,5 +1,3 @@
-import { differenceInDays } from 'date-fns';
-import { differenceInCalendarDays } from 'date-fns';
 import SuperAdmin from './components/SuperAdmin';
 import LegalFooter from './components/LegalFooter';
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom';
@@ -97,7 +95,15 @@ function AppContent() {
       }
 
       // 2. Calcular días restantes (Con precisión de calendario)
-      const diasRestantes = differenceInCalendarDays(fechaVencimiento, new Date()) + 1;
+      // --- CÁLCULO DE DÍAS SIN LIBRERÍA ---
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Ignoramos la hora de hoy
+
+      const vencimiento = new Date(fechaVencimiento);
+      vencimiento.setHours(0, 0, 0, 0); // Ignoramos la hora de vencimiento
+
+      const diferenciaTiempo = vencimiento - hoy;
+      const diasRestantes = Math.round(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
       // 3. Guardar los datos ACTUALIZADOS
       setEmpresa({
@@ -139,7 +145,15 @@ function AppContent() {
       }
 
       // 2. Calcular cuántos días faltan para esa fecha
-      const diasRestantes = differenceInCalendarDays(fechaVencimiento, new Date()) + 1;
+      // --- CÁLCULO DE DÍAS SIN LIBRERÍA ---
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Ignoramos la hora de hoy
+
+      const vencimiento = new Date(fechaVencimiento);
+      vencimiento.setHours(0, 0, 0, 0); // Ignoramos la hora de vencimiento
+
+      const diferenciaTiempo = vencimiento - hoy;
+      const diasRestantes = Math.round(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
       // 3. Guardamos los datos (incluyendo diasRestantes para el aviso amarillo)
       setEmpresa({
