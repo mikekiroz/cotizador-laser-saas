@@ -39,20 +39,19 @@ export default function SuperAdmin() {
     // FUNCIÓN MÁGICA: Agregar 30 días
     // FUNCIÓN MEJORADA: Agregar 30 días respetando el corte
     // FUNCIÓN BLINDADA: ACUMULATIVA ESTRICTA
+    // FUNCIÓN FINAL (CON ALERTAS + MES EXACTO)
     const activarMes = async (id, fechaVencimientoActual) => {
 
         // 1. Forzamos a usar la fecha que viene de la base de datos
-        // Si fechaVencimientoActual existe, la usamos. Si no (es nuevo), usamos hoy.
         const fechaBase = fechaVencimientoActual ? new Date(fechaVencimientoActual) : new Date();
 
-        // DIAGNÓSTICO: Esto te dirá qué está pasando
+        // DIAGNÓSTICO (Tus alertas de seguridad)
         const fechaBaseLegible = fechaBase.toLocaleDateString('es-CO');
-        // Quita este confirm cuando ya veas que funciona bien
-        if (!confirm(`🔍 DIAGNÓSTICO:\n\nFecha corte actual: ${fechaBaseLegible}\n\n¿Quieres sumar 30 días a esa fecha exacta?`)) return;
+        if (!confirm(`🔍 CONFIRMACIÓN DE SEGURIDAD:\n\nFecha corte actual: ${fechaBaseLegible}\n\n¿Sumar 1 MES a esta fecha?`)) return;
 
-        // 2. Sumamos 30 días matemáticamente a la fecha base
+        // 2. Sumamos 1 MES CALENDARIO (Del 18 al 18)
         const nuevaFecha = new Date(fechaBase);
-        nuevaFecha.setDate(nuevaFecha.getDate() + 30);
+        nuevaFecha.setMonth(nuevaFecha.getMonth() + 1);
 
         // 3. Guardamos
         const { error } = await supabase
@@ -62,7 +61,7 @@ export default function SuperAdmin() {
 
         if (!error) {
             const nuevaLegible = nuevaFecha.toLocaleDateString('es-CO');
-            alert(`✅ ¡CORREGIDO!\n\nAnterior: ${fechaBaseLegible}\nNueva: ${nuevaLegible}`);
+            alert(`✅ ¡EXITO!\n\nAnterior: ${fechaBaseLegible}\nNueva: ${nuevaLegible}`);
             fetchEmpresas();
         } else {
             console.error(error);
