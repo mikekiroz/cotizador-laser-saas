@@ -84,21 +84,36 @@ function AppContent() {
     const { data: emp } = await supabase.from('empresas').select('*').eq('slug', slug).single();
 
     if (emp) {
-      setEmpresa({ ...emp, logoUrl: emp.logo_url, faviconUrl: emp.favicon_url, porcentajeIva: emp.porcentaje_iva });
+      // 1. Determinar la fecha de vencimiento real (igual que en Admin)
+      let fechaVencimiento;
+      if (emp.subscription_end) {
+        fechaVencimiento = new Date(emp.subscription_end);
+      } else {
+        const fechaRegistro = new Date(emp.created_at);
+        fechaVencimiento = new Date(fechaRegistro);
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + 21);
+      }
 
-      // --- 🔒 CANDADO PÚBLICO ---
-      const fechaRegistro = new Date(emp.created_at);
+      // 2. Calcular días restantes
       const hoy = new Date();
-      const diferenciaTiempo = hoy - fechaRegistro;
-      const diasTranscurridos = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+      const diferenciaTiempo = fechaVencimiento - hoy;
+      const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
-      // Si se venció, activamos el bloqueo TAMBIÉN aquí
-      if (diasTranscurridos > 21 && emp.plan !== 'pro') {
+      // 3. Guardar los datos ACTUALIZADOS
+      setEmpresa({
+        ...emp,
+        logoUrl: emp.logo_url,
+        faviconUrl: emp.favicon_url,
+        porcentajeIva: emp.porcentaje_iva,
+        diasRestantes: diasRestantes // <--- ESTO ES LO QUE ARREGLA TODO
+      });
+
+      // 4. BLOQUEO PÚBLICO
+      if (diasRestantes <= 0 && emp.plan !== 'pro') {
         setIsLocked(true);
       } else {
         setIsLocked(false);
       }
-      // --------------------------
 
       const { data: mats } = await supabase.from('materiales').select('*').eq('empresa_id', emp.id);
       if (mats) setMateriales(mats.map(m => ({ ...m, precioMetro: m.precio_metro, precioDisparo: m.precio_disparo || 0 })));
