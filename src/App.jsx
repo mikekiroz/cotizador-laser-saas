@@ -458,6 +458,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
       )}
       {/* ------------------------------------------------ */}
 
+
       {/* 1. HEADER (CON TU LOGO) */}
       <div className={`bg-zinc-950 border-b border-zinc-800 px-6 py-4 ${TEXTURE_STRIPES}`}>
         <div className="max-w-6xl mx-auto flex justify-between items-center">
