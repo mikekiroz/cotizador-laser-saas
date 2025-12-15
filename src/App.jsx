@@ -1,3 +1,4 @@
+import { differenceInDays } from 'date-fns';
 import { differenceInCalendarDays } from 'date-fns';
 import SuperAdmin from './components/SuperAdmin';
 import LegalFooter from './components/LegalFooter';
@@ -96,7 +97,7 @@ function AppContent() {
       }
 
       // 2. Calcular días restantes (Con precisión de calendario)
-      const diasRestantes = differenceInCalendarDays(fechaVencimiento, new Date());
+      const diasRestantes = differenceInDays(fechaVencimiento, new Date()) + 1; // +1 para incluir el día actual
 
       // 3. Guardar los datos ACTUALIZADOS
       setEmpresa({
@@ -138,7 +139,7 @@ function AppContent() {
       }
 
       // 2. Calcular cuántos días faltan para esa fecha
-      const diasRestantes = differenceInCalendarDays(fechaVencimiento, new Date());
+      const diasRestantes = differenceInDays(fechaVencimiento, new Date()) + 1; // +1 para incluir el día actual
 
       // 3. Guardamos los datos (incluyendo diasRestantes para el aviso amarillo)
       setEmpresa({
