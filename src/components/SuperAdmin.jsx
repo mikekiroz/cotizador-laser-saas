@@ -37,13 +37,25 @@ export default function SuperAdmin() {
     };
 
     // FUNCIÓN MÁGICA: Agregar 30 días
-    const activarMes = async (id, fechaActual) => {
-        const baseDate = fechaActual ? new Date(fechaActual) : new Date();
-        // Si ya está vencido, sumamos desde hoy. Si no, sumamos desde la fecha que tenía.
-        const start = baseDate < new Date() ? new Date() : baseDate;
+    // FUNCIÓN MEJORADA: Agregar 30 días respetando el corte
+    const activarMes = async (id, fechaVencimientoActual) => {
+        // 1. Obtenemos la fecha de hoy y la del vencimiento
+        const hoy = new Date();
+        const vencimiento = fechaVencimientoActual ? new Date(fechaVencimientoActual) : new Date();
 
-        const nuevaFecha = new Date(start);
-        nuevaFecha.setDate(nuevaFecha.getDate() + 30); // Sumar 30 días
+        // 2. LÓGICA DE PROTECCIÓN DE DÍAS:
+        // Si el vencimiento es futuro (ej: vence en 3 días), usamos ESA fecha base.
+        // Si el vencimiento ya pasó (ej: venció ayer), ¿qué quieres hacer?
+        // OPCIÓN A (Estricta): Usar 'vencimiento' (Mantiene el ciclo, el cliente pierde los días que se demoró).
+        // OPCIÓN B (Flexible): Usar 'hoy' (Empieza a contar desde que pagó).
+
+        // Aquí dejo la OPCIÓN A (ESTRICTA) que mantiene el ciclo del 14 al 14:
+        // Si prefieres la flexible, cambia 'vencimiento' por 'hoy' después de los dos puntos (:).
+        let fechaBase = vencimiento > hoy ? vencimiento : vencimiento;
+
+        // 3. Sumar los 30 días
+        const nuevaFecha = new Date(fechaBase);
+        nuevaFecha.setDate(nuevaFecha.getDate() + 30);
 
         const { error } = await supabase
             .from('empresas')
@@ -51,8 +63,8 @@ export default function SuperAdmin() {
             .eq('id', id);
 
         if (!error) {
-            alert("✅ ¡Mes activado exitosamente!");
-            fetchEmpresas(); // Recargar tabla
+            alert(`✅ 30 días agregados.\nNuevo vencimiento: ${nuevaFecha.toLocaleDateString()}`);
+            fetchEmpresas();
         }
     };
 
