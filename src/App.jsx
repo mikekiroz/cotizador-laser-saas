@@ -97,7 +97,7 @@ function AppContent() {
       }
 
       // 2. Calcular días restantes (Con precisión de calendario)
-      const diasRestantes = differenceInDays(fechaVencimiento, new Date()) + 1; // +1 para incluir el día actual
+      const diasRestantes = differenceInCalendarDays(fechaVencimiento, new Date()) + 1;
 
       // 3. Guardar los datos ACTUALIZADOS
       setEmpresa({
@@ -139,7 +139,7 @@ function AppContent() {
       }
 
       // 2. Calcular cuántos días faltan para esa fecha
-      const diasRestantes = differenceInDays(fechaVencimiento, new Date()) + 1; // +1 para incluir el día actual
+      const diasRestantes = differenceInCalendarDays(fechaVencimiento, new Date()) + 1;
 
       // 3. Guardamos los datos (incluyendo diasRestantes para el aviso amarillo)
       setEmpresa({
