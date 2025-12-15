@@ -2135,12 +2135,7 @@ function AdminDashboard({ empresaId, empresa }) {
         </div>
 
       </div>
-      {/* FECHA DE CORTE MINIMALISTA */}
-      <div className="w-full text-center mt-8 pb-4 border-t border-zinc-900 pt-4">
-        <p className="text-sm text-zinc-500">
-          Tu próxima fecha de corte es el: <span className="text-white font-bold font-mono ml-2">{stats?.empresa?.subscription_end ? new Date(stats.empresa.subscription_end).toLocaleDateString('es-CO') : '...'}</span>
-        </p>
-      </div>
+
       {/* PEGA ESTO AQUÍ AL FINAL */}
       <div className="w-full text-center mt-8 pb-4 border-t border-zinc-900 pt-4">
         <p className="text-sm text-zinc-500">
