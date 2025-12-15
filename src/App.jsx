@@ -425,6 +425,7 @@ function OnboardingPage({ setEmpresa }) {
 // ==========================================
 function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }) {
   const { session } = useAuth();
+  const navigate = useNavigate(); // <--- AGREGAR ESTO
   const [tab, setTab] = useState('dashboard'); // Empezamos en el Dashboard
   const [copied, setCopied] = useState(false);
 
@@ -448,7 +449,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
           <AlertTriangle size={20} className="animate-pulse" />
           <span>¡Atención! Tu periodo de prueba vence en <strong>{empresa.diasRestantes} días</strong>.</span>
           <button
-            onClick={() => window.location.href = '/planes'}
+            onClick={() => navigate('/planes?mode=renew')}
             className="underline hover:text-white ml-2 cursor-pointer font-bold bg-zinc-900/10 px-2 py-0.5 rounded"
           >
             RENOVAR AHORA
