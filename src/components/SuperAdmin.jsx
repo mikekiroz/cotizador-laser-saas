@@ -38,36 +38,37 @@ export default function SuperAdmin() {
 
     // FUNCIÓN MÁGICA: Agregar 30 días
     // FUNCIÓN MEJORADA: Agregar 30 días respetando el corte
+    // FUNCIÓN BLINDADA: ACUMULATIVA ESTRICTA
     const activarMes = async (id, fechaVencimientoActual) => {
-        // 1. Obtenemos la fecha de hoy y la del vencimiento
-        const hoy = new Date();
-        const vencimiento = fechaVencimientoActual ? new Date(fechaVencimientoActual) : new Date();
 
-        // 2. LÓGICA DE PROTECCIÓN DE DÍAS:
-        // Si el vencimiento es futuro (ej: vence en 3 días), usamos ESA fecha base.
-        // Si el vencimiento ya pasó (ej: venció ayer), ¿qué quieres hacer?
-        // OPCIÓN A (Estricta): Usar 'vencimiento' (Mantiene el ciclo, el cliente pierde los días que se demoró).
-        // OPCIÓN B (Flexible): Usar 'hoy' (Empieza a contar desde que pagó).
+        // 1. Forzamos a usar la fecha que viene de la base de datos
+        // Si fechaVencimientoActual existe, la usamos. Si no (es nuevo), usamos hoy.
+        const fechaBase = fechaVencimientoActual ? new Date(fechaVencimientoActual) : new Date();
 
-        // Aquí dejo la OPCIÓN A (ESTRICTA) que mantiene el ciclo del 14 al 14:
-        // Si prefieres la flexible, cambia 'vencimiento' por 'hoy' después de los dos puntos (:).
-        let fechaBase = vencimiento > hoy ? vencimiento : vencimiento;
+        // DIAGNÓSTICO: Esto te dirá qué está pasando
+        const fechaBaseLegible = fechaBase.toLocaleDateString('es-CO');
+        // Quita este confirm cuando ya veas que funciona bien
+        if (!confirm(`🔍 DIAGNÓSTICO:\n\nFecha corte actual: ${fechaBaseLegible}\n\n¿Quieres sumar 30 días a esa fecha exacta?`)) return;
 
-        // 3. Sumar los 30 días
+        // 2. Sumamos 30 días matemáticamente a la fecha base
         const nuevaFecha = new Date(fechaBase);
         nuevaFecha.setDate(nuevaFecha.getDate() + 30);
 
+        // 3. Guardamos
         const { error } = await supabase
             .from('empresas')
             .update({ subscription_end: nuevaFecha.toISOString() })
             .eq('id', id);
 
         if (!error) {
-            alert(`✅ 30 días agregados.\nNuevo vencimiento: ${nuevaFecha.toLocaleDateString()}`);
+            const nuevaLegible = nuevaFecha.toLocaleDateString('es-CO');
+            alert(`✅ ¡CORREGIDO!\n\nAnterior: ${fechaBaseLegible}\nNueva: ${nuevaLegible}`);
             fetchEmpresas();
+        } else {
+            console.error(error);
+            alert("Error al guardar en Supabase");
         }
     };
-
     // FUNCIÓN: Bloquear (Poner fecha en el pasado)
     const bloquear = async (id) => {
         if (!confirm("¿Seguro que quieres bloquear este taller?")) return;
