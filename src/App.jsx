@@ -103,7 +103,7 @@ function AppContent() {
       vencimiento.setHours(0, 0, 0, 0); // Ignoramos la hora de vencimiento
 
       const diferenciaTiempo = vencimiento - hoy;
-      const diasRestantes = Math.round(diferenciaTiempo / (1000 * 60 * 60 * 24));
+      const diasRestantes = Math.round(diferenciaTiempo / (1000 * 60 * 60 * 24)) + 1;
 
       // 3. Guardar los datos ACTUALIZADOS
       setEmpresa({
@@ -153,7 +153,7 @@ function AppContent() {
       vencimiento.setHours(0, 0, 0, 0); // Ignoramos la hora de vencimiento
 
       const diferenciaTiempo = vencimiento - hoy;
-      const diasRestantes = Math.round(diferenciaTiempo / (1000 * 60 * 60 * 24));
+      const diasRestantes = Math.round(diferenciaTiempo / (1000 * 60 * 60 * 24)) + 1;
 
       // 3. Guardamos los datos (incluyendo diasRestantes para el aviso amarillo)
       setEmpresa({
