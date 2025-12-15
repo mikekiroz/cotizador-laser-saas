@@ -570,7 +570,7 @@ function VistaAdmin({ empresa, setEmpresa, materiales, setMateriales, recargar }
         </div>
 
         {/* Renderizado de Pantallas */}
-        {tab === 'dashboard' && <AdminDashboard empresaId={session.user.id} />}
+        {tab === 'dashboard' && <AdminDashboard empresaId={session.user.id} empresa={empresa} />}
         {tab === 'clientes' && <AdminClientes empresaId={session.user.id} empresa={empresa} />}
         {tab === 'pedidos' && <AdminPedidos empresaId={session.user.id} />}
         {tab === 'materiales' && <AdminMateriales empresaId={session.user.id} materiales={materiales} setMateriales={setMateriales} recargar={recargar} />}
@@ -1917,7 +1917,7 @@ Quedo atento a las instrucciones. ⚡`;
 // ==========================================
 // ADMIN - DASHBOARD PRO (CON RECHARTS Y DESCARGA)
 // ==========================================
-function AdminDashboard({ empresaId }) {
+function AdminDashboard({ empresaId, empresa }) {
   const [stats, setStats] = useState({
     ventasTotal: 0,
     pedidosTotal: 0,
@@ -2139,6 +2139,15 @@ function AdminDashboard({ empresaId }) {
       <div className="w-full text-center mt-8 pb-4 border-t border-zinc-900 pt-4">
         <p className="text-sm text-zinc-500">
           Tu próxima fecha de corte es el: <span className="text-white font-bold font-mono ml-2">{stats?.empresa?.subscription_end ? new Date(stats.empresa.subscription_end).toLocaleDateString('es-CO') : '...'}</span>
+        </p>
+      </div>
+      {/* PEGA ESTO AQUÍ AL FINAL */}
+      <div className="w-full text-center mt-8 pb-4 border-t border-zinc-900 pt-4">
+        <p className="text-sm text-zinc-500">
+          Tu próxima fecha de corte es el:
+          <span className="text-white font-bold font-mono ml-2">
+            {empresa?.subscription_end ? new Date(empresa.subscription_end).toLocaleDateString('es-CO') : '...'}
+          </span>
         </p>
       </div>
     </div>
